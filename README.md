@@ -9,7 +9,7 @@ The GPS Odometer is a plugin for OpenCPN version 5.0 and higher. It is a simple 
     A Trip reset button that resets Trip, Departure Time and Arrival Time
     An optional Leg Trip time and Distance including a Leg reset button
 
-    The instruments are shown in the above listed order. It is not possible to change the order, only to toggle the optional instruments on and off. The instruments for Total distance, Trip distance plus the Trip reset button can not be toggled off. 
+The instruments are shown in the above listed order. It is not possible to change the order, only to toggle the optional instruments on and off. The instruments for Total distance, Trip distance plus the Trip reset button can not be toggled off. 
 
 The plugin is based on the OpenCPN dashboard plugin as modified by Steven Adler and the idea is to make a GPS based Odometer that is as straight-forward as possible. It has a minimum of bells and whistles to allow for easy use and a minimum of handling. Just leave The GPS Odometer on screen and reset the trip counter once the trip is ended (and log written?) or before the new trip starts.
 
