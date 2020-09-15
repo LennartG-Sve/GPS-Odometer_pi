@@ -30,7 +30,7 @@ The GPS Odometer will not start displaying data until NMEA 0183 GGA is indicatin
 The GPS Odometer will continue to register data even if the NMEA 0183 GGA is no longer flagging a correct GPS signal. This is due to the fact that OpenCPN 'm_NMEA0183.Gga.GPSQuality' does not detect this state change.
 
      
-# Bugs and inconveniences: 
+# Bugs and inconveniences
 Most of these bugs/inconveniences are inherited from the original dashboard. The instrument window downsizing when e.g. removing the speedometer does not downsize properly and I have no clue how to fix it. There are also other minor display size inconveniences inherited but these are corrected just grabbing the lower right corner and adjust the size. Worst case solution is to restart OpenCPN.
 Also, some of the parameters from the Settings menu does not update the instruments until OpenCPN is restarted, like the maximum speed setting in the speedometer.
 
