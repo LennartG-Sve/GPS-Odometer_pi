@@ -60,11 +60,12 @@ The install packages will be generated in
 
 # A final comment
 
-I did this plugin as I needed a simple GPS based Odometer and was surprised not to find it in OpenCPN. The Logbook has the option but I did not need all the other stuff in there and wanted an on-screen solution. 
-Being a former Linux system administrator, never having done anything in C, C++ nor wxWidgets it was quite a challenge. So I admit that this is probably the worst piece of code you have ever seen - but it appears to work. Have tested the GPS Odometer on Ubuntu 18.04 and 20.04 with OpenCPN versions 5.0 and 5.2. I don't own an RPi, a Windows machone nor a MAC so never tested there.
-The application is currently using frontend1 but the intention is to update to frontend2, this to allow for easier installation using the package manager.
+I did this plugin as I wanted a simple GPS based Odometer and was surprised not to find it in OpenCPN. The Logbook has the option but I did not need all the other stuff in there and wanted an on-screen solution. 
+Being a former Linux system administrator, never having done anything in C, C++ nor wxWidgets it was quite a challenge. So I admit that this is probably the worst piece of code you have ever seen - but it appears to work. Have used the GPS Odometer on Ubuntu 18.04 and 20.04 with OpenCPN versions 5.0 and 5.2. I don't own an RPi, a Windows machine nor a MAC so never tested there.
+The application is currently using frontend1 but the intention is eventually to update to frontend2, this to allow for easier installation using the package manager.
 
-Any programmer is encouraged to fork this and 'get it in order' or even take over the whole project, fact is that I even encourage it.
+Any programmer is encouraged to fork this and 'get it in order' or, even better, take over the whole project, fact is I even want that to happen. Fork the code, fix the bugs and inconveniences - as long as the concept is kept I will not mind.
+
 For 'dry-runs' I recommend either trips recorded using OpenCPN VDR plugin or gpsfeed+ in a square pattern (getting various speeds).
 
 Contact: You can PM me through OpenCPN in Cruisers Forum, look for LennartG or use Search -> Advanced search -> Search by user name.
