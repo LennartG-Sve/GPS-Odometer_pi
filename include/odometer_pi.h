@@ -38,11 +38,11 @@
   #include "wx/wx.h"
 #endif //precompiled headers
 
-#define     PLUGIN_VERSION_MAJOR    0
-#define     PLUGIN_VERSION_MINOR    2
+//#define     PLUGIN_VERSION_MAJOR    0
+//#define     PLUGIN_VERSION_MINOR    2
 
-#define     MY_API_VERSION_MAJOR    1
-#define     MY_API_VERSION_MINOR    8
+//#define     MY_API_VERSION_MAJOR    1
+//#define     MY_API_VERSION_MINOR    8
 
 #include <wx/notebook.h>
 #include <wx/fileconf.h>
@@ -52,11 +52,14 @@
 #include <wx/aui/aui.h>
 #include <wx/fontpicker.h>
 
+// Defines version numbers, names etc. for this plugin
+#include "version.h"
+
 // Differs from the built-in plugins, so that we can build outside of OpenCPN source tree
 #include "ocpn_plugin.h"
 
 // NMEA0183 Sentence parsing functions
-#include "nmea0183/nmea0183.h"
+#include "nmea0183.h"
 
 // Odometer instruments/dials/gauges
 #include "instrument.h"
