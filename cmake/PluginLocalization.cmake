@@ -22,13 +22,13 @@ else()
     file(WRITE ${CMAKE_CURRENT_SOURCE_DIR}/po/${PACKAGE_NAME}.pot "")
     message(STATUS "${CMLOC}Creating empty ${CMAKE_CURRENT_SOURCE_DIR}/po/${PACKAGE_NAME}.pot")
 endif()
-foreach(POTLINE IN ITEMS ${SRCS})
+foreach(POTLINE IN ITEMS ${SRC_DASHBOARD})
     file(APPEND ${POTFILE}.test "${POTLINE}\n")
 endforeach(POTLINE)
-foreach(POTLINE IN ITEMS ${HDRS})
+foreach(POTLINE IN ITEMS ${SRC_NMEA0183})
     file(APPEND ${POTFILE}.test "${POTLINE}\n")
 endforeach(POTLINE)
-# convert crlf to lf for consistency and make copy_if_different work correctl							  
+# convert crlf to lf for consistency and make copy_if_different work correctly
 configure_file(${POTFILE}.test ${POTFILE}.test NEWLINE_STYLE UNIX)
 execute_process(COMMAND ${CMAKE_COMMAND} -E copy_if_different ${POTFILE}.test ${POTFILE} OUTPUT_QUIET ERROR_QUIET)
 
