@@ -100,7 +100,7 @@ project(${PACKAGE})
 
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake;")
 
-include("PluginSetup.cmake")
+include("cmake/PluginSetup.cmake")
 
 ##
 ## ----- Modify section below if there are special requirements for the plugin ----- ##
@@ -114,7 +114,7 @@ option(Plugin_CXX11 "Use c++11" OFF)
 ## ----- do not change next section - needed to configure build process ----- ##
 ##
 
-include("PluginConfigure.cmake")
+include("cmake/PluginConfigure.cmake")
 
 ##
 ## ----- Change below to match project requirements for source, headers, etc. ----- ##
@@ -160,7 +160,7 @@ SET(SRC_NMEA0183
 ADD_LIBRARY(${PACKAGE_NAME} SHARED ${SRC_ODOMETER} ${SRC_NMEA0183} )
 
 
-INCLUDE("PluginInstall.cmake")
-INCLUDE("PluginLocalization.cmake")
-INCLUDE("PluginPackage.cmake")
+INCLUDE("cmake/PluginInstall.cmake")
+INCLUDE("cmake/PluginLocalization.cmake")
+INCLUDE("cmake/PluginPackage.cmake")
 
