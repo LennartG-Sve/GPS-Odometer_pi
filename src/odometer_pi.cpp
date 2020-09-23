@@ -41,7 +41,7 @@
 #include <wx/msgdlg.h>  // Message box for test purposes (wxMessageBox)
 
 #include "odometer_pi.h"
-#include "version.h"
+//#include "version.h"
 
 #include <typeinfo>
 #include "icons.h"
@@ -215,7 +215,7 @@ int odometer_pi::Init(void) {
 
     // Add toolbar icon (in SVG format)
     m_toolbar_item_id = InsertPlugInToolSVG(_T(""), normalIcon, rolloverIcon, toggledIcon, wxITEM_CHECK,
-	    _(COMMON_NAME), _T(""), NULL, ODOMETER_TOOL_POSITION, 0, this);
+	    _(PLUGIN_COMMON_NAME), _T(""), NULL, ODOMETER_TOOL_POSITION, 0, this);
 
    
     // Having Loaded the config, then display each of the odometer
