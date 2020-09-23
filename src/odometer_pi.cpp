@@ -215,7 +215,7 @@ int odometer_pi::Init(void) {
 
     // Add toolbar icon (in SVG format)
     m_toolbar_item_id = InsertPlugInToolSVG(_T(""), normalIcon, rolloverIcon, toggledIcon, wxITEM_CHECK,
-	    _T("GPS Odometer"), _T(""), NULL, ODOMETER_TOOL_POSITION, 0, this);
+	    _(COMMON_NAME), _T(""), NULL, ODOMETER_TOOL_POSITION, 0, this);
 
    
     // Having Loaded the config, then display each of the odometer
@@ -275,11 +275,11 @@ void odometer_pi::Notify()
 }
 
 int odometer_pi::GetAPIVersionMajor() {
-    return MY_API_VERSION_MAJOR;
+    return OCPN_API_VERSION_MAJOR;
 }
 
 int odometer_pi::GetAPIVersionMinor() {
-    return MY_API_VERSION_MINOR;
+    return OCPN_API_VERSION_MINOR;
 }
 
 int odometer_pi::GetPlugInVersionMajor() {
@@ -297,15 +297,15 @@ wxBitmap *odometer_pi::GetPlugInBitmap() {
 }
 
 wxString odometer_pi::GetCommonName() {
-    return _("GPS Odometer");
+    return _(PLUGIN_COMMON_NAME);
 }
 
 wxString odometer_pi::GetShortDescription() {
-    return _("GPS Odometer PlugIn for OpenCPN");
+    return _(PLUGIN_SHORT_DESCRIPTION);
 }
 
 wxString odometer_pi::GetLongDescription() {
-    return _("GPS controlled Dashboard based Odometer plugin for OpenCPN\nDisplays GPS calculated Log and Trip information");
+    return _(PLUGIN_LONG_DESCRIPTION);
 }
 
 // Sends the data value from the parsed NMEA sentence to each gauge
