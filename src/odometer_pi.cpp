@@ -199,18 +199,20 @@ int odometer_pi::Init(void) {
     LoadConfig();
 
     // Scaleable Vector Graphics (SVG) icons are stored in the following path.
-	wxString shareLocn = GetPluginDataDir("odometer_pi") +  _T("/data/");
+//	wxString shareLocn = GetPluginDataDir("odometer_pi") +  _T("/data/");
 
-    wxString normalIcon = shareLocn + _T("odometer.svg");
-    wxString toggledIcon = shareLocn + _T("odometer_toggled.svg");
-    wxString rolloverIcon = shareLocn + _T("odometer_rollover.svg");
+    wxString iconFolder = GetPluginDataDir(PLUGIN_PACKAGE_NAME) + wxFileName::GetPathSeparator() + _T("data") + wxFileName::GetPathSeparator();
+
+    wxString normalIcon = iconFolder + _T("gps-odometer.svg");
+    wxString toggledIcon = iconFolder + _T("gps-odometer_toggled.svg");
+    wxString rolloverIcon = iconFolder + _T("gps-odometer_rollover.svg");
  
     // For journeyman styles, we prefer the built-in raster icons which match the rest of the toolbar.
 /*
     if (GetActiveStyleName().Lower() != _T("traditional")) {
-	normalIcon = shareLocn + _T("odometer.svg");
-	toggledIcon = shareLocn + _T("odometer_toggled.svg");
-	rolloverIcon = shareLocn + _T("odometer_rollover.svg");
+	normalIcon = iconFolder + _T("odometer.svg");
+	toggledIcon = iconFolder + _T("odometer_toggled.svg");
+	rolloverIcon = iconFolder + _T("odometer_rollover.svg");
     }   */
 
     // Add toolbar icon (in SVG format)
