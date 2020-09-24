@@ -10,7 +10,7 @@ The GPS Odometer is a plugin for OpenCPN version 5.0 and higher. It is a simple 
     An optional Leg Trip time and Distance including a Leg reset button
 
 This version is simply an extended version of the GPS-Odometer where most of the functionality for frontend 2 has been added. All functions are otherwise the same. 
-It compiles ok, at least on Ubuntu 20.04 but the implemetation is far from complete, mostly due to my limited programming (including AppVeyor, CircleCi and Travis CI) knowledge but also due to the fact that the descriptions I've found so far are mainly for Windows and I'm using linux (Ubuntu 20.04).
+It compiles ok, at least on Ubuntu 20.04 but the implemetation is far from complete, mostly due to my limited programming knowledge (including AppVeyor, CircleCi and Travis Ci), but also due to the fact that the descriptions I've found so far are mainly for Windows and I'm using linux (Ubuntu 20.04).
 
 Any assistance is welcome!
 
