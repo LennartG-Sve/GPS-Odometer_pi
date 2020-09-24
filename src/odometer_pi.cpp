@@ -41,7 +41,6 @@
 #include <wx/msgdlg.h>  // Message box for test purposes (wxMessageBox)
 
 #include "odometer_pi.h"
-//#include "version.h"
 
 #include <typeinfo>
 #include "icons.h"
@@ -174,10 +173,7 @@ odometer_pi::~odometer_pi(void) {
 
 // Initialize the Odometer
 int odometer_pi::Init(void) {
-    AddLocaleCatalog(_T("opencpn-odometer_pi"));
-
-    // Adds local language support for the plugin to OCPN
-//    AddLocaleCatalog( PLUGIN_CATALOG_NAME );
+    AddLocaleCatalog(_T("opencpn-odometer_odometer_pi"));
 
     // Used at startup, once started the plugin only uses version 2 configuration style
     m_config_version = -1;
@@ -215,7 +211,7 @@ int odometer_pi::Init(void) {
 
     // Add toolbar icon (in SVG format)
     m_toolbar_item_id = InsertPlugInToolSVG(_T(""), normalIcon, rolloverIcon, toggledIcon, wxITEM_CHECK,
-	    _(PLUGIN_COMMON_NAME), _T(""), NULL, ODOMETER_TOOL_POSITION, 0, this);
+	    _("GPS Odometer"), _T(""), NULL, ODOMETER_TOOL_POSITION, 0, this);
 
    
     // Having Loaded the config, then display each of the odometer
@@ -275,11 +271,11 @@ void odometer_pi::Notify()
 }
 
 int odometer_pi::GetAPIVersionMajor() {
-    return OCPN_API_VERSION_MAJOR;
+    return MY_API_VERSION_MAJOR;
 }
 
 int odometer_pi::GetAPIVersionMinor() {
-    return OCPN_API_VERSION_MINOR;
+    return MY_API_VERSION_MINOR;
 }
 
 int odometer_pi::GetPlugInVersionMajor() {
@@ -297,15 +293,15 @@ wxBitmap *odometer_pi::GetPlugInBitmap() {
 }
 
 wxString odometer_pi::GetCommonName() {
-    return _(PLUGIN_COMMON_NAME);
+    return _("GPS Odometer");
 }
 
 wxString odometer_pi::GetShortDescription() {
-    return _(PLUGIN_SHORT_DESCRIPTION);
+    return _("GPS Odometer PlugIn for OpenCPN");
 }
 
 wxString odometer_pi::GetLongDescription() {
-    return _(PLUGIN_LONG_DESCRIPTION);
+    return _("GPS controlled Dashboard based Odometer plugin for OpenCPN\nDisplays GPS calculated Log and Trip information");
 }
 
 // Sends the data value from the parsed NMEA sentence to each gauge
@@ -875,7 +871,7 @@ bool odometer_pi::LoadConfig(void) {
             }
 	    
 	    // Note generate a unique GUID for each odometer container
-            OdometerWindowContainer *cont = new OdometerWindowContainer(NULL, MakeName(), _T("GPS Odometer"), _T("V"), ar);
+            OdometerWindowContainer *cont = new OdometerWindowContainer(NULL, MakeName(), _("GPS Odometer"), _T("V"), ar);
             m_ArrayOfOdometerWindow.Add(cont);
             cont->m_bPersVisible = true;
 
@@ -1341,27 +1337,27 @@ void OdometerWindow::OnContextMenu(wxContextMenuEvent& event) {
 
     wxAuiPaneInfo &pane = m_pauimgr->GetPane(this);
     if (pane.IsOk() && pane.IsDocked()) {
-        contextMenu->Append(ID_ODO_UNDOCK, _("Undock"));
+        contextMenu->Append(ID_DASH_UNDOCK, _("Undock"));
     }
-    contextMenu->Append(ID_ODO_PREFS, _("Preferences ..."));
+    contextMenu->Append(ID_DASH_PREFS, _("Preferences ..."));
     PopupMenu(contextMenu);
     delete contextMenu;
 }
 
 void OdometerWindow::OnContextMenuSelect(wxCommandEvent& event) {
-    if (event.GetId() < ID_ODO_PREFS) { 
+    if (event.GetId() < ID_DASH_PREFS) { 
 	// Toggle odometer visibility
         m_plugin->ShowOdometer(event.GetId()-1, event.IsChecked());
         SetToolbarItemState(m_plugin->GetToolbarItemId(), m_plugin->GetOdometerWindowShownCount() != 0);
     }
 
     switch(event.GetId()) {
-        case ID_ODO_PREFS: {
+        case ID_DASH_PREFS: {
             m_plugin->ShowPreferencesDialog(this);
             return; // Does it's own save.
         }
 
-        case ID_ODO_UNDOCK: {
+        case ID_DASH_UNDOCK: {
             ChangePaneOrientation(GetSizerOrientation(), true);
             return;     // Nothing changed so nothing need be saved
         }
