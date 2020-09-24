@@ -30,7 +30,7 @@ set(VERBOSE_NAME "GPS_Odometer")
 set(COMMON_NAME "GPS Odometer")
 set(TITLE_NAME "GPSODOMETER")
 set(PACKAGE_CONTACT "LennartG")
-set(PACKAGE "gps_odometer")
+set(PACKAGE "gps-odometer")
 set(SHORT_DESCRIPTION "GPS Odometer plugin for OpenCPN")
 set(LONG_DESCRIPTION "GPS controlled Dashboard based Odometer plugin for OpenCPN, displays GPS calculated Log and Trip information")
 
@@ -41,7 +41,7 @@ set(VERSION_TWEAK "0")
 set(VERSION_DATE "22/09/2020")
 set(OCPN_MIN_VERSION "ov50")
 set(OCPN_API_VERSION_MAJOR "1")
-set(OCPN_API_VERSION_MINOR "16")
+set(OCPN_API_VERSION_MINOR "8")
 set(TP_COMMENT "  * Release for O5 using CI")
 
 set(PARENT "opencpn")
@@ -129,8 +129,7 @@ add_definitions(-DPLUGIN_USE_SVG)
 ## Need api-16 for ocpn_plugin.h
 INCLUDE_DIRECTORIES(BEFORE ${PROJECT_SOURCE_DIR}/api-16)
 
-INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/nmea0183 ${CMAKE_SOURCE_DIR}/src)
-INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/include)
+INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/include ${CMAKE_SOURCE_DIR}/nmea0183 ${CMAKE_SOURCE_DIR}/src)
 
 SET(SRC_ODOMETER
     src/odometer_pi.cpp
