@@ -38,10 +38,11 @@ set(VERSION_MAJOR "0")
 set(VERSION_MINOR "2")
 set(VERSION_PATCH "0")
 set(VERSION_TWEAK "0")
-set(VERSION_DATE "22/09/2020")
+set(VERSION_DATE "25/09/2020")
 set(OCPN_MIN_VERSION "ov50")
 set(OCPN_API_VERSION_MAJOR "1")
 set(OCPN_API_VERSION_MINOR "8")
+##set(OCPN_API_VERSION_MINOR "16")
 set(TP_COMMENT "  * Release for O5 using CI")
 
 set(PARENT "opencpn")
@@ -56,7 +57,7 @@ set(PROD "prod")    #Standard Repos
 set(BETA "beta")    #Standard Repos
 set(ALPHA "alpha")  #Standard Repos
 
-set(CLOUDSMITH_USER "LennartG")
+set(CLOUDSMITH_USER "lennart-gilander")
 
 # Set if yourCloudsmith Base Repository name does not match your Git Repository name.
 set (CLOUDSMITH_BASE_REPOSITORY "gpsodometer")  #without the pi
