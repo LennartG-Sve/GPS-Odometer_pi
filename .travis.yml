@@ -37,4 +37,8 @@ matrix:
     - travis_wait 120 sleep infinity & bash ./ci/travis-build-raspbian-armhf-part1.sh
     script:
     - travis_wait 120 sleep infinity & bash ./ci/travis-build-raspbian-armhf-part2.sh
-    - bash ./ci/cloudsmith-upload.sh
+    - bash ./ci/cloudsmith-upload
+
+secure: "GGrzYR9Jsbvmp7Mjv7ENWwvvTutbJPPYfDy02ciSc84AH0Vmp76RKWPf7SJgQa0CpewRlrTofNEKKAtSLmYSZzep3Twaq+CYk4anDRBzO803emJiwXBkmX5V4U9X53MRRsk1OIbH69W15lEcgyK7kRgjYha8LBCVyfDjPjwAWazqHwD2KP2cfMzlqc5QlLOyyiLgEo6jYBguxrt/oCmO/E6sEY5okrfIaVp2oE2j90NQuv/ptP5ay12LXmN28Q/a/lA6sXk1SnFkIUA7ZykZRyV4XoOL/jL3hEk3PGfE768fs1+zyJZJVTCfrhBcWRxc+IrE0yjz7bjicz7GMpmA4DBtWi+ItFxFRDNIK7bbp9gBWqB7Nmze/CxY64JuXyQgiOm2fRaPfY7dkST+9E2I7wEsNftlognCbutZrV8mquABJrsY9cAVgAwD1Hp7u4lSX7s3BscHODSwW4qRlR7z8y+LDkSkRgjUM5ietsuU0f9QuPGXsw5tC6nnFPIZ7RlIwTNqsHQ6Hj5D1VvZc1YvuavoQ/GGSNGRj4Vc3i7ToK7386ZEwaBtwVs/UGnqNb3tEqTgSbZLW/cv4MjIbnPkLVxB9aUFoVuC91C5cSUiMn/OqsudGWsaDOMshJxXJKCjvuVsgwifFGySKqYp6Gu4AkumTCFVfx9wc7yDZAdqGhg="
+
+

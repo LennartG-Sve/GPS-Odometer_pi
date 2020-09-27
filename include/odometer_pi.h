@@ -120,7 +120,7 @@ WX_DEFINE_ARRAY(OdometerInstrumentContainer *, wxArrayOfInstrument);
 // Odometer PlugIn Class Definition
 //
 
-class odometer_pi : public opencpn_plugin_18, wxTimer {
+class odometer_pi : public opencpn_plugin_116, wxTimer {
 public:
 	odometer_pi(void *ppimgr);
 	~odometer_pi(void);
