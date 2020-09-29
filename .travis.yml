@@ -52,7 +52,7 @@ deploy:
   file: "$TRAVIS_BUILD_DIR/build/*.{deb,rpm,dmg,txz,pkg,pkg.tar.xz}"
   skip_cleanup: true
   on:
-    repo: LennartG-Sve/GPS-Odometer_pi
+    # repo: LennartG-Sve/GPS-Odometer_pi
     tags: true
     all_branches: true
     
