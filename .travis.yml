@@ -1,59 +1,40 @@
-# ov50 Linux/OSX build - courtesy to https://github.com/seandepagnier and canne
 language: cpp
 
 matrix:
   include:
-    - dist: focal
-      compiler: gcc
-
-install:
-
-    sudo apt-get -qq update;
-    sudo apt-get install libwxbase3.0-0v5 libwxbase3.0-dev wx-common;
-    sudo apt-get install libwxgtk3.0-gtk3-0v5 libwxgtk3.0-gtk3-dev;
-    sudo apt-get install libwxgtk-webview3.0-gtk3-0v5 libwxgtk-webview3.0-gtk3-dev;
-    sudo apt-get install libgps-dev libglu1-mesa-dev libgtk2.0-dev libbz2-dev libtinyxml-dev;
-    sudo apt-get install libexpat1-dev libcairo2-dev;
-    sudo apt-get install rpm;
-
-script:
-  - if [[ "${COVERITY_SCAN_BRANCH}" == 1 ]];
-    then
-      echo "Don't build on coverty_scan branch.";
-      exit 0;
-    fi
-  - mkdir build && cd build
-     cmake -DCMAKE_BUILD_TYPE=Release ../ && make -sj2 package;
-  - ctest -j2
-  - ls -l;
-
-notifications:
-  email: false
-
-git:
-  depth: 10
-
-before_install:
-- if [ "$CXX" = "g++" ]; then export CXX="g++-9" CC="gcc-9"; fi
-
-addons:
-  apt:
-    sources:
-    - ubuntu-toolchain-r-test
-    packages:
-    - gcc-9
-    - g++-9
-
-deploy:
-- provider: releases
-  api_key:
-    secure: "GGrzYR9Jsbvmp7Mjv7ENWwvvTutbJPPYfDy02ciSc84AH0Vmp76RKWPf7SJgQa0CpewRlrTofNEKKAtSLmYSZzep3Twaq+CYk4anDRBzO803emJiwXBkmX5V4U9X53MRRsk1OIbH69W15lEcgyK7kRgjYha8LBCVyfDjPjwAWazqHwD2KP2cfMzlqc5QlLOyyiLgEo6jYBguxrt/oCmO/E6sEY5okrfIaVp2oE2j90NQuv/ptP5ay12LXmN28Q/a/lA6sXk1SnFkIUA7ZykZRyV4XoOL/jL3hEk3PGfE768fs1+zyJZJVTCfrhBcWRxc+IrE0yjz7bjicz7GMpmA4DBtWi+ItFxFRDNIK7bbp9gBWqB7Nmze/CxY64JuXyQgiOm2fRaPfY7dkST+9E2I7wEsNftlognCbutZrV8mquABJrsY9cAVgAwD1Hp7u4lSX7s3BscHODSwW4qRlR7z8y+LDkSkRgjUM5ietsuU0f9QuPGXsw5tC6nnFPIZ7RlIwTNqsHQ6Hj5D1VvZc1YvuavoQ/GGSNGRj4Vc3i7ToK7386ZEwaBtwVs/UGnqNb3tEqTgSbZLW/cv4MjIbnPkLVxB9aUFoVuC91C5cSUiMn/OqsudGWsaDOMshJxXJKCjvuVsgwifFGySKqYp6Gu4AkumTCFVfx9wc7yDZAdqGhg="
-  file_glob: true
-  file: "$TRAVIS_BUILD_DIR/build/*.{deb,rpm,dmg,txz,pkg,pkg.tar.xz}"
-  skip_cleanup: true
-  on:
-    # repo: LennartG-Sve/GPS-Odometer_pi
-    tags: true
-    all_branches: true
-    
-
+# The following 2 env: sections are now being done in circleci but are left here for examples
+#  - env:
+#    - OCPN_TARGET=stretch-armhf
+#    - DOCKER_IMAGE=raspbian/stretch
+#    - BUILD_FLAGS="-j2"
+#    - BUILD_ENV=raspbian
+#    services:
+#    - docker
+#    before_script:
+#    - travis_wait 120 sleep infinity & bash ./ci/travis-build-raspbian-armhf-part1.sh
+#    script:
+#    - travis_wait 120 sleep infinity & bash ./ci/travis-build-raspbian-armhf-part2.sh
+#  - env:
+#    - OCPN_TARGET=buster-armhf
+#    - DOCKER_IMAGE=jongough/raspbian-buster:plugin_build_tooling_current
+#    - BUILD_FLAGS=-j2
+#    - BUILD_ENV=raspbian
+#    services:
+#    - docker
+#    before_script:
+#    - travis_wait 120 sleep infinity & bash ./ci/travis-build-raspbian-armhf-part1.sh
+#    script:
+#    - travis_wait 120 sleep infinity & bash ./ci/travis-build-raspbian-armhf-part2.sh
+# The following env: section is for arm64 and cannot yet be run in circleci
+  - env:
+    - OCPN_TARGET=bionic-armh64
+    - DOCKER_IMAGE=arm64v8/ubuntu:18.04
+    - BUILD_FLAGS=-j2
+    - BUILD_ENV=ubuntu
+    services:
+    - docker
+    before_script:
+    - travis_wait 120 sleep infinity & bash ./ci/travis-build-raspbian-armhf-part1.sh
+    script:
+    - travis_wait 120 sleep infinity & bash ./ci/travis-build-raspbian-armhf-part2.sh
+    - bash ./ci/cloudsmith-upload.sh
