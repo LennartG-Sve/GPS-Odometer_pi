@@ -62,9 +62,9 @@ set(CLOUDSMITH_USER "steven-adler")
 set (CLOUDSMITH_BASE_REPOSITORY "gps-odometer-fe2")  #without the pi
 
 ## Preliminaru, not yet applicable
-#set(XML_INFO_URL "https://opencpn.org/wiki/dokuwiki/doku.php?id=opencpn:opencpn_user_manual:plugins:other:gpsodometer_pi") 
-#set(XML_SUMMARY ${SHORT_DESCRIPTION})
-#set(XML_DESCRIPTION ${LONG_DESCRIPTION})
+set(XML_INFO_URL "https://opencpn.org/wiki/dokuwiki/doku.php?id=opencpn:opencpn_user_manual:plugins:other:gpsodometer_pi") 
+set(XML_SUMMARY ${SHORT_DESCRIPTION})
+set(XML_DESCRIPTION ${LONG_DESCRIPTION})
 
 ##
 ## ----- Modify section below if there are special requirements for the plugin ----- ##
