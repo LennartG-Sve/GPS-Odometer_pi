@@ -56,7 +56,7 @@ set(PROD "prod")    #Standard Repos
 set(BETA "beta")    #Standard Repos
 set(ALPHA "alpha")  #Standard Repos
 
-set(CLOUDSMITH_USER "steven-adler")
+set(CLOUDSMITH_USER "twocan") #Match the cloudsmith org name, not the user.
 
 # Set if yourCloudsmith Base Repository name does not match your Git Repository name.
 set (CLOUDSMITH_BASE_REPOSITORY "gps-odometer-fe2")  #without the pi
