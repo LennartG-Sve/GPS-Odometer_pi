@@ -56,10 +56,10 @@ set(PROD "prod")    #Standard Repos
 set(BETA "beta")    #Standard Repos
 set(ALPHA "alpha")  #Standard Repos
 
-set(CLOUDSMITH_USER "lennart-gilander")
+set(CLOUDSMITH_USER "steven-adler")
 
 # Set if yourCloudsmith Base Repository name does not match your Git Repository name.
-set (CLOUDSMITH_BASE_REPOSITORY "gpsodometer")  #without the pi
+set (CLOUDSMITH_BASE_REPOSITORY "gps-odometer-fe2")  #without the pi
 
 ## Preliminaru, not yet applicable
 #set(XML_INFO_URL "https://opencpn.org/wiki/dokuwiki/doku.php?id=opencpn:opencpn_user_manual:plugins:other:gpsodometer_pi") 
