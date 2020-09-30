@@ -59,7 +59,7 @@ set(ALPHA "alpha")  #Standard Repos
 set(CLOUDSMITH_USER "twocan") #Match the cloudsmith org name, not the user.
 
 # Set if yourCloudsmith Base Repository name does not match your Git Repository name.
-set (CLOUDSMITH_BASE_REPOSITORY "gps-odometer-fe2")  #without the pi
+set (CLOUDSMITH_BASE_REPOSITORY "gps-odometer")  # match the package name so that plugn manager scripts work
 
 ## Preliminaru, not yet applicable
 set(XML_INFO_URL "https://opencpn.org/wiki/dokuwiki/doku.php?id=opencpn:opencpn_user_manual:plugins:other:gpsodometer_pi") 
