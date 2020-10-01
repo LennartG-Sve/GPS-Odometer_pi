@@ -84,7 +84,7 @@ class NMEA0183
       virtual ~NMEA0183();
 
       /*
-      ** NMEA 0183 used by the odometer.
+      ** NMEA 0183 used by the odometer dashboard.
 	  ** Almost all of the sentences used by thge original dashboard have been omitted
       */
 //	    XDR Xdr;

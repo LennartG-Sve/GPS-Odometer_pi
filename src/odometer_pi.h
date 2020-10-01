@@ -3,7 +3,7 @@
 // based on the original version of the dashboard.
 //
 /******************************************************************************
- * $Id: odometer_pi.h, v1.0 2010/08/05 SethDart Exp $
+ * $Id: dashboard_pi.h, v1.0 2010/08/05 SethDart Exp $
  *
  * Project:  OpenCPN
  * Purpose:  Dashboard Plugin
@@ -301,10 +301,10 @@ enum {
 };
 
 enum {
-	ID_ODO_PREFS = 999,
-//	ID_DASH_VERTICAL,
-//	ID_DASH_HORIZONTAL,
-	ID_ODO_UNDOCK
+	ID_DASH_PREFS = 999,
+	ID_DASH_VERTICAL,
+	ID_DASH_HORIZONTAL,
+	ID_DASH_UNDOCK
 };
 
 enum {

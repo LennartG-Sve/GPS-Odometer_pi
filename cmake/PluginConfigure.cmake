@@ -1,27 +1,27 @@
 ##---------------------------------------------------------------------------
-## Author:      Sean D'Epagnier
-## Copyright:
+## Author:      Pavel Kalian (Based on the work of Sean D'Epagnier)
+## Copyright:   2014
 ## License:     GPLv3+
 ##---------------------------------------------------------------------------
 
+SET(PLUGIN_SOURCE_DIR .)
+include  ("VERSION.cmake")
+
 # This should be 2.8.0 to have FindGTK2 module
+IF (COMMAND cmake_policy)
+  CMAKE_POLICY(SET CMP0003 OLD)
+  CMAKE_POLICY(SET CMP0005 OLD)
+  CMAKE_POLICY(SET CMP0011 OLD)
+ENDIF (COMMAND cmake_policy)
 
 MESSAGE (STATUS "*** Staging to build ${PACKAGE_NAME} ***")
 
-# include  ("VERSION.cmake")
+configure_file(cmake/version.h.in ${PROJECT_SOURCE_DIR}/src/version.h)
 
-#  Do the version.h configuration into the build output directory,
-#  thereby allowing building from a read-only source tree.
-IF(NOT SKIP_VERSION_CONFIG)
-    configure_file(${PROJECT_SOURCE_DIR}/cmake/version.h.in ${CMAKE_CURRENT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/include/version.h)
-    INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/include)
-ENDIF(NOT SKIP_VERSION_CONFIG)
-
-SET(PACKAGE_VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}" )
-
+SET(PACKAGE_VERSION "${PLUGIN_VERSION_MAJOR}.${PLUGIN_VERSION_MINOR}.${PLUGIN_VERSION_PATCH}")
 
 #SET(CMAKE_BUILD_TYPE Debug)
-#SET(CMAKE_VERBOSE_MAKEFILE ON)
+SET(CMAKE_VERBOSE_MAKEFILE ON)
 
 INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/src)
 
@@ -33,7 +33,7 @@ IF(NOT MSVC)
   ADD_DEFINITIONS( "-Wall -g -fprofile-arcs -ftest-coverage -fexceptions" )
  ELSE(PROFILING)
 #  ADD_DEFINITIONS( "-Wall -g -fexceptions" )
- ADD_DEFINITIONS( "-Wall -Wno-unused-result -g -O2 -fexceptions" )
+ ADD_DEFINITIONS( "-Wall -Wno-unused-result -g -O2 -fexceptions -fPIC" )
  ENDIF(PROFILING)
 
  IF(NOT APPLE)
@@ -50,90 +50,20 @@ IF(MSVC)
     ADD_DEFINITIONS(-D_CRT_NONSTDC_NO_DEPRECATE -D_CRT_SECURE_NO_DEPRECATE)
 ENDIF(MSVC)
 
-IF(NOT DEFINED wxWidgets_USE_FILE)
-  SET(wxWidgets_USE_LIBS base core net xml html adv aui)
-ENDIF(NOT DEFINED wxWidgets_USE_FILE)
+SET_PROPERTY(GLOBAL PROPERTY TARGET_SUPPORTS_SHARED_LIBS TRUE)
+SET(BUILD_SHARED_LIBS "ON")
 
 
 #  QT_ANDROID is a cross-build, so the native FIND_PACKAGE(wxWidgets...) and wxWidgets_USE_FILE is not useful.
-#  We add the dependencies manually.
-IF(QT_ANDROID)
-  ADD_DEFINITIONS(-D__WXQT__)
-  ADD_DEFINITIONS(-D__OCPN__ANDROID__)
-  ADD_DEFINITIONS(-DOCPN_USE_WRAPPER)
-  ADD_DEFINITIONS(-DANDROID)
+IF(NOT QT_ANDROID)
+IF(NOT DEFINED wxWidgets_USE_FILE)
+  SET(wxWidgets_USE_LIBS base core net xml html adv aui)
+  SET(BUILD_SHARED_LIBS TRUE)
+  FIND_PACKAGE(wxWidgets REQUIRED)
+ENDIF(NOT DEFINED wxWidgets_USE_FILE)
 
-  SET(CMAKE_CXX_FLAGS "-pthread -fPIC -O2 -g")
-
-  ## Compiler flags
-  SET(CMAKE_EXE_LINKER_FLAGS "-s")  ## Strip binary
-
-  ADD_DEFINITIONS(-DocpnUSE_GLES)
-  ADD_DEFINITIONS(-DocpnUSE_GL)
-  ADD_DEFINITIONS(-DARMHF)
-
-  SET(OPENGLES_FOUND "YES")
-  SET(OPENGL_FOUND "YES")
-    
-  MESSAGE (STATUS "Using GLESv2 for Android")
-  ADD_DEFINITIONS(-DUSE_ANDROID_GLES2)
-  ADD_DEFINITIONS(-DUSE_GLSL)
-  ADD_DEFINITIONS("-Wno-inconsistent-missing-override -Wno-potentially-evaluated-expression")
-  SET(QT_LINUX "OFF")
-  SET(QT "ON")
-  SET(CMAKE_SKIP_BUILD_RPATH  TRUE)
-  ADD_DEFINITIONS(-DQT_WIDGETS_LIB)
-
-  IF(_wx_selected_config MATCHES "androideabi-qt-arm64")
-   INCLUDE_DIRECTORIES("${OCPN_Android_Common}/qt5/build_arm64_O3/qtbase/include")
-   INCLUDE_DIRECTORIES("${OCPN_Android_Common}/qt5/build_arm64_O3/qtbase/include/QtCore")
-   INCLUDE_DIRECTORIES("${OCPN_Android_Common}/qt5/build_arm64_O3/qtbase/include/QtWidgets")
-   INCLUDE_DIRECTORIES("${OCPN_Android_Common}/qt5/build_arm64_O3/qtbase/include/QtGui")
-   INCLUDE_DIRECTORIES("${OCPN_Android_Common}/qt5/build_arm64_O3/qtbase/include/QtOpenGL")
-   INCLUDE_DIRECTORIES("${OCPN_Android_Common}/qt5/build_arm64_O3/qtbase/include/QtTest")
-
-   INCLUDE_DIRECTORIES( "${OCPN_Android_Common}/wxWidgets/libarm64/wx/include/arm-linux-androideabi-qt-unicode-static-3.1")
-   INCLUDE_DIRECTORIES( "${OCPN_Android_Common}/wxWidgets/include")
-
-   
-   SET(OCPN_Core_LIBRARIES
-                ${CMAKE_CURRENT_SOURCE_DIR}/${OCPN_Android_Common}/qt5/build_arm64_O3/qtbase/lib/libQt5Core.so
-                ${CMAKE_CURRENT_SOURCE_DIR}/${OCPN_Android_Common}/qt5/build_arm64_O3/qtbase/lib/libQt5OpenGL.so
-                ${CMAKE_CURRENT_SOURCE_DIR}/${OCPN_Android_Common}/qt5/build_arm64_O3/qtbase/lib/libQt5Widgets.so
-                ${CMAKE_CURRENT_SOURCE_DIR}/${OCPN_Android_Common}/qt5/build_arm64_O3/qtbase/lib/libQt5Gui.so
-                ${CMAKE_CURRENT_SOURCE_DIR}/${OCPN_Android_Common}/qt5/build_arm64_O3/qtbase/lib/libQt5AndroidExtras.so
-
-                libGLESv2.so
-                libEGL.so
-                )
-
-  ELSE(_wx_selected_config MATCHES "androideabi-qt-arm64")
-   INCLUDE_DIRECTORIES("${OCPN_Android_Common}/qt5/build_arm32_19_O3/qtbase/include")
-   INCLUDE_DIRECTORIES("${OCPN_Android_Common}/qt5/build_arm32_19_O3/qtbase/include/QtCore")
-   INCLUDE_DIRECTORIES("${OCPN_Android_Common}/qt5/build_arm32_19_O3/qtbase/include/QtWidgets")
-   INCLUDE_DIRECTORIES("${OCPN_Android_Common}/qt5/build_arm32_19_O3/qtbase/include/QtGui")
-   INCLUDE_DIRECTORIES("${OCPN_Android_Common}/qt5/build_arm32_19_O3/qtbase/include/QtOpenGL")
-   INCLUDE_DIRECTORIES("${OCPN_Android_Common}/qt5/build_arm32_19_O3/qtbase/include/QtTest")
-
-   INCLUDE_DIRECTORIES( "${OCPN_Android_Common}/wxWidgets/libarmhf/wx/include/arm-linux-androideabi-qt-unicode-static-3.1")
-   INCLUDE_DIRECTORIES( "${OCPN_Android_Common}/wxWidgets/include")
-
-   ADD_DEFINITIONS( -DOCPN_ARMHF )
-  
-   SET(OCPN_Core_LIBRARIES
-                ${CMAKE_CURRENT_SOURCE_DIR}/${OCPN_Android_Common}/qt5/build_arm32_19_O3/qtbase/lib/libQt5Core.so
-                ${CMAKE_CURRENT_SOURCE_DIR}/${OCPN_Android_Common}/qt5/build_arm32_19_O3/qtbase/lib/libQt5OpenGL.so
-                ${CMAKE_CURRENT_SOURCE_DIR}/${OCPN_Android_Common}/qt5/build_arm32_19_O3/qtbase/lib/libQt5Widgets.so
-                ${CMAKE_CURRENT_SOURCE_DIR}/${OCPN_Android_Common}/qt5/build_arm32_19_O3/qtbase/lib/libQt5Gui.so
-                ${CMAKE_CURRENT_SOURCE_DIR}/${OCPN_Android_Common}/qt5/build_arm32_19_O3/qtbase/lib/libQt5AndroidExtras.so
-
-                libGLESv2.so
-                libEGL.so
-                )
-  
-  ENDIF(_wx_selected_config MATCHES "androideabi-qt-arm64")
-ENDIF(QT_ANDROID)
-
+  INCLUDE(${wxWidgets_USE_FILE})
+ENDIF(NOT QT_ANDROID)
 
 IF(MSYS)
 # this is just a hack. I think the bug is in FindwxWidgets.cmake
@@ -150,25 +80,44 @@ IF(OPENGL_GLU_FOUND)
     INCLUDE_DIRECTORIES(${OPENGL_INCLUDE_DIR})
 
     MESSAGE (STATUS "Found OpenGL..." )
-    #MESSAGE (STATUS "    Lib: " ${OPENGL_LIBRARIES})
-    #MESSAGE (STATUS "    Include: " ${OPENGL_INCLUDE_DIR})
+    MESSAGE (STATUS "    Lib: " ${OPENGL_LIBRARIES})
+    MESSAGE (STATUS "    Include: " ${OPENGL_INCLUDE_DIR})
     ADD_DEFINITIONS(-DocpnUSE_GL)
 ELSE(OPENGL_GLU_FOUND)
     MESSAGE (STATUS "OpenGL not found..." )
 ENDIF(OPENGL_GLU_FOUND)
 ENDIF(NOT QT_ANDROID)
 
+# On Android, PlugIns need a specific linkage set....
+IF (QT_ANDROID )
+  # These libraries are needed to create PlugIns on Android.
 
-IF (NOT QT_ANDROID )
-    if(WXWIDGETS_FORCE_VERSION)
-        set (wxWidgets_CONFIG_OPTIONS --version=${WXWIDGETS_FORCE_VERSION})
-    endif()
-    find_package(wxWidgets COMPONENTS ${wxWidgets_USE_LIBS})
-    INCLUDE(${wxWidgets_USE_FILE})
-ENDIF (NOT QT_ANDROID )
+  SET(OCPN_Core_LIBRARIES
+        # Presently, Android Plugins are built in the core tree, so the variables {wxQT_BASE}, etc.
+        # flow to this module from above.  If we want to build Android plugins out-of-core, this will need improvement.
 
+        # TODO This is pretty ugly, but there seems no way to avoid specifying a full path in a cross build....
+        /home/dsr/Projects/opencpn_sf/opencpn/build-opencpn-Android_for_armeabi_v7a_GCC_4_8_Qt_5_5_0-Debug/libopencpn.so
 
-ADD_DEFINITIONS(-DBUILDING_PLUGIN)
+        ${wxQt_Base}/${wxQt_Build}/lib/libwx_baseu-3.1-arm-linux-androideabi.a
+        ${wxQt_Base}/${wxQt_Build}/lib/libwx_qtu_core-3.1-arm-linux-androideabi.a
+        ${wxQt_Base}/${wxQt_Build}/lib/libwx_qtu_html-3.1-arm-linux-androideabi.a
+        ${wxQt_Base}/${wxQt_Build}/lib/libwx_baseu_xml-3.1-arm-linux-androideabi.a
+        ${wxQt_Base}/${wxQt_Build}/lib/libwx_qtu_qa-3.1-arm-linux-androideabi.a
+        ${wxQt_Base}/${wxQt_Build}/lib/libwx_qtu_adv-3.1-arm-linux-androideabi.a
+        ${wxQt_Base}/${wxQt_Build}/lib/libwx_qtu_aui-3.1-arm-linux-androideabi.a
+        ${wxQt_Base}/${wxQt_Build}/lib/libwx_baseu_net-3.1-arm-linux-androideabi.a
+        ${wxQt_Base}/${wxQt_Build}/lib/libwx_qtu_gl-3.1-arm-linux-androideabi.a
+        ${Qt_Base}/android_armv7/lib/libQt5Core.so
+        ${Qt_Base}/android_armv7/lib/libQt5OpenGL.so
+        ${Qt_Base}/android_armv7/lib/libQt5Widgets.so
+        ${Qt_Base}/android_armv7/lib/libQt5Gui.so
+        ${Qt_Base}/android_armv7/lib/libQt5AndroidExtras.so
+
+        #${NDK_Base}/sources/cxx-stl/gnu-libstdc++/4.8/libs/armeabi-v7a/libgnustl_shared.so
+        )
+
+ENDIF(QT_ANDROID)
 
 
 SET(BUILD_SHARED_LIBS TRUE)

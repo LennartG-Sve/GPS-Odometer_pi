@@ -6,20 +6,23 @@
 
 # build a CPack driven installer package
 #include (InstallRequiredSystemLibraries)
+IF (COMMAND cmake_policy)
+  CMAKE_POLICY(SET CMP0002 OLD)
+ENDIF (COMMAND cmake_policy)
 
 SET(CPACK_PACKAGE_NAME "${PACKAGE_NAME}")
 SET(CPACK_PACKAGE_VENDOR "opencpn.org")
 SET(CPACK_PACKAGE_DESCRIPTION_SUMMARY ${CPACK_PACKAGE_NAME} ${PACKAGE_VERSION})
-SET(CPACK_PACKAGE_VERSION ${PACKAGE_VERSION})
-SET(CPACK_PACKAGE_VERSION_MAJOR ${VERSION_MAJOR})
-SET(CPACK_PACKAGE_VERSION_MINOR ${VERSION_MINOR})
-SET(CPACK_PACKAGE_VERSION_PATCH ${VERSION_PATCH})
+SET(CPACK_PACKAGE_VERSION ${PACKAGE_VERSION}-${NAME_SUFFIX})
+SET(CPACK_PACKAGE_VERSION_MAJOR ${PLUGIN_VERSION_MAJOR})
+SET(CPACK_PACKAGE_VERSION_MINOR ${PLUGIN_VERSION_MINOR})
+SET(CPACK_PACKAGE_VERSION_PATCH ${PLUGIN_VERSION_PATCH})
 SET(CPACK_INSTALL_CMAKE_PROJECTS "${CMAKE_CURRENT_BINARY_DIR};${PACKAGE_NAME};ALL;/")
 SET(CPACK_PACKAGE_EXECUTABLES OpenCPN ${PACKAGE_NAME})
 
 IF(WIN32)
-  #  The TGZ (tar.gz) is used by experimental plugin manager,
-  SET(CPACK_GENERATOR "NSIS;TGZ")
+# to protect against confusable windows users, let us _not_ generate zip packages
+#  SET(CPACK_GENERATOR "NSIS;ZIP")
 
   # override install directory to put package files in the opencpn directory
   SET(CPACK_PACKAGE_INSTALL_DIRECTORY "OpenCPN")
@@ -28,10 +31,7 @@ IF(WIN32)
 # CPACK_BUILDWIN_DIR ??
 # CPACK_PACKAGE_ICON ??
 
-  #SET(CPACK_PACKAGE_NAME "${PACKAGE_NAME}-ov50")
-  #SET(CPACK_NSIS_PACKAGE_NAME "${PACKAGE_NAME}-ov50")
-  #SET(CPACK_PACKAGE_VERSION_PATCH ${VERSION_PATCH}-ov50 )
-  SET(CPACK_PACKAGE_VERSION "${PACKAGE_VERSION}-${OCPN_MIN_VERSION}")
+  SET(CPACK_NSIS_PACKAGE_NAME "${PACKAGE_NAME}")
 
   # Let cmake find NSIS.template.in
   SET(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/buildwin")
@@ -39,8 +39,6 @@ IF(WIN32)
 #  These lines set the name of the Windows Start Menu shortcut and the icon that goes with it
 #  SET(CPACK_NSIS_INSTALLED_ICON_NAME "${PACKAGE_NAME}")
 SET(CPACK_NSIS_DISPLAY_NAME "OpenCPN ${PACKAGE_NAME}")
-
-#  SET(CPACK_PACKAGE_FILE_NAME "${PACKAGE_NAME}_${VERSION_MAJOR}.${VERSION_MINOR}_setup" )
 
   SET(CPACK_NSIS_DIR "${PROJECT_SOURCE_DIR}/buildwin/NSIS_Unicode")  #Gunther
   SET(CPACK_BUILDWIN_DIR "${PROJECT_SOURCE_DIR}/buildwin")  #Gunther
@@ -82,18 +80,14 @@ IF(UNIX AND NOT APPLE)
 
 
   IF (CMAKE_SYSTEM_PROCESSOR MATCHES "arm*")
-    IF (CMAKE_SIZEOF_VOID_P MATCHES "8")
-      SET (ARCH "arm64")
-    ELSE ()
-      SET (ARCH "armhf")
-    ENDIF ()
+    SET (ARCH "armhf")
     # don't bother with rpm on armhf
-    SET(CPACK_GENERATOR "DEB;TGZ")
+    SET(CPACK_GENERATOR "DEB;RPM;TBZ2")
   ELSE ()
-    SET(CPACK_GENERATOR "DEB;TGZ")
+    SET(CPACK_GENERATOR "DEB;RPM;TBZ2")
 
     IF (CMAKE_SIZEOF_VOID_P MATCHES "8")
-      SET (ARCH "x86_64")
+      SET (ARCH "amd64")
       SET(CPACK_RPM_PACKAGE_ARCHITECTURE "x86_64")
     ELSE (CMAKE_SIZEOF_VOID_P MATCHES "8")
       SET (ARCH "i386")
@@ -104,18 +98,11 @@ IF(UNIX AND NOT APPLE)
 
     SET(CPACK_DEBIAN_PACKAGE_DEPENDS ${PACKAGE_DEPS})
     SET(CPACK_DEBIAN_PACKAGE_RECOMMENDS ${PACKAGE_RECS})
-
-    if(ARCH MATCHES "x86_64")
-      set(CPACK_DEBIAN_PACKAGE_ARCHITECTURE "amd64")
-    else()
-      set(CPACK_DEBIAN_PACKAGE_ARCHITECTURE ${ARCH})
-    endif()  
-
+    SET(CPACK_DEBIAN_PACKAGE_ARCHITECTURE ${ARCH})
     SET(CPACK_DEBIAN_PACKAGE_VERSION "${CPACK_PACKAGE_VERSION}")
     SET(CPACK_DEBIAN_PACKAGE_SECTION "misc")
     SET(CPACK_DEBIAN_COMPRESSION_TYPE "xz") # requires my patches to cmake
 
-#    SET(CPACK_CMAKE_GENERATOR Ninja)
     SET(CPACK_RPM_PACKAGE_VERSION "${CPACK_PACKAGE_VERSION}")
     SET(CPACK_RPM_PACKAGE_REQUIRES  ${PACKAGE_DEPS})
 #    SET(CPACK_RPM_PACKAGE_GROUP "Applications/Engineering")
@@ -127,6 +114,7 @@ IF(UNIX AND NOT APPLE)
     SET(CPACK_PACKAGE_DESCRIPTION_SUMMARY "${PACKAGE_NAME} PlugIn for OpenCPN")
     SET(CPACK_PACKAGE_DESCRIPTION "${PACKAGE_NAME} PlugIn for OpenCPN")
 #    SET(CPACK_SET_DESTDIR ON)
+    SET(CPACK_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}")
 
 
     SET(CPACK_PACKAGE_FILE_NAME "${PACKAGE_NAME}_${PACKAGE_VERSION}-${PACKAGE_RELEASE}_${ARCH}" )
@@ -157,41 +145,24 @@ ENDIF(TWIN32 AND NOT UNIX)
 # apparently, the base CMakeLists.txt file must have "some" target to activate all the clean steps.
 #ADD_CUSTOM_TARGET(dummy COMMENT "dummy: Done." DEPENDS ${PACKAGE_NAME})
 
-SET(CPACK_PACKAGE_DESCRIPTION_SUMMARY "${PACKAGE_NAME} S63 chart PlugIn for OpenCPN")
-SET(CPACK_PACKAGE_DESCRIPTION "${PACKAGE_NAME} S63 chart PlugIn for OpenCPN")
-SET(CPACK_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}")
 
-SET(CPACK_PACKAGE_FILE_NAME "${PKG_NVR}_${PKG_TARGET}-${PKG_TARGET_VERSION}")
-  
 INCLUDE(CPack)
 
-
+IF(NOT STANDALONE MATCHES "BUNDLED")
 IF(APPLE)
+MESSAGE (STATUS "*** Staging to build PlugIn OSX Package ***")
 
- #  Copy a few generic files so the Packages installer builder can find them relative to ${CMAKE_CURRENT_BINARY_DIR}
+ #  Copy a bunch of files so the Packages installer builder can find them
+ #  relative to ${CMAKE_CURRENT_BINARY_DIR}
  #  This avoids absolute paths in the chartdldr_pi.pkgproj file
 
-configure_file(${PROJECT_SOURCE_DIR}/cmake/gpl.txt ${CMAKE_CURRENT_BINARY_DIR}/license.txt COPYONLY)
+configure_file(${PROJECT_SOURCE_DIR}/cmake/gpl.txt
+            ${CMAKE_CURRENT_BINARY_DIR}/license.txt COPYONLY)
 
-configure_file(${PROJECT_SOURCE_DIR}/buildosx/InstallOSX/pkg_background.jpg ${CMAKE_CURRENT_BINARY_DIR}/pkg_background.jpg COPYONLY)
-#configure_file(${PROJECT_SOURCE_DIR}/buildosx/InstallOSX/SG-LockV1.4.mpkg ${CMAKE_CURRENT_BINARY_DIR}/SG-LockV1.4.mpkg COPYONLY)
-#configure_file(${PROJECT_SOURCE_DIR}/buildosx/InstallOSX/SGLockInstall.scptd ${CMAKE_CURRENT_BINARY_DIR}/SGLockInstall.scptd COPYONLY)
-#configure_file(${PROJECT_SOURCE_DIR}/buildosx/InstallOSX/sgli ${CMAKE_CURRENT_BINARY_DIR}/sgli COPYONLY)
-
-  # This is a bit of a hack...
-  # We need to copy the helper utility to the binary build directory so that the PACKAGES scripts will find it.
-  # Would be nicer if this could be specified from the top level cmake file, so that this file remains generic...
-#configure_file(${PROJECT_SOURCE_DIR}/buildosx/oeserverd/oeserverd
-#            ${CMAKE_CURRENT_BINARY_DIR}/oeserverd COPYONLY)
-
-#configure_file(${PROJECT_SOURCE_DIR}/src/rrc_eula_ChartSetsForOpenCPN.txt
-#            ${CMAKE_CURRENT_BINARY_DIR} COPYONLY)
-            
-            
  # Patch the pkgproj.in file to make the output package name conform to Xxx-Plugin_x.x.pkg format
  #  Key is:
  #  <key>NAME</key>
- #  <string>${VERBOSE_NAME}-Plugin_${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}</string>
+ #  <string>${VERBOSE_NAME}-Plugin_${VERSION_MAJOR}.${VERSION_MINOR}</string>
 
  configure_file(${PROJECT_SOURCE_DIR}/buildosx/InstallOSX/${PACKAGE_NAME}.pkgproj.in
             ${CMAKE_CURRENT_BINARY_DIR}/${VERBOSE_NAME}.pkgproj)
@@ -207,6 +178,6 @@ configure_file(${PROJECT_SOURCE_DIR}/buildosx/InstallOSX/pkg_background.jpg ${CM
  ADD_CUSTOM_TARGET(create-pkg COMMENT "create-pkg: Done."
  DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${VERBOSE_NAME}-Plugin.pkg )
 
- SET(CPACK_GENERATOR "TGZ")
 
 ENDIF(APPLE)
+ENDIF(NOT STANDALONE MATCHES "BUNDLED")
