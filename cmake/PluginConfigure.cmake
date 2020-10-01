@@ -507,4 +507,3 @@ endif(
 find_package(Gettext REQUIRED)
 
 set(CMLOC ${SAVE_CMLOC})
-

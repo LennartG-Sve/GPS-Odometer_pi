@@ -197,7 +197,7 @@ int odometer_pi::Init(void) {
     // Scaleable Vector Graphics (SVG) icons are stored in the following path.
 //	wxString shareLocn = GetPluginDataDir("odometer_pi") +  _T("/data/");
 
-    wxString iconFolder = GetPluginDataDir(PLUGIN_PACKAGE_NAME) + wxFileName::GetPathSeparator() + _T("data") + wxFileName::GetPathSeparator();
+    wxString iconFolder = GetPluginDataDir("gps-odometer_pi") + wxFileName::GetPathSeparator() + _T("data") + wxFileName::GetPathSeparator();
 
     wxString normalIcon = iconFolder + _T("gps-odometer.svg");
     wxString toggledIcon = iconFolder + _T("gps-odometer_toggled.svg");
@@ -273,11 +273,11 @@ void odometer_pi::Notify()
 }
 
 int odometer_pi::GetAPIVersionMajor() {
-    return MY_API_VERSION_MAJOR;
+    return OCPN_API_VERSION_MAJOR;
 }
 
 int odometer_pi::GetAPIVersionMinor() {
-    return MY_API_VERSION_MINOR;
+    return OCPN_API_VERSION_MINOR;
 }
 
 int odometer_pi::GetPlugInVersionMajor() {
@@ -288,24 +288,24 @@ int odometer_pi::GetPlugInVersionMinor() {
     return PLUGIN_VERSION_MINOR;
 }
 
-// The plugin bitmap is loaded by the call to InitializeImages in icons.cpp
-// Use png2wx.pl perl script to generate the binary data used in icons.cpp
-wxBitmap *odometer_pi::GetPlugInBitmap() {
-    return _img_odometer_colour; 
-}
-
 wxString odometer_pi::GetCommonName() {
     return _T(PLUGIN_COMMON_NAME);
 }
 
 wxString odometer_pi::GetShortDescription() {
-//    return _(PLUGIN_SHORT_DESCRIPTION);
-    return _T(PLUGIN_SHORT_DESCRIPTION);
+    return _(PLUGIN_SHORT_DESCRIPTION);
+//    return _T(PLUGIN_SHORT_DESCRIPTION);
 }
 
 wxString odometer_pi::GetLongDescription() {
-//    return _(PLUGIN_LONG_DESCRIPTION);
-    return _T(PLUGIN_LONG_DESCRIPTION);
+    return _(PLUGIN_LONG_DESCRIPTION);
+//    return _T(PLUGIN_LONG_DESCRIPTION);
+}
+
+// The plugin bitmap is loaded by the call to InitializeImages in icons.cpp
+// Use png2wx.pl perl script to generate the binary data used in icons.cpp
+wxBitmap *odometer_pi::GetPlugInBitmap() {
+    return _img_odometer_colour; 
 }
 
 // Sends the data value from the parsed NMEA sentence to each gauge
