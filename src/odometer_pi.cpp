@@ -161,7 +161,7 @@ wxString MakeName() {
 //
 //---------------------------------------------------------------------------------------------------------
 
-odometer_pi::odometer_pi(void *ppimgr) : opencpn_plugin_18(ppimgr), wxTimer(this) {
+odometer_pi::odometer_pi(void *ppimgr) : opencpn_plugin_116(ppimgr), wxTimer(this) {
     // Create the PlugIn icons
     initialize_images();
 }
@@ -195,18 +195,20 @@ int odometer_pi::Init(void) {
     LoadConfig();
 
     // Scaleable Vector Graphics (SVG) icons are stored in the following path.
-	wxString shareLocn = GetPluginDataDir("odometer_pi") +  _T("/data/");
+//	wxString shareLocn = GetPluginDataDir("odometer_pi") +  _T("/data/");
 
-    wxString normalIcon = shareLocn + _T("odometer.svg");
-    wxString toggledIcon = shareLocn + _T("odometer_toggled.svg");
-    wxString rolloverIcon = shareLocn + _T("odometer_rollover.svg");
+    wxString iconFolder = GetPluginDataDir(PLUGIN_PACKAGE_NAME) + wxFileName::GetPathSeparator() + _T("data") + wxFileName::GetPathSeparator();
+
+    wxString normalIcon = iconFolder + _T("gps-odometer.svg");
+    wxString toggledIcon = iconFolder + _T("gps-odometer_toggled.svg");
+    wxString rolloverIcon = iconFolder + _T("gps-odometer_rollover.svg");
  
     // For journeyman styles, we prefer the built-in raster icons which match the rest of the toolbar.
 /*
     if (GetActiveStyleName().Lower() != _T("traditional")) {
-	normalIcon = shareLocn + _T("odometer.svg");
-	toggledIcon = shareLocn + _T("odometer_toggled.svg");
-	rolloverIcon = shareLocn + _T("odometer_rollover.svg");
+	normalIcon = iconFolder + _T("odometer.svg");
+	toggledIcon = iconFolder + _T("odometer_toggled.svg");
+	rolloverIcon = iconFolder + _T("odometer_rollover.svg");
     }   */
 
     // Add toolbar icon (in SVG format)
@@ -293,15 +295,17 @@ wxBitmap *odometer_pi::GetPlugInBitmap() {
 }
 
 wxString odometer_pi::GetCommonName() {
-    return _("GPS Odometer");
+    return _T(PLUGIN_COMMON_NAME);
 }
 
 wxString odometer_pi::GetShortDescription() {
-    return _("GPS Odometer PlugIn for OpenCPN");
+//    return _(PLUGIN_SHORT_DESCRIPTION);
+    return _T(PLUGIN_SHORT_DESCRIPTION);
 }
 
 wxString odometer_pi::GetLongDescription() {
-    return _("GPS controlled Dashboard based Odometer plugin for OpenCPN\nDisplays GPS calculated Log and Trip information");
+//    return _(PLUGIN_LONG_DESCRIPTION);
+    return _T(PLUGIN_LONG_DESCRIPTION);
 }
 
 // Sends the data value from the parsed NMEA sentence to each gauge

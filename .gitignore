@@ -1,0 +1,7 @@
+.git
+build
+
+.travis.yml.save
+appveyor.yml.save
+CmakeLists.txt.save
+
