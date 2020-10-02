@@ -38,12 +38,11 @@ set(LONG_DESCRIPTION "GPS controlled Dashboard based Odometer plugin for OpenCPN
 set(VERSION_MAJOR "0")
 set(VERSION_MINOR "2")
 set(VERSION_PATCH "0")
-set(VERSION_TWEAK "1")
-set(VERSION_DATE "01/10/2020")
-set(OCPN_MIN_VERSION "ov50")
+set(VERSION_TWEAK "2")
+set(VERSION_DATE "02/10/2020")
+set(OCPN_MIN_VERSION "ov52")
 set(OCPN_API_VERSION_MAJOR "1")
 set(OCPN_API_VERSION_MINOR "16")
-set(TP_COMMENT "  * Release for O5 using CI")
 
 set(PARENT "opencpn")
 
@@ -135,8 +134,10 @@ add_definitions(-DPLUGIN_USE_SVG)
 
 ## Need api-16 for ocpn_plugin.h
 INCLUDE_DIRECTORIES(BEFORE ${PROJECT_SOURCE_DIR}/api-16)
+INCLUDE_DIRECTORIES(BEFORE ${PROJECT_SOURCE_DIR}/src)
+INCLUDE_DIRECTORIES(BEFORE ${PROJECT_SOURCE_DIR}/src/nmea0183)
 
-INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/include ${CMAKE_SOURCE_DIR}/nmea0183 ${CMAKE_SOURCE_DIR}/src)
+#INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/include ${CMAKE_SOURCE_DIR}/src/nmea0183 ${CMAKE_SOURCE_DIR}/src)
 
 SET(SRC_ODOMETER
     src/odometer_pi.cpp
@@ -146,6 +147,7 @@ SET(SRC_ODOMETER
     src/dial.cpp
     src/speedometer.cpp
     src/icons.cpp
+    api-16/ocpn_plugin.h
 )
 
 SET(SRC_NMEA0183
@@ -163,8 +165,20 @@ SET(SRC_NMEA0183
     src/nmea0183/rmc.cpp
 )
 
+SET(HDRS
+    src/button.h
+	src/dial.h
+	src/icons.h
+	src/iirfilter.h
+	src/instrument.h
+	src/odometer_pi.h
+	src/speedometer.h
+	src/nmea0183/nmea0183.h
+	src/nmea0183/SatInfo.h
+)	
+
 ##==========================================================================
-ADD_LIBRARY(${PACKAGE_NAME} SHARED ${SRC_ODOMETER} ${SRC_NMEA0183} )
+ADD_LIBRARY(${PACKAGE_NAME} SHARED ${SRC_ODOMETER} ${SRC_NMEA0183} ${HDRS} )
 ##==========================================================================
 ## These are NOT used in Testplugin, used for other plugins
 ##=======================================
