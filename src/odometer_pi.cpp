@@ -42,6 +42,8 @@
 
 #include "odometer_pi.h"
 
+#include "version.h"
+
 #include <typeinfo>
 #include "icons.h"
 

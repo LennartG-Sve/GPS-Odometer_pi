@@ -37,8 +37,8 @@ set(LONG_DESCRIPTION "GPS controlled Dashboard based Odometer plugin for OpenCPN
 
 set(VERSION_MAJOR "0")
 set(VERSION_MINOR "2")
-set(VERSION_PATCH "0")
-set(VERSION_TWEAK "3")
+set(VERSION_PATCH "1")
+set(VERSION_TWEAK "0")
 set(VERSION_DATE "02/10/2020")
 set(OCPN_MIN_VERSION "ov52")
 set(OCPN_API_VERSION_MAJOR "1")
@@ -72,6 +72,7 @@ set(XML_SUMMARY ${SHORT_DESCRIPTION})
 set(XML_DESCRIPTION ${LONG_DESCRIPTION})
 
 ##
+## ----- Modify section above to include all the details for your plugin ----- ##
 ## ----- Modify section below if there are special requirements for the plugin ----- ##
 ##
 
@@ -132,13 +133,6 @@ include("PluginConfigure")
 ## GPS Odometer plugin uses SVG for toolbar icons
 add_definitions(-DPLUGIN_USE_SVG)
 
-## Need api-16 for ocpn_plugin.h
-INCLUDE_DIRECTORIES(BEFORE ${PROJECT_SOURCE_DIR}/api-16)
-INCLUDE_DIRECTORIES(BEFORE ${PROJECT_SOURCE_DIR}/src)
-INCLUDE_DIRECTORIES(BEFORE ${PROJECT_SOURCE_DIR}/src/nmea0183)
-
-#INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/include ${CMAKE_SOURCE_DIR}/src/nmea0183 ${CMAKE_SOURCE_DIR}/src)
-
 SET(SRC_ODOMETER
     src/odometer_pi.cpp
     src/iirfilter.cpp
@@ -177,6 +171,13 @@ SET(HDRS
 	src/nmea0183/SatInfo.h
 )	
 
+## Need api-16 for ocpn_plugin.h
+INCLUDE_DIRECTORIES(BEFORE ${PROJECT_SOURCE_DIR}/api-16)
+INCLUDE_DIRECTORIES(BEFORE ${PROJECT_SOURCE_DIR}/src)
+INCLUDE_DIRECTORIES(BEFORE ${PROJECT_SOURCE_DIR}/src/nmea0183)
+# INCLUDE_DIRECTORIES(BEFORE ${CMAKE_SOURCE_DIR}/include)
+
+#INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/include ${CMAKE_SOURCE_DIR}/src/nmea0183 ${CMAKE_SOURCE_DIR}/src)
 ##
 ## Statement below is required to collect all the set( headers and SRCS  - Adjust as required
 ## This add_library  can be used in conditionals below.
@@ -186,7 +187,9 @@ SET(HDRS
 ##==========================================================================
 ADD_LIBRARY(${PACKAGE_NAME} SHARED ${SRC_ODOMETER} ${SRC_NMEA0183} ${HDRS} )
 ##==========================================================================
+
 add_definitions(-DTIXML_USE_STL)
+
 ## These are NOT used in Testplugin, used for other plugins
 ##=======================================
 #include("PluginJSON")
