@@ -175,7 +175,7 @@ odometer_pi::~odometer_pi(void) {
 
 // Initialize the Odometer
 int odometer_pi::Init(void) {
-    AddLocaleCatalog(_T("opencpn-odometer_odometer_pi"));
+    AddLocaleCatalog(_T("opencpn-odometer_pi"));
 
     // Used at startup, once started the plugin only uses version 2 configuration style
     m_config_version = -1;

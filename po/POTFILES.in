@@ -1,9 +1,2 @@
-src/button.h
-src/dial.h
-src/icons.h
-src/iirfilter.h
-src/instrument.h
-src/odometer_pi.h
-src/speedometer.h
-src/nmea0183/nmea0183.h
-src/nmea0183/SatInfo.h
+src/instrument.cpp
+src/odometer_pi.cpp
