@@ -72,7 +72,7 @@ OdometerInstrument_Button::OdometerInstrument_Button(wxWindow *pparent, wxWindow
     Connect(wxEVT_PAINT, wxPaintEventHandler(OdometerInstrument::OnPaint));
 
 #ifdef __WXOSX__
-    Connect(wxEVT_RIGHT_DOWN, wxMouseEventHandler(DashOdometerInstrument::MouseEvent), NULL, this);
+    Connect(wxEVT_RIGHT_DOWN, wxMouseEventHandler(OdometerInstrument::MouseEvent), NULL, this);
 #endif
 
 //--------------------------------------------------------------
