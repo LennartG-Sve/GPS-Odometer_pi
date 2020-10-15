@@ -52,7 +52,7 @@ To install as a user application directly usable by OpenCPN now use:
 
 make install
 
-To generate install packages you may use:
+If you prefer install packages, you may use:
 
 cpack
 
