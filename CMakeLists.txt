@@ -38,8 +38,8 @@ set(LONG_DESCRIPTION "GPS controlled Dashboard based Odometer plugin for OpenCPN
 set(VERSION_MAJOR "0")
 set(VERSION_MINOR "2")
 set(VERSION_PATCH "3")
-set(VERSION_TWEAK "0")
-set(VERSION_DATE "12/10/2020")
+set(VERSION_TWEAK "1")
+set(VERSION_DATE "15/10/2020")
 set(OCPN_MIN_VERSION "ov50")
 set(OCPN_API_VERSION_MAJOR "1")
 set(OCPN_API_VERSION_MINOR "16")
@@ -66,8 +66,8 @@ set(CLOUDSMITH_USER "opencpn") #Match the cloudsmith org name, not the user.
 # Set if yourCloudsmith Base Repository name does not match your Git Repository name.
 set (CLOUDSMITH_BASE_REPOSITORY "gps-odometer")  #without the pi
 
-## Preliminaru, not yet applicable
-set(XML_INFO_URL "https://opencpn.org/wiki/dokuwiki/doku.php?id=opencpn:opencpn_user_manual:plugins:other:gpsodometer_pi") 
+## Preliminary, not yet applicable
+set(XML_INFO_URL "https://opencpn.org/wiki/dokuwiki/doku.php?id=opencpn:opencpn_user_manual:plugins:other:odometer") 
 set(XML_SUMMARY ${SHORT_DESCRIPTION})
 set(XML_DESCRIPTION ${LONG_DESCRIPTION})
 
