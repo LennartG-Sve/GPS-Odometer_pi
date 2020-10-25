@@ -11,7 +11,7 @@ The GPS Odometer is a plugin for OpenCPN version 5.0 and higher. It is a simple 
 
 The instruments are shown in the above listed order. It is not possible to change the order, only to toggle the optional instruments on and off. The instruments for Total distance, Trip distance plus the Trip reset button can not be toggled off. 
 
-The plugin is based on the OpenCPN dashboard plugin as modified by Steven Adler and the idea is to make a GPS based Odometer that is as straight-forward as possible. It has a minimum of bells and whistles to allow for easy use and a minimum of handling. Just leave The GPS Odometer on screen and reset the trip counter once the trip is ended (and log written?) or before the new trip starts.
+The plugin is based on the OpenCPN dashboard plugin as modified by Steven Adler and the idea is to make a GPS based Odometer that is as straight-forward as possible. It has a minimum of bells and whistles to allow for easy use and a minimum of handling. Just leave the GPS Odometer on screen and reset the trip counter once the trip is ended (and log written?) or before the new trip starts.
 
 The trip will be considered started as soon as the speed increases above 'Minimum Route Speed', preset to two knots. The date and time will be displayed on the instrument as the upper value for 'Departure & Arrival' times.
 The trip will be considered stopped as soon as the speed decreases below 'Minimum Route Speed' and the date and time will be displayed on the instrument as the lower value for 'Departure & Arrival' times.
@@ -66,7 +66,7 @@ I did this plugin as I wanted a simple GPS based Odometer and was surprised not 
 Being a former Linux system administrator, never having done anything in C, C++ nor wxWidgets it was quite a challenge. So I admit that this is probably the worst piece of code you have ever seen - but it appears to work. Have used the GPS Odometer on Ubuntu 18.04 and 20.04 with OpenCPN versions 5.0 and 5.2. I don't own an RPi, a Windows machine nor a MAC so never tested there.
 
 
-Any programmer is encouraged to fork this and 'get it in order' or even take over the whole project, fact is I want that to happen. Fork the code, fix the bugs and inconveniences - as long as the concept is kept I will not mind.
+Any programmer is encouraged to fork this and 'get it in order', fact is I want that to happen. Fork the code, fix the bugs and inconveniences - as long as the concept is kept I will not mind.
 
 For 'dry-runs' I recommend either trips recorded using OpenCPN VDR plugin or gpsfeed+ in a square pattern (getting various speeds).
 
