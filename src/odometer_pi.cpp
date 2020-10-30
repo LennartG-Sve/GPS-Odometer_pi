@@ -272,6 +272,24 @@ void odometer_pi::Notify()
 	    odometer_window->Refresh();
 	}
 
+    //  Manage the watchdogs, watch messages used
+    mGGA_Watchdog--;
+    if( mGGA_Watchdog <= 0 ) {
+        GPSQuality = 0;
+        mGGA_Watchdog = gps_watchdog_timeout_ticks;
+    }
+
+    mGSV_Watchdog--;
+    if( mGSV_Watchdog <= 0 ) {
+        mSatsInView = m_NMEA0183.Gsv.SatsInView;
+        mGSV_Watchdog = gps_watchdog_timeout_ticks;
+    }
+
+    mRMC_Watchdog--;
+    if( mRMC_Watchdog <= 0 ) {
+        SendSentenceToAllInstruments( OCPN_DBP_STC_SOG, NAN, _T("-") );
+        mRMC_Watchdog = gps_watchdog_timeout_ticks;
+    }
 }
 
 int odometer_pi::GetAPIVersionMajor() {
@@ -328,20 +346,31 @@ void odometer_pi::SetNMEASentence(wxString &sentence)
         if( m_NMEA0183.LastSentenceIDReceived == _T("GGA") ) {
             if( m_NMEA0183.Parse() ) {
                 GPSQuality = m_NMEA0183.Gga.GPSQuality;
+                mGGA_Watchdog = gps_watchdog_timeout_ticks;
             }
         }
 
+        // GSV is currently not used.
+        else if( m_NMEA0183.LastSentenceIDReceived == _T("GSV") ) {
+            if( m_NMEA0183.Parse() ) {
+                mSatsInView = m_NMEA0183.Gsv.SatsInView;
+                mGSV_Watchdog = gps_watchdog_timeout_ticks;
+            }
+        }
+        
         else if (m_NMEA0183.LastSentenceIDReceived == _T("RMC")) {
             if (m_NMEA0183.Parse() ) {
                 if( m_NMEA0183.Rmc.IsDataValid == NTrue ) {
 
-                    // If GGA is missing or invalid you may get random values. Minimize the risk for error.
+                    /* If GGA is missing or invalid you may get random values. 
+                       Minimize the risk for error.  */
+
                     if ((GPSQuality < 5) && (GPSQuality > 0 )) {
 
                         // With SOG filter function
                         SendSentenceToAllInstruments( OCPN_DBP_STC_SOG,
-                            toUsrSpeed_Plugin( mSOGFilter.filter(m_NMEA0183.Rmc.SpeedOverGroundKnots), g_iOdoSpeedUnit ),
-                            getUsrSpeedUnit_Plugin( g_iOdoSpeedUnit ) );
+                            toUsrSpeed_Plugin( mSOGFilter.filter(m_NMEA0183.Rmc.SpeedOverGroundKnots),
+                                g_iOdoSpeedUnit ), getUsrSpeedUnit_Plugin( g_iOdoSpeedUnit ) );
 
                         // Need filterad speed as variable
                         CurrSpeed = toUsrSpeed_Plugin( mSOGFilter.filter(m_NMEA0183.Rmc.SpeedOverGroundKnots) );
@@ -349,14 +378,14 @@ void odometer_pi::SetNMEASentence(wxString &sentence)
                         // Date and time are wxStrings, instruments use double
                         dt = m_NMEA0183.Rmc.Date + m_NMEA0183.Rmc.UTCTime;
                         mUTCDateTime.ParseFormat( dt.c_str(), _T("%d%m%y%H%M%S") );
+                        mRMC_Watchdog = gps_watchdog_timeout_ticks;
                     }
                 }
             }
         } 
     }
 
-    /* If GGA is missing or invalid you may get random values. Minimize the risk for error.
-       NOTE: A lost GGA during a trip will not update the m_NMEA0183.Gga.GPSQuality value BUG?  */
+    /* If GGA is missing or invalid you may get random values. Minimize the risk for error. */
 
     if ((GPSQuality >= 5) || (GPSQuality <= 0 )) {
         GPSQuality = 0; 

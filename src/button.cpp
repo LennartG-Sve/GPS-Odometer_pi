@@ -84,6 +84,7 @@ OdometerInstrument_Button::OdometerInstrument_Button(wxWindow *pparent, wxWindow
     if (m_cap_flag == 32) {
         wxBoxSizer* instrument = new wxBoxSizer(wxVERTICAL);
         wxButton* m_pTripResetButton = new wxButton(this, m_id, _( m_title ), wxDefaultPosition, wxSize(b_width,b_height) );
+        m_pTripResetButton->SetForegroundColour(wxColor(0,0,0));        
         instrument->Add(m_pTripResetButton, 0, wxEXPAND | wxALL, 5 );
 
         m_pTripResetButton->Connect( wxEVT_COMMAND_BUTTON_CLICKED, 
@@ -93,6 +94,7 @@ OdometerInstrument_Button::OdometerInstrument_Button(wxWindow *pparent, wxWindow
     if (m_cap_flag == 256) {
         wxBoxSizer* instrument = new wxBoxSizer(wxVERTICAL);
         wxButton* m_pLegResetButton = new wxButton(this, m_id, _( m_title ), wxDefaultPosition, wxSize(b_width,b_height) );
+        m_pLegResetButton->SetForegroundColour(wxColor(0,0,0));        
         instrument->Add(m_pLegResetButton, 0, wxEXPAND | wxALL, 5 );
 
         m_pLegResetButton->Connect( wxEVT_COMMAND_BUTTON_CLICKED, 
@@ -131,6 +133,7 @@ void OdometerInstrument_Button::SetData(int st, double data, wxString unit) {
 
 void OdometerInstrument_Button::Draw(wxGCDC* dc) {
       wxColour cl;
+
 #ifdef __WXMSW__
       wxBitmap tbm(dc->GetSize().x, m_DataHeight, -1);
       wxMemoryDC tdc(tbm);
@@ -152,9 +155,7 @@ void OdometerInstrument_Button::Draw(wxGCDC* dc) {
       dc->SetFont(*g_pFontData);
       GetGlobalColor(_T("DASHF"), &cl);
       dc->SetTextForeground(cl);
-
       dc->DrawText(m_data, 10, m_TitleHeight);
-
 #endif
 
 }
