@@ -827,7 +827,7 @@ bool odometer_pi::LoadConfig(void) {
     wxFileConfig *pConf = (wxFileConfig *) m_pconfig;
 
     if (pConf) {
-        pConf->SetPath(_T("/PlugIns/libodometer_pi.so"));
+        pConf->SetPath(_T("/PlugIns/gps-odometer_pi.so"));
 
         wxString version;
         pConf->Read(_T("Version"), &version, wxEmptyString);
@@ -983,7 +983,7 @@ bool odometer_pi::SaveConfig(void) {
     wxFileConfig *pConf = (wxFileConfig *) m_pconfig;
 
     if (pConf) {
-        pConf->SetPath(_T("/PlugIns/libodometer_pi.so"));
+        pConf->SetPath(_T("/PlugIns/gps-odometer_pi.so"));
         pConf->Write(_T("Version"), _T("2"));
         pConf->Write(_T("FontTitle"), g_pFontTitle->GetNativeFontInfoDesc());
         pConf->Write(_T("FontData"), g_pFontData->GetNativeFontInfoDesc());
