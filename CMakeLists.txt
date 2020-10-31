@@ -38,7 +38,7 @@ set(LONG_DESCRIPTION "GPS controlled Dashboard based Odometer plugin for OpenCPN
 set(VERSION_MAJOR "0")
 set(VERSION_MINOR "2")
 set(VERSION_PATCH "5")
-set(VERSION_TWEAK "1")
+set(VERSION_TWEAK "2")
 set(VERSION_DATE "31/10/2020")
 set(OCPN_MIN_VERSION "ov50")
 set(OCPN_API_VERSION_MAJOR "1")
@@ -130,8 +130,15 @@ include("PluginConfigure")
 ## GPS Odometer plugin does not understand/use this definition
 ##add_definitions(-DUSE_S57)
 
+# From master branch - is this working? necessary?
 ## GPS Odometer plugin uses SVG for toolbar icons
-add_definitions(-DPLUGIN_USE_SVG)
+IF(PLUGIN_USE_SVG)
+    MESSAGE(STATUS "${CMLOC}SVG support enabled...")
+    IF(NOT QT_ANDROID)
+        ADD_DEFINITIONS(-DPLUGIN_USE_SVG)
+    ENDIF(NOT QT_ANDROID)
+ENDIF(PLUGIN_USE_SVG)
+
 
 SET(SRC_ODOMETER
     src/odometer_pi.cpp

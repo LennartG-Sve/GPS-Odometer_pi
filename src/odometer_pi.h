@@ -170,6 +170,8 @@ public:
 private:
 	// Load plugin configuraton
 	bool LoadConfig(void);
+    void LoadFont(wxFont **target, wxString native_info);
+
 	void ApplyConfig(void);
 	// Send deconstructed NMEA 1083 sentence  values to each display
 	void SendSentenceToAllInstruments(int st, double value, wxString unit);
@@ -254,6 +256,7 @@ public:
 	void OnOdometerSelected(wxListEvent& event);
 	void OnInstrumentSelected(wxListEvent& event);
 	void SaveOdometerConfig(void);
+    void RecalculateSize( void );
 
 	wxArrayOfOdometer m_Config;
 	wxFontPickerCtrl *m_pFontPickerTitle;
@@ -299,10 +302,10 @@ enum {
 };
 
 enum {
-	ID_DASH_PREFS = 999,
-	ID_DASH_VERTICAL,
-	ID_DASH_HORIZONTAL,
-	ID_DASH_UNDOCK
+	ID_ODO_PREFS = 999,
+//	ID_DASH_VERTICAL,
+//	ID_DASH_HORIZONTAL,
+	ID_ODO_UNDOCK
 };
 
 enum {
@@ -338,6 +341,15 @@ public:
 	// TODO: OnKeyPress pass event to main window or disable focus
 
     OdometerWindowContainer *m_Container;
+
+    bool m_binPinch;
+    bool m_binPan;
+    
+    wxPoint m_resizeStartPoint;
+    wxSize m_resizeStartSize;
+    bool m_binResize;
+    bool m_binResize2;
+
 
 private:
 	wxAuiManager *m_pauimgr;

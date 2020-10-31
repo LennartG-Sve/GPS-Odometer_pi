@@ -39,6 +39,10 @@
 #include "instrument.h"
 //#include "wx28compat.h"
 
+#ifdef __OCPN__ANDROID__
+#include "qdebug.h"
+#endif
+
 //----------------------------------------------------------------
 //
 //    Generic OdometerInstrument Implementation
