@@ -169,6 +169,8 @@ public:
 
 private:
 	// Load plugin configuraton
+    wxArrayInt ar;
+//    void DefineInstrumentOrder(wxArrayInt ar);
 	bool LoadConfig(void);
     void LoadFont(wxFont **target, wxString native_info);
 

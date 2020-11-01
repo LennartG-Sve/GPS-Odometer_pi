@@ -972,6 +972,8 @@ bool odometer_pi::LoadConfig(void) {
         // TODO: Memory leak? We should destroy everything first
         m_ArrayOfOdometerWindow.Clear();
         if (version.IsEmpty() && d_cnt == -1) {
+
+        /* TODO Version 1 never genarated in OpenCPN 5.0 or later, section shall be removed
             m_config_version = 1;
             // Let's load version 1 or default settings.
             int i_cnt;
@@ -983,7 +985,8 @@ bool odometer_pi::LoadConfig(void) {
                     pConf->Read(wxString::Format(_T("Instrument%d"), i + 1), &id, -1);
                     if (id != -1) ar.Add(id);
                 }
-            } else {
+            } else {  
+            */
                 // Load the default instrument list, do not change this order!
                 ar.Add( ID_DBP_D_SOG );
                 ar.Add( ID_DBP_I_SUMLOG );
@@ -994,9 +997,9 @@ bool odometer_pi::LoadConfig(void) {
                 ar.Add( ID_DBP_I_LEGDIST );
                 ar.Add( ID_DBP_I_LEGTIME );
                 ar.Add( ID_DBP_B_LEGRES ); 
-            }
+            // }
 	    
-	    // Note generate a unique GUID for each odometer container
+	        // Note generate a unique GUID for each odometer container
             OdometerWindowContainer *cont = new OdometerWindowContainer(NULL, MakeName(), _("GPS Odometer"), _T("V"), ar);
             m_ArrayOfOdometerWindow.Add(cont);
             cont->m_bPersVisible = true;
@@ -1011,8 +1014,8 @@ bool odometer_pi::LoadConfig(void) {
             wxString caption;
             pConf->Read(_T("Caption"), &caption, _("Odometer"));
             wxString orient = "V";
-            int i_cnt;
-            pConf->Read(_T("InstrumentCount"), &i_cnt, -1);
+//            int i_cnt;
+//            pConf->Read(_T("InstrumentCount"), &i_cnt, -1);
             bool b_persist;
             pConf->Read(_T("Persistence"), &b_persist, 0);
             bool b_speedo;
@@ -1022,12 +1025,16 @@ bool odometer_pi::LoadConfig(void) {
             bool b_tripleg;
             pConf->Read( _T("ShowTripLeg"), &b_tripleg, 1);
 
+            // Allways 9 numerically ordered instruments in the array
             wxArrayInt ar;
-            for (int i = 0; i < i_cnt; i++) {
-                int id;
-                pConf->Read(wxString::Format(_T("Instrument%d"), i + 1), &id, -1);
-                if (id != -1) ar.Add(id);
-            }
+            for (int i = 0; i < 9; i++) {
+                ar.Add(i);
+
+//                int id;
+                /* Do not read from config, the order is fixed
+                pConf->Read(wxString::Format(_T("Instrument%d"), i + 1), &id, -1); 
+                if (id != -1) ar.Add(id);   */
+            } 
 
 			// TODO: Do not add if GetCount == 0
 
@@ -1112,11 +1119,12 @@ bool odometer_pi::SaveConfig(void) {
         pConf->Write(_T("ShowSpeedometer"), cont->m_bShowSpeed);
         pConf->Write(_T("ShowDepArrTimes"), cont->m_bShowDepArrTimes);
         pConf->Write(_T("ShowTripLeg"), cont->m_bShowTripLeg);
+/*
         pConf->Write(_T("InstrumentCount"), (int) cont->m_aInstrumentList.GetCount());
 	    for (unsigned int j = 0; j < cont->m_aInstrumentList.GetCount(); j++) {
     		pConf->Write(wxString::Format(_T("Instrument%d"), j + 1), cont->m_aInstrumentList.Item(j));
 	    }
-
+*/
 
     return true;
 	} else {
