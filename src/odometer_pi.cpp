@@ -740,11 +740,12 @@ void odometer_pi::ShowPreferencesDialog(wxWindow* parent) {
         // Update panel size
         wxSize sz = cont->m_pOdometerWindow->GetMinSize(); 
 
-        /* TODO: These sizes are forced as dialog size and instruments messes up totally otherwise, probably due
-                 to the use of checkboxes instead of general selection. It is not perfect and should eventually 
-                 be fixed somehow.
-                 The height does not always compute properly. Sometimes need to restart plugin or OpenCPN to resize.
-                 Button width = 150, then add dialog frame = 10 incl slight margin. This is the key! */  
+        /* TODO: These sizes are forced as dialog size and instruments messes up totally otherwise,
+                 probably due to the use of checkboxes instead of general selection. It is not perfect 
+                 and should eventually be fixed somehow.
+                 The height does not always compute properly. Sometimes need to restart plugin or OpenCPN
+                 to resize. Button width = 150, then add dialog frame = 10 incl slight margin. 
+                 This must be reworked! */  
 
         sz.Set(160,125);  // Size when only displaying Total distance, Trip distance and Trip reset.
         if (g_iShowSpeed == 1) sz.IncBy(0,170);       // Add for Speed instrument
@@ -1426,9 +1427,12 @@ void OdometerPreferencesDialog::SaveOdometerConfig(void) {
     cont->m_bShowDepArrTimes = m_pCheckBoxShowDepArrTimes->IsChecked();
     cont->m_bShowTripLeg = m_pCheckBoxShowTripLeg->IsChecked();
     cont->m_sCaption = m_pTextCtrlCaption->GetValue();
+
+    /* Do not regenreate the array, reorders the instruments on Windows (only!)
     cont->m_aInstrumentList.Clear();
     for (int i = 0; i < m_pListCtrlInstruments->GetItemCount(); i++)
         cont->m_aInstrumentList.Add((int) m_pListCtrlInstruments->GetItemData(i));
+     */
 }
 
 void OdometerPreferencesDialog::OnOdometerSelected(wxListEvent& event) {
