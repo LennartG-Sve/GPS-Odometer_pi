@@ -740,20 +740,21 @@ void odometer_pi::ShowPreferencesDialog(wxWindow* parent) {
         // Update panel size
         wxSize sz = cont->m_pOdometerWindow->GetMinSize(); 
 
-        /* TODO: These sizes are forced as dialog size and instruments messes up totally otherwise,
-                 probably due to the use of checkboxes instead of general selection. It is not perfect 
-                 and should eventually be fixed somehow.
-                 The height does not always compute properly. Sometimes need to restart plugin or OpenCPN
-                 to resize. Button width = 150, then add dialog frame = 10 incl slight margin. 
-                 This must be reworked! */  
+        /* TODO: These sizes are forced as dialog size and instruments messes up totally
+                 otherwise, probably due to the use of checkboxes instead of general selection.
+                 It is not perfect and should eventually be fixed somehow.
+                 The height does not always compute properly. Sometimes need to restart plugin 
+                 or OpenCPN to resize. Button width = 150, then add dialog frame = 10 incl slight
+                 margin. 
+                 This must be reworked!  */  
 
-        sz.Set(160,125);  // Size when only displaying Total distance, Trip distance and Trip reset.
+        sz.Set(160,125);  // Minimum size with Total distance, Trip distance and Trip reset.
         if (g_iShowSpeed == 1) sz.IncBy(0,170);       // Add for Speed instrument
         if (g_iShowDepArrTimes == 1) sz.IncBy(0,50);  // Add for departure/arrival times
         if (g_iShowTripLeg == 1) sz.IncBy(0,85);      // Add for trip dist, time and reset
 
         pane.MinSize(sz).BestSize(sz).FloatingSize(sz);
-        m_pauimgr->Update();
+//        m_pauimgr->Update();
 
 		// OnClose should handle that for us normally but it doesn't seems to do so
 		// We must save changes first
@@ -921,7 +922,7 @@ bool odometer_pi::LoadConfig(void) {
     wxFileConfig *pConf = (wxFileConfig *) m_pconfig;
 
     if (pConf) {
-        pConf->SetPath(_T("/PlugIns/gps-odometer_pi.so"));
+        pConf->SetPath(_T("/PlugIns/GPS-Odometer"));
 
         wxString version;
         pConf->Read(_T("Version"), &version, wxEmptyString);
@@ -1092,7 +1093,7 @@ bool odometer_pi::SaveConfig(void) {
     wxFileConfig *pConf = (wxFileConfig *) m_pconfig;
 
     if (pConf) {
-        pConf->SetPath(_T("/PlugIns/gps-odometer_pi.so"));
+        pConf->SetPath(_T("/PlugIns/GPS-Odometer"));
         pConf->Write(_T("Version"), _T("2"));
         pConf->Write(_T("FontTitle"), g_pFontTitle->GetNativeFontInfoDesc());
         pConf->Write(_T("FontData"), g_pFontData->GetNativeFontInfoDesc());
@@ -1169,7 +1170,6 @@ void odometer_pi::ApplyConfig(void) {
             
             #endif            
 
-
         } else {  
             // Update the current odometer
 
@@ -1179,15 +1179,24 @@ void odometer_pi::ApplyConfig(void) {
           
                 cont->m_pOdometerWindow->SetInstrumentList(cont->m_aInstrumentList);
                 wxSize sz = cont->m_pOdometerWindow->GetMinSize();
-                pane.MinSize(sz).BestSize(sz).FloatingSize(sz);
+
+// TODO: Hunting for instrument error after closing settings dialogue
+
+//                pane.MinSize(sz).BestSize(sz).FloatingSize(sz);  // Original line
+
+                pane.MinSize(sz);
+        sz.IncBy(1,40);
+                pane.BestSize(sz);
+        sz.IncBy(1,20);
+                pane.FloatingSize(sz);
             }
             if (cont->m_pOdometerWindow->GetSizerOrientation() != orient) {
                 cont->m_pOdometerWindow->ChangePaneOrientation(orient, false);
-            }   
+            }
         }
     }
     m_pauimgr->Update();
-    }
+}
 
 void odometer_pi::PopulateContextMenu(wxMenu* menu) {
     OdometerWindowContainer *cont = m_ArrayOfOdometerWindow.Item(0);
