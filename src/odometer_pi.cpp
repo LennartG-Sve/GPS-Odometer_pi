@@ -1141,9 +1141,7 @@ void odometer_pi::ApplyConfig(void) {
     // Reverse order to handle deletes
     for (size_t i = m_ArrayOfOdometerWindow.GetCount(); i > 0; i--) {
         OdometerWindowContainer *cont = m_ArrayOfOdometerWindow.Item(i - 1);
-        // Always '0' (Vertical) 
-        int orient = 0 ;
-
+        int orient = 0 ;   // Always vertical ('0')
         if(!cont->m_pOdometerWindow) {  
             // A new odometer is created
             cont->m_pOdometerWindow = new OdometerWindow(GetOCPNCanvasWindow(), wxID_ANY,
@@ -1172,23 +1170,12 @@ void odometer_pi::ApplyConfig(void) {
 
         } else {  
             // Update the current odometer
-
             wxAuiPaneInfo& pane = m_pauimgr->GetPane(cont->m_pOdometerWindow);
             pane.Caption(cont->m_sCaption).Show(cont->m_bIsVisible);
             if (!cont->m_pOdometerWindow->isInstrumentListEqual(cont->m_aInstrumentList)) {
-          
                 cont->m_pOdometerWindow->SetInstrumentList(cont->m_aInstrumentList);
                 wxSize sz = cont->m_pOdometerWindow->GetMinSize();
-
-// TODO: Hunting for instrument error after closing settings dialogue
-
-//                pane.MinSize(sz).BestSize(sz).FloatingSize(sz);  // Original line
-
-                pane.MinSize(sz);
-        sz.IncBy(1,40);
-                pane.BestSize(sz);
-        sz.IncBy(1,20);
-                pane.FloatingSize(sz);
+                pane.MinSize(sz).BestSize(sz).FloatingSize(sz);
             }
             if (cont->m_pOdometerWindow->GetSizerOrientation() != orient) {
                 cont->m_pOdometerWindow->ChangePaneOrientation(orient, false);
@@ -1385,7 +1372,7 @@ OdometerPreferencesDialog::OdometerPreferencesDialog(wxWindow *parent, wxWindowI
     itemBoxSizerMainPanel->Add(DialogButtonSizer, 0, wxALIGN_RIGHT | wxALL, 5);
 
     /* NOTE: These are not preferences settings items, there are no change options in Odometer 
-             besides the ones used when toggning Show checkboxes. */ 
+             besides the ones used when toggling show checkboxes. */ 
     m_pListCtrlOdometers = new wxListCtrl( this , wxID_ANY, wxDefaultPosition, wxSize(0, 0),
          wxLC_REPORT | wxLC_NO_HEADER | wxLC_SINGLE_SEL);
     m_pListCtrlInstruments = new wxListCtrl( this, wxID_ANY, wxDefaultPosition, wxSize( 0, 0 ),
@@ -1394,7 +1381,8 @@ OdometerPreferencesDialog::OdometerPreferencesDialog(wxWindow *parent, wxWindowI
 
 
     UpdateOdometerButtonsState();
-    SetMinSize(wxSize(450, -1));
+//    SetMinSize(wxSize(450, -1));
+    SetMinSize(wxSize(200, -1));
     Fit();
 }
 
@@ -1815,6 +1803,10 @@ void OdometerWindow::OnSize(wxSizeEvent& event) {
         OdometerInstrument* inst = m_ArrayOfInstrument.Item(i)->m_pInstrument;
         inst->SetMinSize(inst->GetSize(itemBoxSizer->GetOrientation(), GetClientSize()));
     }
+    // TODO: Better handling of size after repetitive closing of preferences (almost ok)
+    SetMinSize(wxDefaultSize);
+    Fit();
+    SetMinSize(itemBoxSizer->GetMinSize());
     Layout();
     Refresh();
 }
