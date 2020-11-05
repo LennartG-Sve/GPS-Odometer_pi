@@ -5,175 +5,175 @@ msgstr ""
 "POT-Creation-Date: 2020-11-05 13:01+0100\n"
 "PO-Revision-Date: 2020-11-05 13:57\n"
 "Last-Translator: \n"
-"Language-Team: Swedish\n"
-"Language: sv_SE\n"
+"Language-Team: Hungarian\n"
+"Language: hu_HU\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Crowdin-Project: opencpn\n"
 "X-Crowdin-Project-ID: 49843\n"
-"X-Crowdin-Language: sv-SE\n"
+"X-Crowdin-Language: hu\n"
 "X-Crowdin-File: /plugins/GPS-Odometer_pi/po/gps-odometer_pi.pot\n"
 "X-Crowdin-File-ID: 352\n"
 
 #: src\instrument.cpp:241
 msgid " true"
-msgstr " sann"
+msgstr ""
 
 #: src\instrument.cpp:243
 msgid " mag"
-msgstr "mag"
+msgstr ""
 
 #: src\odometer_pi.cpp:182
 msgid "Speedometer"
-msgstr "Hastighetsmätare"
+msgstr ""
 
 #: src\odometer_pi.cpp:184
 msgid "Sum Log Distance"
-msgstr "Total Distans"
+msgstr ""
 
 #: src\odometer_pi.cpp:186
 msgid "Trip Log Distance"
-msgstr "Tripp Distans"
+msgstr ""
 
 #: src\odometer_pi.cpp:188
 msgid "Reset Trip"
-msgstr "Nollställ Tripp"
+msgstr ""
 
 #: src\odometer_pi.cpp:190
 msgid "Departure & Arrival"
-msgstr "Avgång & Ankomst"
+msgstr ""
 
 #: src\odometer_pi.cpp:194
 msgid "Leg Distance & Time"
-msgstr "Ben, Distans & Tid"
+msgstr ""
 
 #: src\odometer_pi.cpp:198
 msgid "Reset Leg"
-msgstr "Nollställ Ben"
+msgstr ""
 
 #: src\odometer_pi.cpp:290 src\odometer_pi.cpp:1005
 msgid "GPS Odometer"
-msgstr "GPS Odometer"
+msgstr ""
 
 #: src\odometer_pi.cpp:539
 msgid "On Route"
-msgstr "Under färd"
+msgstr ""
 
 #: src\odometer_pi.cpp:1017
 msgid "Odometer"
-msgstr "Odometer"
+msgstr ""
 
 #: src\odometer_pi.cpp:1212
 msgid "Odometer Settings"
-msgstr "Odometer-inställningar"
+msgstr ""
 
 #: src\odometer_pi.cpp:1231
 msgid "Display options"
-msgstr "Visningsalternativ"
+msgstr ""
 
 #: src\odometer_pi.cpp:1238
 msgid "Show this odometer"
-msgstr "Visa denna odometer"
+msgstr ""
 
 #: src\odometer_pi.cpp:1242
 msgid "Show Speedometer instrument"
-msgstr "Visa Hastighetsmätare"
+msgstr ""
 
 #: src\odometer_pi.cpp:1246
 msgid "Show Dep. and Arr. times"
-msgstr "Visa Avgång/Ankomst-tider"
+msgstr ""
 
 #: src\odometer_pi.cpp:1250
 msgid "Show/Reset Leg Distance and time"
-msgstr "Visa/Återställ Ben-distans och tid"
+msgstr ""
 
 #: src\odometer_pi.cpp:1261
 msgid "Caption:"
-msgstr "Rubrik:"
+msgstr ""
 
 #: src\odometer_pi.cpp:1272
 msgid "Fonts"
-msgstr "Fonter"
+msgstr ""
 
 #: src\odometer_pi.cpp:1280
 msgid "Title:"
-msgstr "Titel:"
+msgstr ""
 
 #: src\odometer_pi.cpp:1287
 msgid "Data:"
-msgstr "Data:"
+msgstr ""
 
 #: src\odometer_pi.cpp:1294
 msgid "Label:"
-msgstr "Beskrivning:"
+msgstr ""
 
 #: src\odometer_pi.cpp:1301
 msgid "Small:"
-msgstr "Liten:"
+msgstr ""
 
 #: src\odometer_pi.cpp:1309
 msgid "Units, Ranges, Formats"
-msgstr "Enheter, Avstånd, Format"
+msgstr ""
 
 #: src\odometer_pi.cpp:1317
 msgid "Speedometer max value:"
-msgstr "Hastighetsmätare max värde:"
+msgstr ""
 
 #: src\odometer_pi.cpp:1324
 msgid "Minimum On-Route speed:"
-msgstr "Minsta Rutthastighet:"
+msgstr ""
 
 #: src\odometer_pi.cpp:1331
 msgid "Local Time Offset From UTC:"
-msgstr "Lokal tidsförskjutning från UTC:"
+msgstr ""
 
 #: src\odometer_pi.cpp:1351
 msgid "Boat speed units:"
-msgstr "Enhet för båthastighet:"
+msgstr ""
 
 #: src\odometer_pi.cpp:1354
 msgid "Kts"
-msgstr "Knop"
+msgstr ""
 
 #: src\odometer_pi.cpp:1354
 msgid "mph"
-msgstr "mph"
+msgstr ""
 
 #: src\odometer_pi.cpp:1354
 msgid "km/h"
-msgstr "km/t"
+msgstr ""
 
 #: src\odometer_pi.cpp:1354
 msgid "m/s"
-msgstr "m/s"
+msgstr ""
 
 #: src\odometer_pi.cpp:1361
 msgid "Distance units:"
-msgstr "Enhet för avstånd:"
+msgstr ""
 
 #: src\odometer_pi.cpp:1364
 msgid "Nautical miles"
-msgstr "Nautiska mil"
+msgstr ""
 
 #: src\odometer_pi.cpp:1364
 msgid "Statute miles"
-msgstr "Eng. Mile"
+msgstr ""
 
 #: src\odometer_pi.cpp:1364
 msgid "Kilometers"
-msgstr "Kilometer"
+msgstr ""
 
 #: src\odometer_pi.cpp:1380
 msgid "Instruments"
-msgstr "Instrument"
+msgstr ""
 
 #: src\odometer_pi.cpp:1819
 msgid "Undock"
-msgstr "Ta bort låsning"
+msgstr ""
 
 #: src\odometer_pi.cpp:1821
 msgid "Preferences ..."
-msgstr "Inställningar ..."
+msgstr ""
 
