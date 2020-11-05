@@ -1,188 +1,186 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: odometer_pi\n"
-"POT-Creation-Date: 2020-10-04 13:52+0200\n"
-"PO-Revision-Date: 2020-10-05 12:59+0200\n"
+"POT-Creation-Date: 2020-11-05 12:32+0100\n"
+"PO-Revision-Date: 2020-11-05 12:33+0100\n"
+"Last-Translator: \n"
 "Language-Team: \n"
+"Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "X-Generator: Poedit 2.3\n"
 "X-Poedit-Basepath: ../src\n"
 "X-Poedit-KeywordsList: _\n"
-"Last-Translator: \n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"Language: sv\n"
 "X-Poedit-SearchPath-0: .\n"
 
-#: instrument.cpp:237
+#: instrument.cpp:241
 msgid " true"
 msgstr " sann"
 
-#: instrument.cpp:239
+#: instrument.cpp:243
 msgid " mag"
 msgstr " mag"
 
-#: odometer_pi.cpp:108
+#: odometer_pi.cpp:182
 msgid "Speedometer"
 msgstr "Hastighetsmätare"
 
-#: odometer_pi.cpp:110
+#: odometer_pi.cpp:184
 msgid "Sum Log Distance"
 msgstr "Total Distans"
 
-#: odometer_pi.cpp:112
+#: odometer_pi.cpp:186
 msgid "Trip Log Distance"
 msgstr "Tripp Distans"
 
-#: odometer_pi.cpp:114
+#: odometer_pi.cpp:188
 msgid "Reset Trip"
 msgstr "Nollställ Tripp"
 
-#: odometer_pi.cpp:116
+#: odometer_pi.cpp:190
 msgid "Departure & Arrival"
 msgstr "Avgång & Ankomst"
 
-#: odometer_pi.cpp:120
+#: odometer_pi.cpp:194
 msgid "Leg Distance & Time"
 msgstr "Ben, Distans & Tid"
 
-#: odometer_pi.cpp:124
+#: odometer_pi.cpp:198
 msgid "Reset Leg"
 msgstr "Nollställ Ben"
 
-#: odometer_pi.cpp:214 odometer_pi.cpp:296 odometer_pi.cpp:874
+#: odometer_pi.cpp:290 odometer_pi.cpp:1005
 msgid "GPS Odometer"
 msgstr "GPS Odometer"
 
-#: odometer_pi.cpp:300
-msgid "GPS Odometer PlugIn for OpenCPN"
-msgstr "GPS Odometer Instrumentpanel, plugIn för OpenCPN"
-
-#: odometer_pi.cpp:304
-msgid ""
-"GPS controlled Dashboard based Odometer plugin for OpenCPN\n"
-"Displays GPS calculated Log and Trip information"
-msgstr ""
-"GPS-styrd, Dashboardbaserad, Odometer plugin för OpenCPN\n"
-"Visar GPS-baserad Logg och Tripp-information"
-
-#: odometer_pi.cpp:432
+#: odometer_pi.cpp:539
 msgid "On Route"
 msgstr "Under färd"
 
-#: odometer_pi.cpp:886
+#: odometer_pi.cpp:1017
 msgid "Odometer"
 msgstr "Odometer"
 
-#: odometer_pi.cpp:1064
+#: odometer_pi.cpp:1212
 msgid "Odometer Settings"
 msgstr "Odometer-inställningar"
 
-#: odometer_pi.cpp:1083
+#: odometer_pi.cpp:1231
 msgid "Display options"
 msgstr "Visningsalternativ"
 
-#: odometer_pi.cpp:1090
+#: odometer_pi.cpp:1238
 msgid "Show this odometer"
 msgstr "Visa denna odometer"
 
-#: odometer_pi.cpp:1094
+#: odometer_pi.cpp:1242
 msgid "Show Speedometer instrument"
 msgstr "Visa Hastighetsmätare"
 
-#: odometer_pi.cpp:1098
+#: odometer_pi.cpp:1246
 msgid "Show Dep. and Arr. times"
 msgstr "Visa Avgång/Ankomst-tider"
 
-#: odometer_pi.cpp:1102
+#: odometer_pi.cpp:1250
 msgid "Show/Reset Leg Distance and time"
 msgstr "Visa/Återställ Ben-distans och tid"
 
-#: odometer_pi.cpp:1113
+#: odometer_pi.cpp:1261
 msgid "Caption:"
 msgstr "Rubrik:"
 
-#: odometer_pi.cpp:1120
+#: odometer_pi.cpp:1272
 msgid "Fonts"
 msgstr "Fonter"
 
-#: odometer_pi.cpp:1128
+#: odometer_pi.cpp:1280
 msgid "Title:"
 msgstr "Titel:"
 
-#: odometer_pi.cpp:1135
+#: odometer_pi.cpp:1287
 msgid "Data:"
 msgstr "Data:"
 
-#: odometer_pi.cpp:1142
+#: odometer_pi.cpp:1294
 msgid "Label:"
 msgstr "Beskrivning:"
 
-#: odometer_pi.cpp:1149
+#: odometer_pi.cpp:1301
 msgid "Small:"
 msgstr "Liten:"
 
-#: odometer_pi.cpp:1157
+#: odometer_pi.cpp:1309
 msgid "Units, Ranges, Formats"
 msgstr "Enheter, Avstånd, Format"
 
-#: odometer_pi.cpp:1165
+#: odometer_pi.cpp:1317
 msgid "Speedometer max value:"
 msgstr "Hastighetsmätare max värde:"
 
-#: odometer_pi.cpp:1172
+#: odometer_pi.cpp:1324
 msgid "Minimum On-Route speed:"
 msgstr "Minsta Rutthastighet:"
 
-#: odometer_pi.cpp:1179
+#: odometer_pi.cpp:1331
 msgid "Local Time Offset From UTC:"
 msgstr "Lokal tidsförskjutning från UTC:"
 
-#: odometer_pi.cpp:1199
+#: odometer_pi.cpp:1351
 msgid "Boat speed units:"
 msgstr "Enhet för båthastighet:"
 
-#: odometer_pi.cpp:1202
+#: odometer_pi.cpp:1354
 msgid "Kts"
 msgstr "Knop"
 
-#: odometer_pi.cpp:1202
+#: odometer_pi.cpp:1354
 msgid "mph"
 msgstr "mph"
 
-#: odometer_pi.cpp:1202
+#: odometer_pi.cpp:1354
 msgid "km/h"
 msgstr "km/t"
 
-#: odometer_pi.cpp:1202
+#: odometer_pi.cpp:1354
 msgid "m/s"
 msgstr "m/s"
 
-#: odometer_pi.cpp:1209
+#: odometer_pi.cpp:1361
 msgid "Distance units:"
 msgstr "Enhet för avstånd:"
 
-#: odometer_pi.cpp:1212
+#: odometer_pi.cpp:1364
 msgid "Nautical miles"
 msgstr "Nautiska mil"
 
-#: odometer_pi.cpp:1212
+#: odometer_pi.cpp:1364
 msgid "Statute miles"
 msgstr "Eng. Mile"
 
-#: odometer_pi.cpp:1212
+#: odometer_pi.cpp:1364
 msgid "Kilometers"
 msgstr "Kilometer"
 
-#: odometer_pi.cpp:1228
+#: odometer_pi.cpp:1380
 msgid "Instruments"
 msgstr "Instrument"
 
-#: odometer_pi.cpp:1340
+#: odometer_pi.cpp:1819
 msgid "Undock"
 msgstr "Ta bort låsning"
 
-#: odometer_pi.cpp:1342
+#: odometer_pi.cpp:1821
 msgid "Preferences ..."
 msgstr "Inställningar ..."
+
+#~ msgid "GPS Odometer PlugIn for OpenCPN"
+#~ msgstr "GPS Odometer Instrumentpanel, plugIn för OpenCPN"
+
+#~ msgid ""
+#~ "GPS controlled Dashboard based Odometer plugin for OpenCPN\n"
+#~ "Displays GPS calculated Log and Trip information"
+#~ msgstr ""
+#~ "GPS-styrd, Dashboardbaserad, Odometer plugin för OpenCPN\n"
+#~ "Visar GPS-baserad Logg och Tripp-information"

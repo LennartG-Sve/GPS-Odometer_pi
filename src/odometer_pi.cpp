@@ -189,15 +189,15 @@ wxString GetInstrumentCaption(unsigned int id) {
         case ID_DBP_I_DEPART:
             return _("Departure & Arrival");
         case ID_DBP_I_ARRIV:
-            return _("");
+            return wxEmptyString;
         case ID_DBP_I_LEGDIST:
             return _("Leg Distance & Time");
         case ID_DBP_I_LEGTIME:
-            return _("");
+            return wxEmptyString;
         case ID_DBP_B_LEGRES:
             return _("Reset Leg");
 		default:
-			return _T("");
+			return wxEmptyString;
     }
 }
 
@@ -480,8 +480,8 @@ void odometer_pi::Odometer() {
         m_ArrTime = LocalTime.Format(wxT("%F %T"));
     }
 
-    /* TODO: There must be a better way to receive the reset event from 'OdometerInstrument_Button' 
-             but using a global variable for transfer.  */
+    /* TODO: There must be a better way to receive the reset event from
+             'OdometerInstrument_Button' but using a global variable for transfer.  */
     if (g_iResetTrip == 1) {                             
         SetDepTime = 1;
         UseSavedDepTime = 0;
@@ -746,7 +746,7 @@ void odometer_pi::ShowPreferencesDialog(wxWindow* parent) {
                  The height does not always compute properly. Sometimes need to restart plugin 
                  or OpenCPN to resize. Button width = 150, then add dialog frame = 10 incl slight
                  margin. 
-                 This must be reworked!  */  
+                 This is not perfect but better than the line above, should maybe be reworked! */  
 
         sz.Set(160,125);  // Minimum size with Total distance, Trip distance and Trip reset.
         if (g_iShowSpeed == 1) sz.IncBy(0,170);       // Add for Speed instrument
@@ -765,8 +765,8 @@ void odometer_pi::ShowPreferencesDialog(wxWindow* parent) {
 		ApplyConfig();
 		SaveConfig();   // TODO: Does not save configuration file
 
-		// Not exactly sure what this does. Pesumably if no odometers are displayed, the toolbar icon 
-        // is toggled/untoggled??
+		// Not exactly sure what this does. Pesumably if no odometers are displayed, the 
+        // toolbar icon is toggled/untoggled??
 		SetToolbarItemState(m_toolbar_item_id, GetOdometerWindowShownCount() != 0);
 	}
 
@@ -975,7 +975,7 @@ bool odometer_pi::LoadConfig(void) {
         m_ArrayOfOdometerWindow.Clear();
         if (version.IsEmpty() && d_cnt == -1) {
 
-        /* TODO Version 1 never genarated in OpenCPN 5.0 or later, section shall be removed
+        /* TODO Version 1 never generated in OpenCPN 5.0 or later, section shall be removed
             m_config_version = 1;
             // Let's load version 1 or default settings.
             int i_cnt;

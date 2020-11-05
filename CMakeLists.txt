@@ -38,8 +38,8 @@ set(LONG_DESCRIPTION "GPS controlled Dashboard based Odometer plugin for OpenCPN
 set(VERSION_MAJOR "0")
 set(VERSION_MINOR "2")
 set(VERSION_PATCH "5")
-set(VERSION_TWEAK "6")
-set(VERSION_DATE "04/11/2020")
+set(VERSION_TWEAK "7")
+set(VERSION_DATE "05/11/2020")
 set(OCPN_MIN_VERSION "ov50")
 set(OCPN_API_VERSION_MAJOR "1")
 set(OCPN_API_VERSION_MINOR "16")
@@ -140,7 +140,7 @@ IF(PLUGIN_USE_SVG)
 ENDIF(PLUGIN_USE_SVG)
 
 
-SET(SRC_ODOMETER
+SET(SRCS
     src/odometer_pi.cpp
     src/iirfilter.cpp
     src/instrument.cpp
@@ -149,9 +149,6 @@ SET(SRC_ODOMETER
     src/speedometer.cpp
     src/icons.cpp
     api-16/ocpn_plugin.h
-)
-
-SET(SRC_NMEA0183
     src/nmea0183/nmea0183.cpp
     src/nmea0183/response.cpp
     src/nmea0183/sentence.cpp
@@ -192,7 +189,7 @@ INCLUDE_DIRECTORIES(BEFORE ${CMAKE_SOURCE_DIR}/include)
 ## SET(EXTSRC  ${EXTSRC}   etc   Can be in an if statement as below
 ##
 ##==========================================================================
-ADD_LIBRARY(${PACKAGE_NAME} SHARED ${SRC_ODOMETER} ${SRC_NMEA0183} ${HDRS} )
+ADD_LIBRARY(${PACKAGE_NAME} SHARED ${SRCS} ${HDRS} )
 ##==========================================================================
 
 add_definitions(-DTIXML_USE_STL)
