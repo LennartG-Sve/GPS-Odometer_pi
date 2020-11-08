@@ -38,8 +38,8 @@ set(LONG_DESCRIPTION "GPS controlled Dashboard based Odometer plugin for OpenCPN
 set(VERSION_MAJOR "0")
 set(VERSION_MINOR "3")
 set(VERSION_PATCH "0")
-set(VERSION_TWEAK "0")
-set(VERSION_DATE "06/11/2020")
+set(VERSION_TWEAK "1")
+set(VERSION_DATE "08/11/2020")
 set(OCPN_MIN_VERSION "ov50")
 set(OCPN_API_VERSION_MAJOR "1")
 set(OCPN_API_VERSION_MINOR "16")
@@ -132,11 +132,10 @@ include("PluginConfigure")
 
 # From master branch - is this working? necessary?
 ## GPS Odometer plugin uses SVG for toolbar icons
+
 IF(PLUGIN_USE_SVG)
     MESSAGE(STATUS "${CMLOC}SVG support enabled...")
-    IF(NOT QT_ANDROID)
-        ADD_DEFINITIONS(-DPLUGIN_USE_SVG)
-    ENDIF(NOT QT_ANDROID)
+    ADD_DEFINITIONS(-DPLUGIN_USE_SVG)
 ENDIF(PLUGIN_USE_SVG)
 
 
@@ -148,7 +147,6 @@ SET(SRCS
     src/dial.cpp
     src/speedometer.cpp
     src/icons.cpp
-    api-16/ocpn_plugin.h
     src/nmea0183/nmea0183.cpp
     src/nmea0183/response.cpp
     src/nmea0183/sentence.cpp
@@ -164,6 +162,7 @@ SET(SRCS
 )
 
 SET(HDRS
+#    api-16/ocpn_plugin.h
     src/button.h
 	src/dial.h
 	src/icons.h

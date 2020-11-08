@@ -50,10 +50,6 @@
 #include <cmath>
 #include "wx/tokenzr.h"
 
-#ifdef __OCPN__ANDROID__
-#include "qdebug.h"
-#endif
-
 double rad2deg(double angle) {
       return angle*180.0/M_PI;
 }

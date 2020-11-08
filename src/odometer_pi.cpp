@@ -78,10 +78,6 @@ static const long long lNaN = 0xfff8000000000000;
 #define NAN (*(double*)&lNaN)
 #endif
 
-#ifdef __OCPN__ANDROID__
-#include "qdebug.h"
-#endif
-
 // The class factories, used to create and destroy instances of the PlugIn
 extern "C" DECL_EXP opencpn_plugin* create_pi(void *ppimgr) {
     return (opencpn_plugin *) new odometer_pi(ppimgr);
@@ -90,73 +86,6 @@ extern "C" DECL_EXP opencpn_plugin* create_pi(void *ppimgr) {
 extern "C" DECL_EXP void destroy_pi(opencpn_plugin* p) {
     delete p;
 }
-
-#ifdef __OCPN__ANDROID__
-
-QString qtStyleSheet = "QScrollBar:horizontal {\
-border: 0px solid grey;\
-background-color: rgb(240, 240, 240);\
-height: 35px;\
-margin: 0px 1px 0 1px;\
-}\
-QScrollBar::handle:horizontal {\
-background-color: rgb(200, 200, 200);\
-min-width: 20px;\
-border-radius: 10px;\
-}\
-QScrollBar::add-line:horizontal {\
-border: 0px solid grey;\
-background: #32CC99;\
-width: 0px;\
-subcontrol-position: right;\
-subcontrol-origin: margin;\
-}\
-QScrollBar::sub-line:horizontal {\
-border: 0px solid grey;\
-background: #32CC99;\
-width: 0px;\
-subcontrol-position: left;\
-subcontrol-origin: margin;\
-}\
-QScrollBar:vertical {\
-border: 0px solid grey;\
-background-color: rgb(240, 240, 240);\
-width: 35px;\
-margin: 1px 0px 1px 0px;\
-}\
-QScrollBar::handle:vertical {\
-background-color: rgb(200, 200, 200);\
-min-height: 20px;\
-border-radius: 10px;\
-}\
-QScrollBar::add-line:vertical {\
-border: 0px solid grey;\
-background: #32CC99;\
-height: 0px;\
-subcontrol-position: top;\
-subcontrol-origin: margin;\
-}\
-QScrollBar::sub-line:vertical {\
-border: 0px solid grey;\
-background: #32CC99;\
-height: 0px;\
-subcontrol-position: bottom;\
-subcontrol-origin: margin;\
-}\
-QCheckBox {\
-spacing: 25px;\
-}\
-QCheckBox::indicator {\
-width: 30px;\
-height: 30px;\
-}\
-";
-
-#endif
-
-#ifdef __OCPN__ANDROID__
-#include <QtWidgets/QScroller>
-#endif
 
 
 //---------------------------------------------------------------------------------------------------------
@@ -674,26 +603,6 @@ int odometer_pi::GetToolbarToolCount(void) {
 
 void odometer_pi::ShowPreferencesDialog(wxWindow* parent) {
 	OdometerPreferencesDialog *dialog = new OdometerPreferencesDialog(parent, wxID_ANY, m_ArrayOfOdometerWindow);
-
-    dialog->RecalculateSize();
-
-#ifdef __OCPN__ANDROID__
-    dialog->GetHandle()->setStyleSheet( qtStyleSheet);
-#endif
-    
-#ifdef __OCPN__ANDROID__
-    wxWindow *ccwin = GetOCPNCanvasWindow();
-
-    if( ccwin ){
-        int xmax = ccwin->GetSize().GetWidth();
-        int ymax = ccwin->GetParent()->GetSize().GetHeight();  // This would be the Frame itself
-        dialog->SetSize( xmax, ymax );
-        dialog->Layout();
-        
-        dialog->Move(0,0);
-    }
-#endif
-
 	if (dialog->ShowModal() == wxID_OK) {
 		// Reload the fonts in case they have been changed
 		delete g_pFontTitle;
@@ -934,13 +843,6 @@ bool odometer_pi::LoadConfig(void) {
         wxString LabelFont;
         wxString SmallFont;
         
-#ifdef __OCPN__ANDROID__
-        TitleFont = _T("Roboto,16,-1,5,50,0,0,0,0,0");
-        DataFont =  _T("Roboto,16,-1,5,50,0,0,0,0,0");
-        LabelFont = _T("Roboto,16,-1,5,50,0,0,0,0,0");
-        SmallFont = _T("Roboto,14,-1,5,50,0,0,0,0,0");
-#endif        
-        
         pConf->Read(_T("FontTitle"), &config, wxEmptyString);
 		LoadFont(&g_pFontTitle, config);
 
@@ -1076,12 +978,7 @@ bool odometer_pi::LoadConfig(void) {
 void odometer_pi::LoadFont(wxFont **target, wxString native_info)
 {
     if( !native_info.IsEmpty() ){
-#ifdef __OCPN__ANDROID__
-        wxFont *nf = new wxFont( native_info );
-        *target = nf;
-#else
         (*target)->SetNativeFontInfo( native_info );
-#endif
     }
 }
 
@@ -1161,12 +1058,6 @@ void odometer_pi::ApplyConfig(void) {
                 //wxAuiPaneInfo().Name(cont->m_sName).Caption(cont->m_sCaption).CaptionVisible(false).TopDockable(
                // !vertical).BottomDockable(!vertical).LeftDockable(vertical).RightDockable(vertical).MinSize(
                // sz).BestSize(sz).FloatingSize(sz).FloatingPosition(100, 100).Float().Show(cont->m_bIsVisible));
-
-            #ifdef __OCPN__ANDROID__
-            wxAuiPaneInfo& pane = m_pauimgr->GetPane( cont->m_pOdometerWindow );
-            pane.Dockable( false );
-            
-            #endif            
 
         } else {  
             // Update the current odometer
@@ -1265,10 +1156,6 @@ OdometerPreferencesDialog::OdometerPreferencesDialog(wxWindow *parent, wxWindowI
             wxDefaultSize);
     itemFlexGridSizer01->Add(m_pTextCtrlCaption, 0, wxEXPAND | wxALL, border_size);
 
-#ifdef __OCPN__ANDROID__
-    itemStaticText01->Hide();
-    m_pTextCtrlCaption->Hide();
-#endif    
     wxStaticBox* itemStaticBoxFonts = new wxStaticBox( m_pPanelPreferences, wxID_ANY, _("Fonts") );
     wxStaticBoxSizer* itemStaticBoxSizer04 = new wxStaticBoxSizer( itemStaticBoxFonts, wxHORIZONTAL );
     itemBoxSizerMainFrame->Add( itemStaticBoxSizer04, 0, wxEXPAND | wxALL, border_size );
@@ -1386,24 +1273,6 @@ OdometerPreferencesDialog::OdometerPreferencesDialog(wxWindow *parent, wxWindowI
     Fit();
 }
 
-void OdometerPreferencesDialog::RecalculateSize( void )
-{
-
-#ifdef __OCPN__ANDROID__    
-    wxSize esize;
-    esize.x = GetCharWidth() * 110;
-    esize.y = GetCharHeight() * 40;
-    
-    wxSize dsize = GetOCPNCanvasWindow()->GetClientSize(); 
-    esize.y = wxMin( esize.y, dsize.y -(3 * GetCharHeight()) );
-    esize.x = wxMin( esize.x, dsize.x -(3 * GetCharHeight()) );
-    SetSize(esize);
-
-    CentreOnScreen();
-#endif
-    
-}
-
 void OdometerPreferencesDialog::OnCloseDialog(wxCloseEvent& event) {
 
     SaveOdometerConfig();
@@ -1488,22 +1357,6 @@ OdometerWindow::OdometerWindow(wxWindow *pparent, wxWindowID id, wxAuiManager *a
     Connect(wxEVT_COMMAND_MENU_SELECTED,
             wxCommandEventHandler(OdometerWindow::OnContextMenuSelect), NULL, this);
 
-
-#ifdef __OCPN__ANDROID__ 
-    Connect( wxEVT_LEFT_DOWN, wxMouseEventHandler( OdometerWindow::OnMouseEvent ) );
-    Connect( wxEVT_LEFT_UP, wxMouseEventHandler( Odometerindow::OnMouseEvent ) );
-    Connect( wxEVT_MOTION, wxMouseEventHandler( OdometerWindow::OnMouseEvent ) );
-    
-    GetHandle()->setAttribute(Qt::WA_AcceptTouchEvents);
-    GetHandle()->grabGesture(Qt::PinchGesture);
-    GetHandle()->grabGesture(Qt::PanGesture);
-    
-    Connect( wxEVT_QT_PINCHGESTURE,
-            (wxObjectEventFunction) (wxEventFunction) &OdometerWindow::OnEvtPinchGesture, NULL, this );
-    Connect( wxEVT_QT_PANGESTURE,
-             (wxObjectEventFunction) (wxEventFunction) &OdometerWindow::OnEvtPanGesture, NULL, this );
-#endif
-    
     Hide();
     
     m_binResize = false;
@@ -1517,285 +1370,6 @@ OdometerWindow::~OdometerWindow() {
         delete pdic;
     }
 }
-
-
-#ifdef __OCPN__ANDROID__
-void OdometerWindow::OnEvtPinchGesture( wxQT_PinchGestureEvent &event)
-{
-    
-    float zoom_gain = 0.3;
-    float zoom_val;
-    float total_zoom_val;
-    
-    if( event.GetScaleFactor() > 1)
-        zoom_val = ((event.GetScaleFactor() - 1.0) * zoom_gain) + 1.0;
-    else
-        zoom_val = 1.0 - ((1.0 - event.GetScaleFactor()) * zoom_gain);
-    
-    if( event.GetTotalScaleFactor() > 1)
-        total_zoom_val = ((event.GetTotalScaleFactor() - 1.0) * zoom_gain) + 1.0;
-    else
-        total_zoom_val = 1.0 - ((1.0 - event.GetTotalScaleFactor()) * zoom_gain);
-    
-
-    wxAuiPaneInfo& pane = m_pauimgr->GetPane( this );
-    
-    wxSize currentSize = wxSize( pane.floating_size.x, pane.floating_size.y );
-    double aRatio = (double)currentSize.y / (double)currentSize.x;
-
-    wxSize par_size = GetOCPNCanvasWindow()->GetClientSize();
-    wxPoint par_pos = wxPoint( pane.floating_pos.x, pane.floating_pos.y );
-    
-    switch(event.GetState()){
-        case GestureStarted:
-            m_binPinch = true;
-            break;
-            
-        case GestureUpdated:
-            currentSize.y *= zoom_val;
-            currentSize.x *= zoom_val;
-
-            if((par_pos.y + currentSize.y) > par_size.y)
-                currentSize.y = par_size.y - par_pos.y;
-            
-            if((par_pos.x + currentSize.x) > par_size.x)
-                currentSize.x = par_size.x - par_pos.x;
-            
-            
-            ///vertical
-            currentSize.x = currentSize.y / aRatio;
-                
-            currentSize.x = wxMax(currentSize.x, 150);
-            currentSize.y = wxMax(currentSize.y, 150);
-            
-            pane.FloatingSize(currentSize);
-            m_pauimgr->Update();
-            
-            
-            break;
-            
-        case GestureFinished:{
-
-            if(itemBoxSizer->GetOrientation() == wxVERTICAL){
-                currentSize.y *= total_zoom_val;
-                currentSize.x = currentSize.y / aRatio;
-            }
-            else{
-                currentSize.x *= total_zoom_val;
-                currentSize.y = currentSize.x * aRatio;
-            }
-            
-            
-            //  Bound the resulting size
-            if((par_pos.y + currentSize.y) > par_size.y)
-                currentSize.y = par_size.y - par_pos.y;
-            
-            if((par_pos.x + currentSize.x) > par_size.x)
-                currentSize.x = par_size.x - par_pos.x;
- 
-            // not too small
-            currentSize.x = wxMax(currentSize.x, 150);
-            currentSize.y = wxMax(currentSize.y, 150);
-                
-            //  Try a manual layout of the window, to estimate a good primary size..
-
-            // vertical
-            if(itemBoxSizer->GetOrientation() == wxVERTICAL){
-                int total_y = 0;
-                for( unsigned int i=0; i<m_ArrayOfInstrument.size(); i++ ) {
-                    OdometerInstrument* inst = m_ArrayOfInstrument.Item(i)->m_pInstrument;
-                    wxSize is = inst->GetSize( itemBoxSizer->GetOrientation(), currentSize );
-                    total_y += is.y;
-                }
-        
-                currentSize.y = total_y;
-            }
-    
-    
-            pane.FloatingSize(currentSize);
-            
-            // Reshow the window
-            for( unsigned int i=0; i<m_ArrayOfInstrument.size(); i++ ) {
-                OdometerInstrument* inst = m_ArrayOfInstrument.Item(i)->m_pInstrument;
-                inst->Show();
-            }
-            
-            m_pauimgr->Update();
-            
-            m_binPinch = false;
-            m_binResize = false;
-            
-            break;
-        }
-        
-        case GestureCanceled:
-            m_binPinch = false;
-            m_binResize = false;
-            break;
-            
-        default:
-            break;
-    }
-    
-}
-
-
-void OdometerWindow::OnEvtPanGesture( wxQT_PanGestureEvent &event)
-{
-    if(m_binPinch)
-        return;
-
-    if(m_binResize)
-        return;
-        
-    int x = event.GetOffset().x;
-    int y = event.GetOffset().y;
-    
-    int lx = event.GetLastOffset().x;
-    int ly = event.GetLastOffset().y;
-    
-    int dx = x - lx;
-    int dy = y - ly;
-    
-    switch(event.GetState()){
-        case GestureStarted:
-            if(m_binPan)
-                break;
-            
-            m_binPan = true;
-            break;
-            
-        case GestureUpdated:
-            if(m_binPan){
-                
-                wxSize par_size = GetOCPNCanvasWindow()->GetClientSize();
-                wxPoint par_pos_old = ClientToScreen( wxPoint( 0, 0 ) ); //GetPosition();
-                
-                wxPoint par_pos = par_pos_old;
-                par_pos.x += dx;
-                par_pos.y += dy;
-                
-                par_pos.x = wxMax(par_pos.x, 0);
-                par_pos.y = wxMax(par_pos.y, 0);
-                
-                wxSize mySize = GetSize();
-                
-                if((par_pos.y + mySize.y) > par_size.y)
-                    par_pos.y = par_size.y - mySize.y;
-                
-                
-                if((par_pos.x + mySize.x) > par_size.x)
-                    par_pos.x = par_size.x - mySize.x;
-                
-                wxAuiPaneInfo& pane = m_pauimgr->GetPane( this );
-                pane.FloatingPosition( par_pos).Float();
-                m_pauimgr->Update();
-                
-            }
-            break;
-            
-        case GestureFinished:
-            if(m_binPan){
-            }
-            m_binPan = false;
-            
-            break;
-            
-        case GestureCanceled:
-            m_binPan = false; 
-            break;
-            
-        default:
-            break;
-    }
-    
-    
-}
-    
-    
-void OdometerWindow::OnMouseEvent( wxMouseEvent& event )
-{
-    if(m_binPinch)
-        return;
-
-    if(m_binResize){
-        
-        wxAuiPaneInfo& pane = m_pauimgr->GetPane( this );
-        wxSize currentSize = wxSize( pane.floating_size.x, pane.floating_size.y );
-        double aRatio = (double)currentSize.y / (double)currentSize.x;
-        
-        wxSize par_size = GetOCPNCanvasWindow()->GetClientSize();
-        wxPoint par_pos = wxPoint( pane.floating_pos.x, pane.floating_pos.y );
-        
-        if(event.LeftDown()){
-            m_resizeStartPoint = event.GetPosition();
-            m_resizeStartSize = currentSize;
-            m_binResize2 = true;
-         }
-
-        if(m_binResize2){ 
-            if(event.Dragging()){
-                wxPoint p = event.GetPosition();
-                
-                wxSize dragSize = m_resizeStartSize;
-                
-                dragSize.y += p.y - m_resizeStartPoint.y;
-                dragSize.x += p.x - m_resizeStartPoint.x;;
-
-                if((par_pos.y + dragSize.y) > par_size.y)
-                    dragSize.y = par_size.y - par_pos.y;
-                
-                if((par_pos.x + dragSize.x) > par_size.x)
-                    dragSize.x = par_size.x - par_pos.x;
-                
-                
-                ///vertical
-                //dragSize.x = dragSize.y / aRatio;
-
-                // not too small
-                dragSize.x = wxMax(dragSize.x, 150);
-                dragSize.y = wxMax(dragSize.y, 150);
-                
-                pane.FloatingSize(dragSize);
-                m_pauimgr->Update();
-                    
-            }
-            
-            if(event.LeftUp()){
-                wxPoint p = event.GetPosition();
-                
-                wxSize dragSize = m_resizeStartSize;
-                
-                dragSize.y += p.y - m_resizeStartPoint.y;
-                dragSize.x += p.x - m_resizeStartPoint.x;;
-
-                if((par_pos.y + dragSize.y) > par_size.y)
-                    dragSize.y = par_size.y - par_pos.y;
-                
-                if((par_pos.x + dragSize.x) > par_size.x)
-                    dragSize.x = par_size.x - par_pos.x;
-
-                // not too small
-                dragSize.x = wxMax(dragSize.x, 150);
-                dragSize.y = wxMax(dragSize.y, 150);
-/*
-                for( unsigned int i=0; i<m_ArrayOfInstrument.size(); i++ ) {
-                    OdometerInstrument* inst = m_ArrayOfInstrument.Item(i)->m_pInstrument;
-                    inst->Show();
-                }
-*/
-                pane.FloatingSize(dragSize);
-                m_pauimgr->Update();
-                
-                
-                m_binResize = false;
-                m_binResize2 = false;
-            }
-        }
-    }
-}
-#endif
-
 
 void OdometerWindow::OnSize(wxSizeEvent& event) {
     event.Skip();
@@ -1867,12 +1441,6 @@ void OdometerWindow::ChangePaneOrientation(int orient, bool updateAUImgr) {
         m_Container->m_sCaption).CaptionVisible(true).TopDockable(!vertical).BottomDockable(
         !vertical).LeftDockable(vertical).RightDockable(vertical).MinSize(sz).BestSize(
         sz).FloatingSize(sz).FloatingPosition(100, 100).Float().Show(m_Container->m_bIsVisible));
-
-    
-#ifdef __OCPN__ANDROID__
-    wxAuiPaneInfo& pane = m_pauimgr->GetPane( this );
-    pane.Dockable( false );
-#endif            
 
     if (updateAUImgr) m_pauimgr->Update();
 }
