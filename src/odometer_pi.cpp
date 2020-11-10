@@ -176,7 +176,7 @@ odometer_pi::~odometer_pi(void) {
 
 // Initialize the Odometer
 int odometer_pi::Init(void) {
-    AddLocaleCatalog(_T("opencpn-odometer_pi"));
+    AddLocaleCatalog(_T("opencpn-gpsodometer_pi"));
 
     // Used at startup, once started the plugin only uses version 2 configuration style
     m_config_version = -1;
@@ -198,13 +198,13 @@ int odometer_pi::Init(void) {
     LoadConfig();
 
     // Scaleable Vector Graphics (SVG) icons are stored in the following path.
-//	wxString shareLocn = GetPluginDataDir("odometer_pi") +  _T("/data/");
+//	wxString shareLocn = GetPluginDataDir("gpsodometer_pi") +  _T("/data/");
 
-    wxString iconFolder = GetPluginDataDir("gps-odometer_pi") + wxFileName::GetPathSeparator() + _T("data") + wxFileName::GetPathSeparator();
+    wxString iconFolder = GetPluginDataDir("gpsodometer_pi") + wxFileName::GetPathSeparator() + _T("data") + wxFileName::GetPathSeparator();
 
-    wxString normalIcon = iconFolder + _T("gps-odometer.svg");
-    wxString toggledIcon = iconFolder + _T("gps-odometer_toggled.svg");
-    wxString rolloverIcon = iconFolder + _T("gps-odometer_rollover.svg");
+    wxString normalIcon = iconFolder + _T("gpsodometer.svg");
+    wxString toggledIcon = iconFolder + _T("gpsodometer_toggled.svg");
+    wxString rolloverIcon = iconFolder + _T("gpsodometer_rollover.svg");
  
     // For journeyman styles, we prefer the built-in raster icons which match the rest of the toolbar.
 /*

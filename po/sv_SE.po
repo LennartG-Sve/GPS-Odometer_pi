@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: opencpn\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2020-11-05 13:01+0100\n"
-"PO-Revision-Date: 2020-11-05 13:57\n"
+"PO-Revision-Date: 2020-11-09 13:37+0100\n"
 "Last-Translator: \n"
 "Language-Team: Swedish\n"
 "Language: sv_SE\n"
@@ -16,14 +16,16 @@ msgstr ""
 "X-Crowdin-Language: sv-SE\n"
 "X-Crowdin-File: /plugins/GPS-Odometer_pi/po/gps-odometer_pi.pot\n"
 "X-Crowdin-File-ID: 352\n"
+"X-Generator: Poedit 2.3\n"
 
 #: src\instrument.cpp:241
 msgid " true"
-msgstr " sann"
+msgstr "sann"
 
 #: src\instrument.cpp:243
+#, fuzzy
 msgid " mag"
-msgstr "mag"
+msgstr " mag"
 
 #: src\odometer_pi.cpp:182
 msgid "Speedometer"
@@ -176,4 +178,3 @@ msgstr "Ta bort låsning"
 #: src\odometer_pi.cpp:1821
 msgid "Preferences ..."
 msgstr "Inställningar ..."
-
