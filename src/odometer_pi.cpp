@@ -78,6 +78,10 @@ static const long long lNaN = 0xfff8000000000000;
 #define NAN (*(double*)&lNaN)
 #endif
 
+//#ifdef __OCPN__ANDROID__
+//    #include "qdebug.h"
+//#endif
+
 // The class factories, used to create and destroy instances of the PlugIn
 extern "C" DECL_EXP opencpn_plugin* create_pi(void *ppimgr) {
     return (opencpn_plugin *) new odometer_pi(ppimgr);
@@ -86,7 +90,6 @@ extern "C" DECL_EXP opencpn_plugin* create_pi(void *ppimgr) {
 extern "C" DECL_EXP void destroy_pi(opencpn_plugin* p) {
     delete p;
 }
-
 
 //---------------------------------------------------------------------------------------------------------
 //
@@ -603,6 +606,7 @@ int odometer_pi::GetToolbarToolCount(void) {
 
 void odometer_pi::ShowPreferencesDialog(wxWindow* parent) {
 	OdometerPreferencesDialog *dialog = new OdometerPreferencesDialog(parent, wxID_ANY, m_ArrayOfOdometerWindow);
+
 	if (dialog->ShowModal() == wxID_OK) {
 		// Reload the fonts in case they have been changed
 		delete g_pFontTitle;
@@ -842,7 +846,7 @@ bool odometer_pi::LoadConfig(void) {
         wxString DataFont;
         wxString LabelFont;
         wxString SmallFont;
-        
+
         pConf->Read(_T("FontTitle"), &config, wxEmptyString);
 		LoadFont(&g_pFontTitle, config);
 
