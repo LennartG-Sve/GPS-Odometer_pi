@@ -1,45 +1,5 @@
 ---
 version: 2.1
-
-# Prevent all circleci deployment to Cloudsmith change parameters: > deploy > default to false
-# Prevent all travis and appveyor deployment to Cloudsmith change those yml files.
-# Prevent all circleci builds from building change parameters > run_workflow_build > default to false
-# Enable all builds parameters: > run_workflow_buid: > default: true   AND put 
-# Then to enable a certain circleci build only, change the parameter at the top to "false" and localy under workflow to "true".
-# IE: workflows: > version: 2 > build_all: > jobs: > - build-armhf-stretch: > build: > when: << pipeline.parameters.run_workflow_build >>
-# Changed to: workflows: > version: 2 > build_all: > jobs: > - build-armhf-stretch: > build: > when: true
-# and in Workflow section always use    build:  >  when: << pipeline.parameters.run_workflow_build >>
-
-#  build-armhf-stretch:
-#    machine: true
-#    environment:
-#      - OCPN_TARGET=stretch-armhf
-#      - DOCKER_IMAGE=jongough/raspbian-stretch:latest
-#      - BUILD_FLAGS=-j3
-#      - BUILD_ENV=raspbian
-#    steps:
-#      - checkout
-#      - when:
-#          condition: << pipeline.parameters.run_workflow_build >>
-#          steps:
-#            - run: chmod a+x ./ci/*.sh
-#            - run:
-#               command: ci/circleci-build-raspbian-armhf.sh
-#               no_output_timeout: 30m
-#            - when:
-#              condition: << pipeline.parameters.deploy >>
-#              steps:
-#                - run: ci/cloudsmith-upload.sh
-#                - run: echo "deploying"
-
-parameters:
-  run_workflow_build:
-    type: boolean
-    default: false
-  run_workflow_deploy:
-    type: boolean
-    default: false
-
 jobs:
     build-armhf-stretch:
         machine: true
@@ -48,19 +8,13 @@ jobs:
         - DOCKER_IMAGE=jongough/raspbian-stretch:latest
         - BUILD_FLAGS=-j3
         - BUILD_ENV=raspbian
-          - when:
-            condition: << pipeline.parameters.run_workflow_build >>
-            steps:
-            - checkout
-            - run: chmod a+x ./ci/*.sh
-            - run:
-                command: ci/circleci-build-raspbian-armhf.sh
-                no_output_timeout: 30m
-            - when:
-                condition: <<pipeline.parameters.run_workflow_deploy>>
-                steps:
-                  - run: ci/cloudsmith-upload.sh
-                  - run: echo "deploying"
+        steps:
+        - checkout
+        - run: chmod a+x ./ci/*.sh
+        - run:
+            command: ci/circleci-build-raspbian-armhf.sh
+            no_output_timeout: 30m
+        - run: ci/cloudsmith-upload.sh
     build-armhf-buster:
         machine: true
         environment:
@@ -74,11 +28,7 @@ jobs:
         - run:
             command: ci/circleci-build-raspbian-armhf.sh
             no_output_timeout: 30m
-        - when:
-            condition: <<pipeline.parameters.run_workflow_deploy>>
-            steps:
-              - run: ci/cloudsmith-upload.sh
-              - run: echo "deploying"
+        - run: ci/cloudsmith-upload.sh
     build-armhf-bionic-64:
         machine: true
         environment:
@@ -93,11 +43,7 @@ jobs:
         - run:
             command: ci/circleci-build-raspbian-armhf.sh
             no_output_timeout: 30m
-        - when:
-            condition: << pipeline.parameters.run_workflow_deploy >>
-            steps:
-              - run: ci/cloudsmith-upload.sh
-              - run: echo "deploying"
+        - run: ci/cloudsmith-upload.sh
     build-trusty:
         docker:
         - image: circleci/buildpack-deps:trusty-scm
@@ -114,11 +60,7 @@ jobs:
         - run: cat /etc/apt/sources.list
         - run: chmod a+x ci/*.sh
         - run: ci/circleci-build-trusty.sh
-        - when:
-            condition: << pipeline.parameters.run_workflow_deploy >>
-            steps:
-              - run: ci/cloudsmith-upload.sh
-              - run: echo "deploying"		
+        - run: ci/cloudsmith-upload.sh
     build-xenial:
         docker:
         - image: circleci/buildpack-deps:xenial-scm
@@ -135,11 +77,7 @@ jobs:
         - run: cat /etc/apt/sources.list
         - run: chmod a+x ci/*.sh
         - run: ci/circleci-build-debian.sh
-        - when:
-            condition: << pipeline.parameters.run_workflow_deploy >>
-            steps:
-              - run: ci/cloudsmith-upload.sh
-              - run: echo "deploying"		
+        - run: ci/cloudsmith-upload.sh
     build-bionic:
         docker:
         - image: circleci/buildpack-deps:bionic-scm
@@ -156,11 +94,7 @@ jobs:
         - run: cat /etc/apt/sources.list
         - run: chmod a+x ci/*.sh
         - run: ci/circleci-build-debian.sh
-        - when:
-            condition: << pipeline.parameters.run_workflow_deploy >>
-            steps:
-              - run: ci/cloudsmith-upload.sh
-              - run: echo "deploying"		
+        - run: ci/cloudsmith-upload.sh
     build-bionic-gtk3:
         docker:
         - image: circleci/buildpack-deps:bionic-scm
@@ -178,11 +112,7 @@ jobs:
         - run: cat /etc/apt/sources.list
         - run: chmod a+x ci/*.sh
         - run: ci/circleci-build-debian.sh
-        - when:
-            condition: << pipeline.parameters.run_workflow_deploy >>
-            steps:
-              - run: ci/cloudsmith-upload.sh
-              - run: echo "deploying"
+        - run: ci/cloudsmith-upload.sh
     build-focal:
         docker:
         - image: circleci/buildpack-deps:focal-scm
@@ -199,11 +129,7 @@ jobs:
         - run: cat /etc/apt/sources.list
         - run: chmod a+x ci/*.sh
         - run: ci/circleci-build-debian.sh
-        - when:
-            condition: << pipeline.parameters.run_workflow_deploy >>
-            steps:
-              - run: ci/cloudsmith-upload.sh
-              - run: echo "deploying"
+        - run: ci/cloudsmith-upload.sh
     build-focal-gtk3:
         docker:
         - image: circleci/buildpack-deps:focal-scm
@@ -221,11 +147,7 @@ jobs:
         - run: cat /etc/apt/sources.list
         - run: chmod a+x ci/*.sh
         - run: ci/circleci-build-debian.sh
-        - when:
-            condition: << pipeline.parameters.run_workflow_deploy >>
-            steps:
-              - run: ci/cloudsmith-upload.sh
-              - run: echo "deploying"
+        - run: ci/cloudsmith-upload.sh
     build-buster:
         docker:
         - image: circleci/buildpack-deps:buster-scm
@@ -242,11 +164,7 @@ jobs:
         - run: cat /etc/apt/sources.list
         - run: chmod a+x ci/*.sh
         - run: ci/circleci-build-debian.sh
-        - when:
-            condition: << pipeline.parameters.run_workflow_deploy >>
-            steps:
-              - run: ci/cloudsmith-upload.sh
-              - run: echo "deploying"
+        - run: ci/cloudsmith-upload.sh
     build-flatpak:
         machine:
             image: circleci/classic:201808-01
@@ -257,11 +175,7 @@ jobs:
         - checkout
         - run: chmod a+x ci/*.sh
         - run: bash ci/circleci-build-flatpak.sh
-        - when:
-            condition: << pipeline.parameters.run_workflow_deploy >>
-            steps:
-              - run: ci/cloudsmith-upload.sh
-              - run: echo "deploying"
+        - run: bash ci/cloudsmith-upload.sh
     build-fedora:
         docker:
         - image: fedora:29
@@ -272,11 +186,7 @@ jobs:
         - checkout
         - run: chmod a+x ci/*.sh
         - run: ci/circleci-build-fedora.sh
-        - when:
-            condition: << pipeline.parameters.run_workflow_deploy >>
-            steps:
-              - run: ci/cloudsmith-upload.sh
-              - run: echo "deploying"		
+        - run: ci/cloudsmith-upload.sh
     build-mingw:
         docker:
         - image: fedora:29
@@ -288,11 +198,7 @@ jobs:
         - checkout
         - run: chmod a+x ci/*.sh
         - run: bash ci/circleci-build-mingw.sh
-        - when:
-            condition: << pipeline.parameters.run_workflow_deploy >>
-            steps:
-              - run: ci/cloudsmith-upload.sh
-              - run: echo "deploying"
+        - run: bash ci/cloudsmith-upload.sh
     build-macos:
         macos:
             xcode: "10.0.0"
@@ -303,11 +209,7 @@ jobs:
         - checkout
         - run: chmod a+x ci/*.sh
         - run: bash ci/circleci-build-macos.sh
-        - when:
-            condition: << pipeline.parameters.run_workflow_deploy >>
-            steps:
-              - run: ci/cloudsmith-upload.sh
-              - run: echo "deploying"
+        - run: bash ci/cloudsmith-upload.sh
     build-android-arm64:
         docker:
         - image: circleci/android:api-28-ndk 
@@ -317,11 +219,7 @@ jobs:
         - checkout
         - run: chmod a+x ci/*.sh
         - run: bash ci/circleci-build-android-arm64.sh
-        - when:
-            condition: << pipeline.parameters.run_workflow_deploy >>
-            steps:
-              - run: ci/cloudsmith-upload.sh
-              - run: echo "deploying"
+        - run: bash ci/cloudsmith-upload.sh
     build-android-armhf:
         docker:
         - image: circleci/android:api-28-ndk 
@@ -331,12 +229,9 @@ jobs:
         - checkout
         - run: chmod a+x ci/*.sh
         - run: bash ci/circleci-build-android-armhf.sh
-        - when:
-            condition: << pipeline.parameters.run_workflow_deploy >>
-            steps:
-              - run: ci/cloudsmith-upload.sh
-              - run: echo "deploying"
+        - run: bash ci/cloudsmith-upload.sh
 
+        
 workflows:
     version: 2
     build_all:
@@ -456,7 +351,7 @@ workflows:
                     - tmp
                 tags:
                     only: /.*/
-# GPS Odometer is currently not supporting Android
+# GPS-Odometer does not support Android
 #        - build-android-arm64:
 #            filters:
 #                branches:
