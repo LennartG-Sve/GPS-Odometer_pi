@@ -38,9 +38,9 @@ set(LONG_DESCRIPTION "GPS controlled Dashboard based Odometer plugin for OpenCPN
 
 set(VERSION_MAJOR "0")
 set(VERSION_MINOR "3")
-set(VERSION_PATCH "0")
-set(VERSION_TWEAK "3")
-set(VERSION_DATE "11/11/2020")
+set(VERSION_PATCH "1")
+set(VERSION_TWEAK "0")
+set(VERSION_DATE "16/11/2020")
 set(OCPN_MIN_VERSION "ov50")
 set(OCPN_API_VERSION_MAJOR "1")
 set(OCPN_API_VERSION_MINOR "16")
@@ -51,10 +51,6 @@ set(PARENT "opencpn")
 # The default is shown below, but it is done in cmake/pluginconfigure.cmake now.
 # This default is needed to build locally and to build flatpak.
 set(GIT_REPOSITORY_SERVER "github.com")
-
-#No longer needed, queried and found by PluginConfigure.cmake.
-#set(GIT_USER "rgleason")
-#set(GIT_REPOSITORY_NAME "testplugin_pi")						 
 
 # Specifies Cloudsmith upload repository suffix for each catalog
 set(PROD "prod")    #Standard Repos

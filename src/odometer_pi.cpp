@@ -1063,6 +1063,9 @@ void odometer_pi::ApplyConfig(void) {
                // !vertical).BottomDockable(!vertical).LeftDockable(vertical).RightDockable(vertical).MinSize(
                // sz).BestSize(sz).FloatingSize(sz).FloatingPosition(100, 100).Float().Show(cont->m_bIsVisible));
 
+            wxAuiPaneInfo& pane = m_pauimgr->GetPane( cont->m_pOdometerWindow );
+            pane.Dockable( false );
+
         } else {  
             // Update the current odometer
             wxAuiPaneInfo& pane = m_pauimgr->GetPane(cont->m_pOdometerWindow);
@@ -1445,6 +1448,9 @@ void OdometerWindow::ChangePaneOrientation(int orient, bool updateAUImgr) {
         m_Container->m_sCaption).CaptionVisible(true).TopDockable(!vertical).BottomDockable(
         !vertical).LeftDockable(vertical).RightDockable(vertical).MinSize(sz).BestSize(
         sz).FloatingSize(sz).FloatingPosition(100, 100).Float().Show(m_Container->m_bIsVisible));
+
+    wxAuiPaneInfo& pane = m_pauimgr->GetPane( this );
+    pane.Dockable( false );
 
     if (updateAUImgr) m_pauimgr->Update();
 }

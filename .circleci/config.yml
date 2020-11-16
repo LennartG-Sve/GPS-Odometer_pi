@@ -210,28 +210,6 @@ jobs:
         - run: chmod a+x ci/*.sh
         - run: bash ci/circleci-build-macos.sh
         - run: bash ci/cloudsmith-upload.sh
-    build-android-arm64:
-        docker:
-        - image: circleci/android:api-28-ndk 
-        environment:
-        - OCPN_TARGET:  android-arm64
-        steps:
-        - checkout
-        - run: chmod a+x ci/*.sh
-        - run: bash ci/circleci-build-android-arm64.sh
-        - run: bash ci/cloudsmith-upload.sh
-    build-android-armhf:
-        docker:
-        - image: circleci/android:api-28-ndk 
-        environment:
-        - OCPN_TARGET:  android-armhf
-        steps:
-        - checkout
-        - run: chmod a+x ci/*.sh
-        - run: bash ci/circleci-build-android-armhf.sh
-        - run: bash ci/cloudsmith-upload.sh
-
-        
 workflows:
     version: 2
     build_all:
@@ -351,21 +329,4 @@ workflows:
                     - tmp
                 tags:
                     only: /.*/
-# GPS-Odometer does not support Android
-#        - build-android-arm64:
-#            filters:
-#                branches:
-#                    ignore:
-#                    - devel
-#                    - tmp
-#                tags:
-#                    only: /.*/
-#        - build-android-armhf:
-#            filters:
-#                branches:
-#                    ignore:
-#                    - devel
-#                    - tmp
-#                tags:
-#                    only: /.*/
 
