@@ -186,8 +186,8 @@ int odometer_pi::Init(void) {
     
     // Load the fonts
     g_pFontTitle = new wxFont(10, wxFONTFAMILY_SWISS, wxFONTSTYLE_ITALIC, wxFONTWEIGHT_NORMAL);
-    g_pFontData = new wxFont(10, wxFONTFAMILY_SWISS, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL);
-    g_pFontLabel = new wxFont(10, wxFONTFAMILY_SWISS, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL);
+    g_pFontData = new wxFont(11, wxFONTFAMILY_SWISS, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL);
+    g_pFontLabel = new wxFont(11, wxFONTFAMILY_SWISS, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL);
     g_pFontSmall = new wxFont(8, wxFONTFAMILY_SWISS, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL);
 
     // Wire up the OnClose AUI event
@@ -1510,12 +1510,12 @@ void OdometerWindow::SetInstrumentList(wxArrayInt list) {
 
             case ID_DBP_I_SUMLOG:
                 instrument = new OdometerInstrument_Single( this, wxID_ANY,
-                    GetInstrumentCaption( id ), OCPN_DBP_STC_SUMLOG, _T("%14.1f") );
+                    GetInstrumentCaption( id ), OCPN_DBP_STC_SUMLOG, _T("%12.1f") );
                 break;
 
             case ID_DBP_I_TRIPLOG:
                 instrument = new OdometerInstrument_Single( this, wxID_ANY,
-                    GetInstrumentCaption( id ), OCPN_DBP_STC_TRIPLOG, _T("%14.1f") );
+                    GetInstrumentCaption( id ), OCPN_DBP_STC_TRIPLOG, _T("%12.1f") );
                 break;
 
             case ID_DBP_I_DEPART:
@@ -1540,14 +1540,14 @@ void OdometerWindow::SetInstrumentList(wxArrayInt list) {
             case ID_DBP_I_LEGDIST:
                 if ( g_iShowTripLeg == 1 ) { 
                     instrument = new OdometerInstrument_Single( this, wxID_ANY,
-                        GetInstrumentCaption( id ), OCPN_DBP_STC_LEGDIST,_T("%14.2f") );
+                        GetInstrumentCaption( id ), OCPN_DBP_STC_LEGDIST,_T("%12.2f") );
                 }
                 break;
 
             case ID_DBP_I_LEGTIME:
                 if ( g_iShowTripLeg == 1 ) { 
                     instrument = new OdometerInstrument_String( this, wxID_ANY,
-                        GetInstrumentCaption( id ), OCPN_DBP_STC_LEGTIME,_T("%8s") ); 
+                        GetInstrumentCaption( id ), OCPN_DBP_STC_LEGTIME,_T("%6s") ); 
                 }
                 break;
 

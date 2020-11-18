@@ -50,7 +50,7 @@
 #include "ocpn_plugin.h"
 
 // NMEA0183 Sentence parsing functions
-#include "nmea0183/nmea0183.h"
+#include "nmea0183.h"
 
 // Odometer instruments/dials/gauges
 #include "instrument.h"

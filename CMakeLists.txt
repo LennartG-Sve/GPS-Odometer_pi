@@ -31,7 +31,6 @@ set(VERBOSE_NAME "GPS_Odometer")
 set(COMMON_NAME "GPS Odometer")
 set(TITLE_NAME "GPSODOMETER")
 set(PACKAGE_CONTACT "LennartG")
-#set(PACKAGE "gps-odometer")
 set(PACKAGE "gpsodometer")
 set(SHORT_DESCRIPTION "GPS Odometer plugin for OpenCPN")
 set(LONG_DESCRIPTION "GPS controlled Dashboard based Odometer plugin for OpenCPN, displays GPS calculated Log and Trip information")
@@ -39,8 +38,8 @@ set(LONG_DESCRIPTION "GPS controlled Dashboard based Odometer plugin for OpenCPN
 set(VERSION_MAJOR "0")
 set(VERSION_MINOR "3")
 set(VERSION_PATCH "1")
-set(VERSION_TWEAK "1")
-set(VERSION_DATE "17/11/2020")
+set(VERSION_TWEAK "2")
+set(VERSION_DATE "18/11/2020")
 set(OCPN_MIN_VERSION "ov50")
 set(OCPN_API_VERSION_MAJOR "1")
 set(OCPN_API_VERSION_MINOR "16")
@@ -124,18 +123,7 @@ include("PluginConfigure")
 ## ----- do not change section above - needed to configure build process ----- ##
 ## ----- Change below to match project requirements for source, headers, etc. ----- ##
 ##
-## GPS Odometer plugin does not understand/use this definition
-##add_definitions(-DUSE_S57)
-
-# From master branch - is this working? necessary?
-## GPS Odometer plugin uses SVG for toolbar icons
-
-IF(PLUGIN_USE_SVG)
-    MESSAGE(STATUS "${CMLOC}SVG support enabled...")
-    IF(NOT QT_ANDROID)
-        ADD_DEFINITIONS(-DPLUGIN_USE_SVG)
-    ENDIF(NOT QT_ANDROID)
-ENDIF(PLUGIN_USE_SVG)
+add_definitions(-DUSE_S57)
 
 
 SET(SRCS
@@ -146,58 +134,82 @@ SET(SRCS
     src/dial.cpp
     src/speedometer.cpp
     src/icons.cpp
-    src/nmea0183/nmea0183.cpp
-    src/nmea0183/response.cpp
-    src/nmea0183/sentence.cpp
-    src/nmea0183/talkerid.cpp
-    src/nmea0183/hexvalue.cpp
-    src/nmea0183/expid.cpp
-    src/nmea0183/lat.cpp
-    src/nmea0183/latlong.cpp
-    src/nmea0183/long.cpp
-    src/nmea0183/gga.cpp
-    src/nmea0183/gsv.cpp
-    src/nmea0183/rmc.cpp
+    src/nmea0183.cpp
+    src/response.cpp
+    src/sentence.cpp
+    src/talkerid.cpp
+    src/hexvalue.cpp
+    src/expid.cpp
+    src/lat.cpp
+    src/latlong.cpp
+    src/long.cpp
+    src/gga.cpp
+    src/gsv.cpp
+    src/rmc.cpp
 )
 
 SET(HDRS
-#    api-16/ocpn_plugin.h
-    src/button.h
-	src/dial.h
-	src/icons.h
-	src/iirfilter.h
-	src/instrument.h
-	src/odometer_pi.h
-	src/speedometer.h
-	src/nmea0183/nmea0183.h
-	src/nmea0183/SatInfo.h
+    include/button.h
+	include/dial.h
+	include/icons.h
+	include/iirfilter.h
+	include/instrument.h
+	include/odometer_pi.h
+	include/speedometer.h
+	include/nmea0183.h
+	include/SatInfo.h
 )	
+
+set(EXTSRC)
+
+set(EXTINCLUDE extinclude/nlohmann/json.hpp extinclude/ODAPI.h)
+
+set(LIBSSRC libs/wxJSON/src/jsonreader.cpp libs/wxJSON/src/jsonval.cpp libs/wxJSON/src/jsonwriter.cpp)
+
+set(LIBHDRS
+    libs/GL/include/gl.h
+    libs/GL/include/gl_private.h
+    libs/GL/include/glext.h
+    libs/GL/include/glu.h
+    libs/wx/include/json_defs.h
+    libs/wx/include/jsonreader.h
+    libs/wx/include/jsonval.h
+    libs/wx/include/jsonwriter.h)
+
+## GPS Odometer plugin uses SVG for toolbar icons
+add_definitions(-DPLUGIN_USE_SVG)
+
+if(APPLE)
+    option(PI_JSON_SCHEMA_VALIDATOR "Use JSON Schema validator" OFF)
+else(APPLE)
+    option(PI_JSON_SCHEMA_VALIDATOR "Use JSON Schema validator" ON)
+endif(APPLE)
+
+if(PI_JSON_SCHEMA_VALIDATOR)
+    message(STATUS "${CMLOC}Using JSON Schema validation - warning this changes the 'flavour' of the executable and it may not be compatible with OpenCPN")
+    add_definitions(-DPI_JSON_SCHEMA_VALIDATOR)
+    message(STATUS "${CMLOC}Adding JSON Schema validation")
+
+    set(EXTSRC ${EXTSRC} extsrc/json-schema-validator/json-schema-draft7.json.cpp extsrc/json-schema-validator/json-uri.cpp extsrc/json-schema-validator/json-validator.cpp)
+    set(EXTINCLUDE ${EXTINCLUDE} extinclude/nlohmann/json.hpp extinclude/json-schema-validator/json-schema.hpp)
+    include_directories(BEFORE ${PROJECT_SOURCE_DIR}/extinclude/json-schema-validator)
+else(PI_JSON_SCHEMA_VALIDATOR)
+    message(STATUS "${CMLOC}Not using JSON Schema validation - warning invalid JSON 'may' cause unexpected crashes")
+endif(PI_JSON_SCHEMA_VALIDATOR)
 
 ## Need api-16 for ocpn_plugin.h
 INCLUDE_DIRECTORIES(BEFORE ${PROJECT_SOURCE_DIR}/api-16)
 INCLUDE_DIRECTORIES(BEFORE ${PROJECT_SOURCE_DIR}/src)
-INCLUDE_DIRECTORIES(BEFORE ${PROJECT_SOURCE_DIR}/src/nmea0183)
 INCLUDE_DIRECTORIES(BEFORE ${CMAKE_SOURCE_DIR}/include)
+include_directories(BEFORE ${PROJECT_SOURCE_DIR}/extinclude)
+include_directories(BEFORE ${PROJECT_SOURCE_DIR}/libs/)
+include_directories(BEFORE ${PROJECT_SOURCE_DIR}/libs/wx/include)
 
-#INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/include ${CMAKE_SOURCE_DIR}/src/nmea0183 ${CMAKE_SOURCE_DIR}/src)
-##
 ## Statement below is required to collect all the set( headers and SRCS  - Adjust as required
-## This add_library  can be used in conditionals below.
-##
-## SET(EXTSRC  ${EXTSRC}   etc   Can be in an if statement as below
-##
-##==========================================================================
-ADD_LIBRARY(${PACKAGE_NAME} SHARED ${SRCS} ${HDRS} )
-##==========================================================================
+add_library(${PACKAGE_NAME} SHARED ${SRCS} ${HDRS} ${EXTSRC} ${LIBSSRC})
 
 add_definitions(-DTIXML_USE_STL)
 
-## These are NOT used in Testplugin, used for other plugins
-##=======================================
-#include("PluginJSON")
-#include("PluginXML")
-#include("PluginGL")
-##=======================================
 ##
 ## ----- Change above to match project requirements ----- ##
 ## ----- do not change next section - needed to configure build process ----- ##
@@ -210,5 +222,3 @@ include("PluginPackage")
 ##
 ## ----- do not change section above - needed to configure build process ----- ##
 ##
-
-
