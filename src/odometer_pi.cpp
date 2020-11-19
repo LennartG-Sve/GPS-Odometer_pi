@@ -41,7 +41,6 @@
 #include <wx/msgdlg.h>  // Message box for test purposes (wxMessageBox)
 
 #include "odometer_pi.h"
-
 #include "version.h"
 
 #include <typeinfo>

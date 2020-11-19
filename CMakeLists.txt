@@ -38,8 +38,8 @@ set(LONG_DESCRIPTION "GPS controlled Dashboard based Odometer plugin for OpenCPN
 set(VERSION_MAJOR "0")
 set(VERSION_MINOR "3")
 set(VERSION_PATCH "1")
-set(VERSION_TWEAK "2")
-set(VERSION_DATE "18/11/2020")
+set(VERSION_TWEAK "3")
+set(VERSION_DATE "19/11/2020")
 set(OCPN_MIN_VERSION "ov50")
 set(OCPN_API_VERSION_MAJOR "1")
 set(OCPN_API_VERSION_MINOR "16")
@@ -56,8 +56,9 @@ set(PROD "prod")    #Standard Repos
 set(BETA "beta")    #Standard Repos
 set(ALPHA "alpha")  #Standard Repos
 
+# Match the cloudsmith org name, not the user.
+set(CLOUDSMITH_USER "opencpn") 
 #set(CLOUDSMITH_USER "LennartG-Sve")
-set(CLOUDSMITH_USER "opencpn") #Match the cloudsmith org name, not the user.
 
 # Set if yourCloudsmith Base Repository name does not match your Git Repository name.
 set (CLOUDSMITH_BASE_REPOSITORY "gps-odometer")  #without the pi
@@ -93,36 +94,24 @@ endif("${CMAKE_BUILD_TYPE}" STREQUAL "")
 set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "" "Debug" "Release" "RelWithDebInfo" "MinSizeRel")
 message(STATUS "${CMLOC}Build type: ${CMAKE_BUILD_TYPE}")
 
-##
 ## ----- The statements below are used to setup standard variables that are required by the 
 ##       CMAKE process - do not remove ----- ##
-##
 
 project(${PACKAGE})
-
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake;")
 
-##=======================================
+## ----- Next line is used to setup standard variables that are required by the 
+##       CMAKE process - do not remove ----- ##
 include("PluginSetup")
-##=======================================
-## ----- Above is used to setup standard variables that are required by the CMAKE process - do not remove ----- ##
-## ----- Modify section below if there are special requirements for the plugin ----- ##
-##
-set(CMAKE_VERBOSE_MAKEFILE ON)
 
+## ----- Modify section below if there are special requirements for the plugin ----- ##
+set(CMAKE_VERBOSE_MAKEFILE ON)
 option(Plugin_CXX11 "Use c++11" OFF)
 
-##
-## ----- Modify section above if there are special requirements for the plugin ----- ##
-## ----- do not change next section - needed to configure build process ----- ##
-##
-##=======================================
+## ----- Do not change next section - needed to configure build process ----- ##
 include("PluginConfigure")
-##=======================================
-##
-## ----- do not change section above - needed to configure build process ----- ##
+
 ## ----- Change below to match project requirements for source, headers, etc. ----- ##
-##
 add_definitions(-DUSE_S57)
 
 
@@ -160,10 +149,9 @@ SET(HDRS
 	include/SatInfo.h
 )	
 
+set(OCPNHDRS ocpninclude/ocpn_plugin.h ocpninclude/pluginmanager.h ocpninclude/TexFont.h)
 set(EXTSRC)
-
 set(EXTINCLUDE extinclude/nlohmann/json.hpp extinclude/ODAPI.h)
-
 set(LIBSSRC libs/wxJSON/src/jsonreader.cpp libs/wxJSON/src/jsonval.cpp libs/wxJSON/src/jsonwriter.cpp)
 
 set(LIBHDRS
@@ -198,6 +186,7 @@ else(PI_JSON_SCHEMA_VALIDATOR)
 endif(PI_JSON_SCHEMA_VALIDATOR)
 
 ## Need api-16 for ocpn_plugin.h
+include_directories(BEFORE ${PROJECT_SOURCE_DIR}/ocpninclude)
 INCLUDE_DIRECTORIES(BEFORE ${PROJECT_SOURCE_DIR}/api-16)
 INCLUDE_DIRECTORIES(BEFORE ${PROJECT_SOURCE_DIR}/src)
 INCLUDE_DIRECTORIES(BEFORE ${CMAKE_SOURCE_DIR}/include)
@@ -205,20 +194,35 @@ include_directories(BEFORE ${PROJECT_SOURCE_DIR}/extinclude)
 include_directories(BEFORE ${PROJECT_SOURCE_DIR}/libs/)
 include_directories(BEFORE ${PROJECT_SOURCE_DIR}/libs/wx/include)
 
-## Statement below is required to collect all the set( headers and SRCS  - Adjust as required
+## Statement below is required to collect all the set (headers and SRCS) - Adjust as required
 add_library(${PACKAGE_NAME} SHARED ${SRCS} ${HDRS} ${EXTSRC} ${LIBSSRC})
 
 add_definitions(-DTIXML_USE_STL)
 
-##
-## ----- Change above to match project requirements ----- ##
-## ----- do not change next section - needed to configure build process ----- ##
-##  
-##=======================================
+if(UNIX AND NOT APPLE)
+    if(PI_JSON_SCHEMA_VALIDATOR)
+        # Change OS/ABI to be UNIX - System V to make it run with OCPN
+        set(lib_name lib${PACKAGE_NAME}.so)
+        message(STATUS "${CMLOC}lib-name: ${lib_name}")
+        find_file(elfedit elfedit)
+        if(NOT (${elfedit} STREQUAL "elfedit-NOTFOUND"))
+            message(STATUS "${CMLOC}Will ensure OS/ABI is set to 0 to match OCPN")
+            add_custom_command(
+                TARGET ${PACKAGE_NAME}
+                POST_BUILD
+                WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+                DEPENDS ${PACKAGE_NAME}
+                COMMENT " Running post build action on ${lib_name}."
+                COMMAND sh -c 'elfedit --input-osabi=Linux --output-osabi=none ${lib_name} || (echo 0) ')
+        else(NOT (${elfedit} STREQUAL "elfedit-NOTFOUND"))
+            message(STATUS "${CMLOC}Cannot correct OS/ABI to match OCPN if it is generated incorrectly. Package binutils needed")
+        endif(NOT (${elfedit} STREQUAL "elfedit-NOTFOUND"))
+    endif(PI_JSON_SCHEMA_VALIDATOR)
+endif(UNIX AND NOT APPLE)
+
+
+## ----- Do not change next section - needed to configure build process ----- ##
 include("PluginInstall")
 include("PluginLocalization")
 include("PluginPackage")
-##=======================================													  
-##
 ## ----- do not change section above - needed to configure build process ----- ##
-##
