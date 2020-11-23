@@ -436,21 +436,21 @@ void odometer_pi::Odometer() {
         g_iResetLeg = 0;
     } 
 
-    // Set departure time to local time if CurrSpeed >  OnRouteSpeed
+    // Set departure time to local time if CurrSpeed is greater than or equal to OnRouteSpeed
     m_OnRouteSpeed = g_iOdoOnRoute;
     // Reset after arrival, before system shutdown
-    if ((CurrSpeed > m_OnRouteSpeed) && m_DepTime == "---" )  { 
+    if ((CurrSpeed >= m_OnRouteSpeed) && m_DepTime == "---" )  { 
         m_DepTime = LocalTime.Format(wxT("%F %T"));
     }
 
     // Reset after power up, before trip start
-    if ((CurrSpeed > m_OnRouteSpeed) && SetDepTime == 1 )  {   
+    if ((CurrSpeed >= m_OnRouteSpeed) && SetDepTime == 1 )  {   
         m_DepTime = LocalTime.Format(wxT("%F %T"));
         SetDepTime = 0;
     }
 
     // Select departure time to use and enable if sppeed is enough
-    if (CurrSpeed > m_OnRouteSpeed && DepTimeShow == 0 )  {
+    if (CurrSpeed >= m_OnRouteSpeed && DepTimeShow == 0 )  {
         if (UseSavedDepTime == 0) {
             DepTime = LocalTime; 
         } else {
@@ -466,7 +466,7 @@ void odometer_pi::Odometer() {
 
     // Set and display arrival time 
     if (DepTimeShow == 1 )  {
-        if (CurrSpeed > m_OnRouteSpeed) {
+        if (CurrSpeed >= m_OnRouteSpeed) {
             strArr = _("On Route");
             ArrTimeShow = 0;
             UseSavedArrTime = 0;
