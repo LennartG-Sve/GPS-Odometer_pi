@@ -38,8 +38,8 @@ set(LONG_DESCRIPTION "GPS controlled Dashboard based Odometer plugin for OpenCPN
 set(VERSION_MAJOR "0")
 set(VERSION_MINOR "3")
 set(VERSION_PATCH "1")
-set(VERSION_TWEAK "5")
-set(VERSION_DATE "22/11/2020")
+set(VERSION_TWEAK "6")
+set(VERSION_DATE "23/11/2020")
 set(OCPN_MIN_VERSION "ov50")
 set(OCPN_API_VERSION_MAJOR "1")
 set(OCPN_API_VERSION_MINOR "16")
@@ -112,7 +112,7 @@ option(Plugin_CXX11 "Use c++11" OFF)
 include("PluginConfigure")
 
 ## ----- Change below to match project requirements for source, headers, etc. ----- ##
-add_definitions(-DUSE_S57)
+## add_definitions(-DUSE_S57)
 
 
 SET(SRCS
@@ -149,10 +149,10 @@ SET(HDRS
 	include/SatInfo.h
 )	
 
-set(OCPNHDRS ocpninclude/ocpn_plugin.h ocpninclude/pluginmanager.h ocpninclude/TexFont.h)
-set(EXTSRC)
-set(EXTINCLUDE extinclude/nlohmann/json.hpp extinclude/ODAPI.h)
-set(LIBSSRC libs/wxJSON/src/jsonreader.cpp libs/wxJSON/src/jsonval.cpp libs/wxJSON/src/jsonwriter.cpp)
+##set(OCPNHDRS ocpninclude/ocpn_plugin.h ocpninclude/pluginmanager.h ocpninclude/TexFont.h)
+##set(EXTSRC)
+##set(EXTINCLUDE extinclude/nlohmann/json.hpp extinclude/ODAPI.h)
+##set(LIBSSRC libs/wxJSON/src/jsonreader.cpp libs/wxJSON/src/jsonval.cpp libs/wxJSON/src/jsonwriter.cpp)
 
 set(LIBHDRS
     libs/GL/include/gl.h
@@ -167,58 +167,60 @@ set(LIBHDRS
 ## GPS Odometer plugin uses SVG for toolbar icons
 add_definitions(-DPLUGIN_USE_SVG)
 
-if(APPLE)
-    option(PI_JSON_SCHEMA_VALIDATOR "Use JSON Schema validator" OFF)
-else(APPLE)
-    option(PI_JSON_SCHEMA_VALIDATOR "Use JSON Schema validator" ON)
-endif(APPLE)
+## GPS Odometer don't use JSON
+##if(APPLE)
+##    option(PI_JSON_SCHEMA_VALIDATOR "Use JSON Schema validator" OFF)
+##else(APPLE)
+##    option(PI_JSON_SCHEMA_VALIDATOR "Use JSON Schema validator" ON)
+##endif(APPLE)
 
-if(PI_JSON_SCHEMA_VALIDATOR)
-    message(STATUS "${CMLOC}Using JSON Schema validation - warning this changes the 'flavour' of the executable and it may not be compatible with OpenCPN")
-    add_definitions(-DPI_JSON_SCHEMA_VALIDATOR)
-    message(STATUS "${CMLOC}Adding JSON Schema validation")
+##if(PI_JSON_SCHEMA_VALIDATOR)
+##    message(STATUS "${CMLOC}Using JSON Schema validation - warning this changes the 'flavour' of the executable and it may not be compatible with OpenCPN")
+##    add_definitions(-DPI_JSON_SCHEMA_VALIDATOR)
+##    message(STATUS "${CMLOC}Adding JSON Schema validation")
 
-    set(EXTSRC ${EXTSRC} extsrc/json-schema-validator/json-schema-draft7.json.cpp extsrc/json-schema-validator/json-uri.cpp extsrc/json-schema-validator/json-validator.cpp)
-    set(EXTINCLUDE ${EXTINCLUDE} extinclude/nlohmann/json.hpp extinclude/json-schema-validator/json-schema.hpp)
-    include_directories(BEFORE ${PROJECT_SOURCE_DIR}/extinclude/json-schema-validator)
-else(PI_JSON_SCHEMA_VALIDATOR)
-    message(STATUS "${CMLOC}Not using JSON Schema validation - warning invalid JSON 'may' cause unexpected crashes")
-endif(PI_JSON_SCHEMA_VALIDATOR)
+##    set(EXTSRC ${EXTSRC} extsrc/json-schema-validator/json-schema-draft7.json.cpp extsrc/json-schema-validator/json-uri.cpp extsrc/json-schema-validator/json-validator.cpp)
+##    set(EXTINCLUDE ${EXTINCLUDE} extinclude/nlohmann/json.hpp extinclude/json-schema-validator/json-schema.hpp)
+##    include_directories(BEFORE ${PROJECT_SOURCE_DIR}/extinclude/json-schema-validator)
+##else(PI_JSON_SCHEMA_VALIDATOR)
+##    message(STATUS "${CMLOC}Not using JSON Schema validation - warning invalid JSON 'may' cause unexpected crashes")
+##endif(PI_JSON_SCHEMA_VALIDATOR)
 
 ## Need api-16 for ocpn_plugin.h
-include_directories(BEFORE ${PROJECT_SOURCE_DIR}/ocpninclude)
+##include_directories(BEFORE ${PROJECT_SOURCE_DIR}/ocpninclude)
 INCLUDE_DIRECTORIES(BEFORE ${PROJECT_SOURCE_DIR}/api-16)
 INCLUDE_DIRECTORIES(BEFORE ${PROJECT_SOURCE_DIR}/src)
 INCLUDE_DIRECTORIES(BEFORE ${CMAKE_SOURCE_DIR}/include)
-include_directories(BEFORE ${PROJECT_SOURCE_DIR}/extinclude)
-include_directories(BEFORE ${PROJECT_SOURCE_DIR}/libs/)
-include_directories(BEFORE ${PROJECT_SOURCE_DIR}/libs/wx/include)
+##include_directories(BEFORE ${PROJECT_SOURCE_DIR}/extinclude)
+##include_directories(BEFORE ${PROJECT_SOURCE_DIR}/libs/)
+##include_directories(BEFORE ${PROJECT_SOURCE_DIR}/libs/wx/include)
 
 ## Statement below is required to collect all the set (headers and SRCS) - Adjust as required
-add_library(${PACKAGE_NAME} SHARED ${SRCS} ${HDRS} ${EXTSRC} ${LIBSSRC})
+##add_library(${PACKAGE_NAME} SHARED ${SRCS} ${HDRS} ${EXTSRC} ${LIBSSRC})
+add_library(${PACKAGE_NAME} SHARED ${SRCS} ${HDRS})
 
 add_definitions(-DTIXML_USE_STL)
 
-if(UNIX AND NOT APPLE)
-    if(PI_JSON_SCHEMA_VALIDATOR)
-        # Change OS/ABI to be UNIX - System V to make it run with OCPN
-        set(lib_name lib${PACKAGE_NAME}.so)
-        message(STATUS "${CMLOC}lib-name: ${lib_name}")
-        find_file(elfedit elfedit)
-        if(NOT (${elfedit} STREQUAL "elfedit-NOTFOUND"))
-            message(STATUS "${CMLOC}Will ensure OS/ABI is set to 0 to match OCPN")
-            add_custom_command(
-                TARGET ${PACKAGE_NAME}
-                POST_BUILD
-                WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-                DEPENDS ${PACKAGE_NAME}
-                COMMENT " Running post build action on ${lib_name}."
-                COMMAND sh -c 'elfedit --input-osabi=Linux --output-osabi=none ${lib_name} || (echo 0) ')
-        else(NOT (${elfedit} STREQUAL "elfedit-NOTFOUND"))
-            message(STATUS "${CMLOC}Cannot correct OS/ABI to match OCPN if it is generated incorrectly. Package binutils needed")
-        endif(NOT (${elfedit} STREQUAL "elfedit-NOTFOUND"))
-    endif(PI_JSON_SCHEMA_VALIDATOR)
-endif(UNIX AND NOT APPLE)
+##if(UNIX AND NOT APPLE)
+##    if(PI_JSON_SCHEMA_VALIDATOR)
+##        # Change OS/ABI to be UNIX - System V to make it run with OCPN
+##        set(lib_name lib${PACKAGE_NAME}.so)
+##        message(STATUS "${CMLOC}lib-name: ${lib_name}")
+##        find_file(elfedit elfedit)
+##        if(NOT (${elfedit} STREQUAL "elfedit-NOTFOUND"))
+##            message(STATUS "${CMLOC}Will ensure OS/ABI is set to 0 to match OCPN")
+##            add_custom_command(
+##                TARGET ${PACKAGE_NAME}
+##                POST_BUILD
+##                WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+##                DEPENDS ${PACKAGE_NAME}
+##                COMMENT " Running post build action on ${lib_name}."
+##                COMMAND sh -c 'elfedit --input-osabi=Linux --output-osabi=none ${lib_name} || (echo 0) ')
+##        else(NOT (${elfedit} STREQUAL "elfedit-NOTFOUND"))
+##            message(STATUS "${CMLOC}Cannot correct OS/ABI to match OCPN if it is generated incorrectly. Package binutils needed")
+##        endif(NOT (${elfedit} STREQUAL "elfedit-NOTFOUND"))
+##    endif(PI_JSON_SCHEMA_VALIDATOR)
+##endif(UNIX AND NOT APPLE)
 
 
 ## ----- Do not change next section - needed to configure build process ----- ##
