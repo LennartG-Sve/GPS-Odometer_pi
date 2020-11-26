@@ -38,8 +38,8 @@ set(LONG_DESCRIPTION "GPS controlled Dashboard based Odometer plugin for OpenCPN
 set(VERSION_MAJOR "0")
 set(VERSION_MINOR "3")
 set(VERSION_PATCH "2")
-set(VERSION_TWEAK "0")
-set(VERSION_DATE "23/11/2020")
+set(VERSION_TWEAK "1")
+set(VERSION_DATE "26/11/2020")
 set(OCPN_MIN_VERSION "ov50")
 set(OCPN_API_VERSION_MAJOR "1")
 set(OCPN_API_VERSION_MINOR "16")
@@ -47,23 +47,20 @@ set(OCPN_API_VERSION_MINOR "16")
 set(PARENT "opencpn")
 
 # The next line allows setup of a local webserver with git for testing purposes.
-# The default is shown below, but it is done in cmake/pluginconfigure.cmake now.
-# This default is needed to build locally and to build flatpak.
-set(GIT_REPOSITORY_SERVER "github.com")
+# The default is github.com.
+#set(GIT_REPOSITORY_SERVER "github.com")
 
 # Specifies Cloudsmith upload repository suffix for each catalog
 set(PROD "prod")    #Standard Repos
 set(BETA "beta")    #Standard Repos
 set(ALPHA "alpha")  #Standard Repos
 
+# Set if yourCloudsmith Base Repository name does not match your Git Repository name.
+set (CLOUDSMITH_BASE_REPOSITORY "gps-odometer")  #without the pi
 # Match the cloudsmith org name, not the user.
 set(CLOUDSMITH_USER "opencpn") 
 #set(CLOUDSMITH_USER "LennartG-Sve")
 
-# Set if yourCloudsmith Base Repository name does not match your Git Repository name.
-set (CLOUDSMITH_BASE_REPOSITORY "gps-odometer")  #without the pi
-
-## Preliminary, not yet applicable
 set(XML_INFO_URL "https://opencpn.org/wiki/dokuwiki/doku.php?id=opencpn:opencpn_user_manual:plugins:other:odometer") 
 set(XML_SUMMARY ${SHORT_DESCRIPTION})
 set(XML_DESCRIPTION ${LONG_DESCRIPTION})
@@ -96,8 +93,6 @@ message(STATUS "${CMLOC}Build type: ${CMAKE_BUILD_TYPE}")
 project(${PACKAGE})
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake;")
 
-## ----- Next line is used to setup standard variables that are required by the 
-##       CMAKE process - do not remove ----- ##
 include("PluginSetup")
 
 ## ----- Modify section below if there are special requirements for the plugin ----- ##

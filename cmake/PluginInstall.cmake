@@ -12,20 +12,6 @@ endif(OCPN_FLATPAK_CONFIG)
 if(NOT APPLE)
     target_link_libraries(${PACKAGE_NAME} ${wxWidgets_LIBRARIES} ${EXTRA_LIBS})
 endif(NOT APPLE)
-#==================
-# ATTENTION: Jon Gough 
-# The symbols need to be stripped somewhere in here.
-# This code is from other plugin frontends.
-# To strip symbols from mingw leamas
-# if (${BUILD_TYPE} STREQUAL "tarball" AND MINGW)
-#  find_program(STRIP_UTIL NAMES strip REQUIRED)
-#  install(CODE
-#    "execute_process(
-#      COMMAND ${STRIP_UTIL} app/files/plugins/lib${PACKAGE_NAME}.dll
-#      WORKING_DIRECTORY ${CMAKE_BINARY_DIR})"
-#  )
-#endif ()
-
 
 if(WIN32)
     if(MSVC)
@@ -43,6 +29,20 @@ if(WIN32)
         set(CMAKE_SHARED_LINKER_FLAGS "-L../buildwin")
         # target_link_libraries(${PACKAGE_NAME} ${OPENGL_LIBRARIES})
         set(OPENCPN_IMPORT_LIB "${CMAKE_SOURCE_DIR}/api-16/libopencpn.dll.a")
+        message(STATUS "${CMLOC}Will ensure library is stripped of all symbols")
+        set(MINGW_LIBRARY_NAME "lib${PACKAGE_NAME}.dll")
+        message(STATUS "${CMLOC}Library name: ${MINGW_LIBRARY_NAME}")
+        find_program(STRIP_UTIL NAMES strip REQUIRED)
+        add_custom_command(
+            TARGET ${PACKAGE_NAME}
+            POST_BUILD
+            WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+            DEPENDS ${PACKAGE_NAME}
+            COMMENT " Running post build action on ${lib_name}."
+            COMMAND ls -la ${MINGW_LIBRARY_NAME}
+            COMMAND sh -c 'strip ${MINGW_LIBRARY_NAME}'
+            COMMAND ls -la ${MINGW_LIBRARY_NAME}
+          )
     endif(MINGW)
 
     target_link_libraries(${PACKAGE_NAME} ${OPENCPN_IMPORT_LIB})
@@ -73,13 +73,13 @@ if(APPLE)
 
 endif(APPLE)
 
-if(UNIX AND NOT APPLE)
+if(UNIX AND NOT APPLE AND NOT QT_ANDROID)
     find_package(BZip2 REQUIRED)
     include_directories(${BZIP2_INCLUDE_DIR})
     find_package(ZLIB REQUIRED)
     include_directories(${ZLIB_INCLUDE_DIR})
     target_link_libraries(${PACKAGE_NAME} ${BZIP2_LIBRARIES} ${ZLIB_LIBRARY})
-endif(UNIX AND NOT APPLE)
+endif(UNIX AND NOT APPLE AND NOT QT_ANDROID)
 
 set(PARENT opencpn)
 
