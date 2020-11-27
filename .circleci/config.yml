@@ -54,6 +54,7 @@ parameters:
     run_build_android_armhf:
         type: boolean
         default: true
+
 jobs:
     build-armhf-stretch:
         machine: true
@@ -71,7 +72,6 @@ jobs:
         - when:
             condition: <<pipeline.parameters.run_workflow_deploy>>
             steps:
-            - run: echo "deploying"
             - run: ci/cloudsmith-upload.sh
     build-armhf-buster:
         machine: true
@@ -89,7 +89,6 @@ jobs:
         - when:
             condition: <<pipeline.parameters.run_workflow_deploy>>
             steps:
-            - run: echo "deploying"
             - run: ci/cloudsmith-upload.sh
     build-armhf-bionic-64:
         machine: true
@@ -108,7 +107,6 @@ jobs:
         - when:
             condition: <<pipeline.parameters.run_workflow_deploy>>
             steps:
-            - run: echo "deploying"
             - run: ci/cloudsmith-upload.sh
     build-trusty:
         docker:
@@ -129,7 +127,6 @@ jobs:
         - when:
             condition: <<pipeline.parameters.run_workflow_deploy>>
             steps:
-            - run: echo "deploying"
             - run: ci/cloudsmith-upload.sh
     build-xenial:
         docker:
@@ -150,7 +147,6 @@ jobs:
         - when:
             condition: <<pipeline.parameters.run_workflow_deploy>>
             steps:
-            - run: echo "deploying"
             - run: ci/cloudsmith-upload.sh
     build-bionic:
         docker:
@@ -171,7 +167,6 @@ jobs:
         - when:
             condition: <<pipeline.parameters.run_workflow_deploy>>
             steps:
-            - run: echo "deploying"
             - run: ci/cloudsmith-upload.sh
     build-bionic-gtk3:
         docker:
@@ -193,7 +188,6 @@ jobs:
         - when:
             condition: <<pipeline.parameters.run_workflow_deploy>>
             steps:
-            - run: echo "deploying"
             - run: ci/cloudsmith-upload.sh
     build-focal:
         docker:
@@ -214,7 +208,6 @@ jobs:
         - when:
             condition: <<pipeline.parameters.run_workflow_deploy>>
             steps:
-            - run: echo "deploying"
             - run: ci/cloudsmith-upload.sh
     build-focal-gtk3:
         docker:
@@ -236,7 +229,6 @@ jobs:
         - when:
             condition: <<pipeline.parameters.run_workflow_deploy>>
             steps:
-            - run: echo "deploying"
             - run: ci/cloudsmith-upload.sh
     build-buster:
         docker:
@@ -257,7 +249,6 @@ jobs:
         - when:
             condition: <<pipeline.parameters.run_workflow_deploy>>
             steps:
-            - run: echo "deploying"
             - run: ci/cloudsmith-upload.sh
     build-flatpak:
         machine:
@@ -272,7 +263,6 @@ jobs:
         - when:
             condition: <<pipeline.parameters.run_workflow_deploy>>
             steps:
-            - run: echo "deploying"
             - run: ci/cloudsmith-upload.sh
     build-fedora:
         docker:
@@ -287,7 +277,6 @@ jobs:
         - when:
             condition: <<pipeline.parameters.run_workflow_deploy>>
             steps:
-            - run: echo "deploying"
             - run: ci/cloudsmith-upload.sh
     build-mingw:
         docker:
@@ -303,11 +292,10 @@ jobs:
         - when:
             condition: <<pipeline.parameters.run_workflow_deploy>>
             steps:
-            - run: echo "deploying"
             - run: ci/cloudsmith-upload.sh
     build-macos:
         macos:
-            xcode: "10.0.0"
+            xcode: "11.0.0"
         environment:
         - OCPN_TARGET:  macos
         - CLOUDSMITH_PKG_EXT: pkg
@@ -318,7 +306,6 @@ jobs:
         - when:
             condition: <<pipeline.parameters.run_workflow_deploy>>
             steps:
-            - run: echo "deploying"
             - run: ci/cloudsmith-upload.sh
     build-android-arm64:
         docker:
@@ -332,7 +319,6 @@ jobs:
         - when:
             condition: <<pipeline.parameters.run_workflow_deploy>>
             steps:
-            - run: echo "deploying"
             - run: ci/cloudsmith-upload.sh
     build-android-armhf:
         docker:
@@ -346,7 +332,6 @@ jobs:
         - when:
             condition: <<pipeline.parameters.run_workflow_deploy>>
             steps:
-            - run: echo "deploying"
             - run: ci/cloudsmith-upload.sh
 
 workflows:
