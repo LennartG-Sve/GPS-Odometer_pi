@@ -77,10 +77,6 @@ static const long long lNaN = 0xfff8000000000000;
 #define NAN (*(double*)&lNaN)
 #endif
 
-//#ifdef __OCPN__ANDROID__
-//    #include "qdebug.h"
-//#endif
-
 // The class factories, used to create and destroy instances of the PlugIn
 extern "C" DECL_EXP opencpn_plugin* create_pi(void *ppimgr) {
     return (opencpn_plugin *) new odometer_pi(ppimgr);
@@ -284,7 +280,7 @@ void odometer_pi::Notify()
 
     mGSV_Watchdog--;
     if( mGSV_Watchdog <= 0 ) {
-        mSatsInView = m_NMEA0183.Gsv.SatsInView;
+        SatsInView = 0;
         mGSV_Watchdog = gps_watchdog_timeout_ticks;
     }
 
@@ -342,7 +338,6 @@ void odometer_pi::SendSentenceToAllInstruments(int st, double value, wxString un
 // This method is invoked by OpenCPN when we specify WANTS_NMEA_SENTENCES
 void odometer_pi::SetNMEASentence(wxString &sentence) 
 {
-
     m_NMEA0183 << sentence;
 
     if (m_NMEA0183.PreParse()) {
@@ -353,22 +348,23 @@ void odometer_pi::SetNMEASentence(wxString &sentence)
             }
         }
 
-        // GSV is currently not used.
         else if( m_NMEA0183.LastSentenceIDReceived == _T("GSV") ) {
             if( m_NMEA0183.Parse() ) {
-                mSatsInView = m_NMEA0183.Gsv.SatsInView;
+                SatsInView = m_NMEA0183.Gsv.SatsInView;
                 mGSV_Watchdog = gps_watchdog_timeout_ticks;
             }
         }
-        
+
         else if (m_NMEA0183.LastSentenceIDReceived == _T("RMC")) {
             if (m_NMEA0183.Parse() ) {
                 if( m_NMEA0183.Rmc.IsDataValid == NTrue ) {
 
-                    /* If GGA is missing or invalid you may get random values. 
-                       Minimize the risk for error.  */
-
-                    if ((GPSQuality < 5) && (GPSQuality > 0 )) {
+                    /* If neither GGA nor GSV is available you may get random values.  
+                       GGA should indicate GPS Quality 1 thru 5 or
+                       GSV should indicate at least four satellites in view  */
+                    validGPS = 0;
+                    if (((GPSQuality >= 1) && (GPSQuality <= 5)) || (SatsInView >= 4)) { 
+                        validGPS = 1;
 
                         // With SOG filter function
                         SendSentenceToAllInstruments( OCPN_DBP_STC_SOG,
@@ -387,13 +383,7 @@ void odometer_pi::SetNMEASentence(wxString &sentence)
             }
         } 
     }
-
-    /* If GGA is missing or invalid you may get random values. Minimize the risk for error. */
-
-    if ((GPSQuality >= 5) || (GPSQuality <= 0 )) {
-        GPSQuality = 0; 
-        CurrSpeed = 0.0;
-    }
+    if (validGPS == 0) CurrSpeed = 0.0;
     Odometer(); 
 }
 
@@ -449,7 +439,7 @@ void odometer_pi::Odometer() {
         SetDepTime = 0;
     }
 
-    // Select departure time to use and enable if sppeed is enough
+    // Select departure time to use and enable if speed is enough
     if (CurrSpeed >= m_OnRouteSpeed && DepTimeShow == 0 )  {
         if (UseSavedDepTime == 0) {
             DepTime = LocalTime; 
@@ -575,18 +565,17 @@ void odometer_pi::GetDistance() {
         }
         StepDist = (SecDiff * (CurrSpeed/DistDiv));
 
-        /* TODO: Are at start randomly getting extreme values for distance (GPS position 
-                 setting?) no matter if GPSQuality is ok. 
-                 This delay seems to cure it (is this always one tick/second)?   */
-        while ((StepCount < 15) && ( GPSQuality > 0)) {
+        /* TODO: Change this to regular second count? 
+                 Are at start randomly getting extreme values for distance even if validGPS is ok 
+                 (GPS position settling?).   */
+ 
+        while ((StepCount < 15) && (validGPS == 1)) {
             StepDist = 0.0;
             StepCount++ ;
         } 
 
-        // No distance accepted while GPSQuality is invalid (equals 0)
-        if (GPSQuality == 0) {
-            StepDist = 0.0;
-        } 
+        // No distance accepted if validGPS equals 0
+        if (validGPS == 0) StepDist = 0.0;
     }
     PrevSec = CurrSec;
 }

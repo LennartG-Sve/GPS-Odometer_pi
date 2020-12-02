@@ -65,10 +65,9 @@ class OdometerInstrumentContainer;
 // Request default positioning of toolbar tool
 #define ODOMETER_TOOL_POSITION -1          
 
-#define gps_watchdog_timeout_ticks  10
-
 // If no data received in 5 seconds, zero the instrument displays
 // #define WATCHDOG_TIMEOUT_COUNT  5
+#define gps_watchdog_timeout_ticks  5
 
 class OdometerWindowContainer {
 public:
@@ -195,8 +194,9 @@ private:
     short mPriDateTime;
     wxDateTime mUTCDateTime;
     iirfilter mSOGFilter;
-    int mSatsInView;
+    int SatsInView;
     int GPSQuality;
+    int validGPS = 0;
     int mRMC_Watchdog;
     int mGGA_Watchdog;
     int mGSV_Watchdog;
