@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: opencpn\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2020-11-05 13:01+0100\n"
-"PO-Revision-Date: 2020-11-05 13:57\n"
+"PO-Revision-Date: 2020-12-01 15:12\n"
 "Last-Translator: \n"
 "Language-Team: Polish\n"
 "Language: pl_PL\n"
@@ -19,15 +19,15 @@ msgstr ""
 
 #: src\instrument.cpp:241
 msgid " true"
-msgstr ""
+msgstr " rzeczywisty"
 
 #: src\instrument.cpp:243
 msgid " mag"
-msgstr ""
+msgstr " magnetyczny"
 
 #: src\odometer_pi.cpp:182
 msgid "Speedometer"
-msgstr ""
+msgstr "Prędkościomierz"
 
 #: src\odometer_pi.cpp:184
 msgid "Sum Log Distance"
@@ -55,7 +55,7 @@ msgstr ""
 
 #: src\odometer_pi.cpp:290 src\odometer_pi.cpp:1005
 msgid "GPS Odometer"
-msgstr ""
+msgstr "drogomierz GPS"
 
 #: src\odometer_pi.cpp:539
 msgid "On Route"
@@ -95,11 +95,11 @@ msgstr ""
 
 #: src\odometer_pi.cpp:1272
 msgid "Fonts"
-msgstr ""
+msgstr "Czcionka"
 
 #: src\odometer_pi.cpp:1280
 msgid "Title:"
-msgstr ""
+msgstr "Tytuł:"
 
 #: src\odometer_pi.cpp:1287
 msgid "Data:"
@@ -107,7 +107,7 @@ msgstr ""
 
 #: src\odometer_pi.cpp:1294
 msgid "Label:"
-msgstr ""
+msgstr "Etykieta:"
 
 #: src\odometer_pi.cpp:1301
 msgid "Small:"
@@ -115,65 +115,65 @@ msgstr ""
 
 #: src\odometer_pi.cpp:1309
 msgid "Units, Ranges, Formats"
-msgstr ""
+msgstr "Jednostki, zakresy, formaty"
 
 #: src\odometer_pi.cpp:1317
 msgid "Speedometer max value:"
-msgstr ""
+msgstr "Wartość maksymalna prędkościomierza:"
 
 #: src\odometer_pi.cpp:1324
 msgid "Minimum On-Route speed:"
-msgstr ""
+msgstr "Minimalna prędkość na trasie:"
 
 #: src\odometer_pi.cpp:1331
 msgid "Local Time Offset From UTC:"
-msgstr ""
+msgstr "Przesunięcie czasu lokalnego w stosunku do UTC:"
 
 #: src\odometer_pi.cpp:1351
 msgid "Boat speed units:"
-msgstr ""
+msgstr "Jednostki prędkości łodzi:"
 
 #: src\odometer_pi.cpp:1354
 msgid "Kts"
-msgstr ""
+msgstr "węzły"
 
 #: src\odometer_pi.cpp:1354
 msgid "mph"
-msgstr ""
+msgstr "mile/h"
 
 #: src\odometer_pi.cpp:1354
 msgid "km/h"
-msgstr ""
+msgstr "km/h"
 
 #: src\odometer_pi.cpp:1354
 msgid "m/s"
-msgstr ""
+msgstr "m/s"
 
 #: src\odometer_pi.cpp:1361
 msgid "Distance units:"
-msgstr ""
+msgstr "Jednostki odległości:"
 
 #: src\odometer_pi.cpp:1364
 msgid "Nautical miles"
-msgstr ""
+msgstr "mile morskie"
 
 #: src\odometer_pi.cpp:1364
 msgid "Statute miles"
-msgstr ""
+msgstr "mile angielskie"
 
 #: src\odometer_pi.cpp:1364
 msgid "Kilometers"
-msgstr ""
+msgstr "kilometry"
 
 #: src\odometer_pi.cpp:1380
 msgid "Instruments"
-msgstr ""
+msgstr "Instrumenty"
 
 #: src\odometer_pi.cpp:1819
 msgid "Undock"
-msgstr ""
+msgstr "Odepnij"
 
 #: src\odometer_pi.cpp:1821
 msgid "Preferences ..."
-msgstr ""
+msgstr "Ustawienia ..."
 
