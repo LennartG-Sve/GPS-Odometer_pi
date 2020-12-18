@@ -78,6 +78,7 @@ public:
 	wxSize GetSize(int orient, wxSize hint);
 	void SetData(int, double, wxString);
     void OnButtonClickTripReset( wxCommandEvent& event);
+    void OnButtonClickStartStop( wxCommandEvent& event);
     void OnButtonClickLegReset( wxCommandEvent& event);
 
     int b_width = 150;

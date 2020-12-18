@@ -169,7 +169,6 @@ public:
 private:
 	// Load plugin configuraton
     wxArrayInt ar;
-//    void DefineInstrumentOrder(wxArrayInt ar);
 	bool LoadConfig(void);
     void LoadFont(wxFont **target, wxString native_info);
 
@@ -223,7 +222,6 @@ private:
     wxString m_TripDist;
     wxString m_DepTime; 
     wxString m_ArrTime;
-//    double TotDist = 0;
     double StepDist = 0;
     double TripDist = 0;
     int ResetDist;
@@ -232,7 +230,6 @@ private:
     int SecDiff;
     int UseSavedTrip = 1; 
     double DistDiv = 3600;
-//    wxString DistUnit;
     int StepCount = 0;
 
     // Odometer leg distance and time 
@@ -240,10 +237,9 @@ private:
     wxString m_LegDist;
     wxString m_LegTime; 
     double LegDist = 0;
-    int UseSavedLeg = 1;
+    int CountLeg = 0;
     wxDateTime LegStart;
     wxTimeSpan LegTime;
-
 
 	// Odometer uses version 2 configuration settings
 	int m_config_version;

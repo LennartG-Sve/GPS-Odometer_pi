@@ -51,6 +51,7 @@
 #include "wx/tokenzr.h"
 
 extern int g_iResetTrip;
+extern int g_iStartStopLeg;
 extern int g_iResetLeg;
 
 
@@ -93,6 +94,16 @@ OdometerInstrument_Button::OdometerInstrument_Button(wxWindow *pparent, wxWindow
 
     if (m_cap_flag == 256) {
         wxBoxSizer* instrument = new wxBoxSizer(wxVERTICAL);
+        wxButton* m_pLegStartStopButton = new wxButton(this, m_id, _( m_title ), wxDefaultPosition, wxSize(b_width,b_height) );
+        m_pLegStartStopButton->SetForegroundColour(wxColor(0,0,0));        
+        instrument->Add(m_pLegStartStopButton, 0, wxEXPAND | wxALL, 5 );
+
+        m_pLegStartStopButton->Connect( wxEVT_COMMAND_BUTTON_CLICKED, 
+            wxCommandEventHandler(OdometerInstrument_Button::OnButtonClickStartStop), NULL, this );
+    }
+
+    if (m_cap_flag == 512) {
+        wxBoxSizer* instrument = new wxBoxSizer(wxVERTICAL);
         wxButton* m_pLegResetButton = new wxButton(this, m_id, _( m_title ), wxDefaultPosition, wxSize(b_width,b_height) );
         m_pLegResetButton->SetForegroundColour(wxColor(0,0,0));        
         instrument->Add(m_pLegResetButton, 0, wxEXPAND | wxALL, 5 );
@@ -100,6 +111,8 @@ OdometerInstrument_Button::OdometerInstrument_Button(wxWindow *pparent, wxWindow
         m_pLegResetButton->Connect( wxEVT_COMMAND_BUTTON_CLICKED, 
             wxCommandEventHandler(OdometerInstrument_Button::OnButtonClickLegReset), NULL, this );
     }
+
+
     m_title = ( "" );  // Remove the title row behind the button
 }
 
@@ -109,10 +122,14 @@ void OdometerInstrument_Button::OnButtonClickTripReset( wxCommandEvent& event)  
     if ( event.GetInt() == 0 )  g_iResetTrip = 1; 
 } 
 
+void OdometerInstrument_Button::OnButtonClickStartStop( wxCommandEvent& event)  {
+
+    if ( event.GetInt() == 0 )  g_iStartStopLeg = 1; 
+} 
+
 void OdometerInstrument_Button::OnButtonClickLegReset( wxCommandEvent& event)  {
 
     if ( event.GetInt() == 0 )  g_iResetLeg = 1; 
-    
 } 
 
 OdometerInstrument_Button::~OdometerInstrument_Button(void) {

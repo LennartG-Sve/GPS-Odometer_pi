@@ -64,6 +64,7 @@ int       g_iOdoUTCOffset;
 int       g_iOdoSpeedUnit;
 int       g_iOdoDistanceUnit;
 int       g_iResetTrip = 0; 
+int       g_iStartStopLeg = 0;
 int       g_iResetLeg = 0;
 
 
@@ -96,7 +97,8 @@ extern "C" DECL_EXP void destroy_pi(opencpn_plugin* p) {
 // do not change the order, add new instruments at the end, before ID_DBP_LAST_ENTRY!
 // otherwise, for users with an existing opencpn configuration file, their instruments are changing !
 enum { ID_DBP_D_SOG, ID_DBP_I_SUMLOG, ID_DBP_I_TRIPLOG, ID_DBP_I_DEPART, ID_DBP_I_ARRIV,
-       ID_DBP_B_TRIPRES, ID_DBP_I_LEGDIST, ID_DBP_I_LEGTIME, ID_DBP_B_LEGRES,
+       ID_DBP_B_TRIPRES, ID_DBP_I_LEGDIST, ID_DBP_I_LEGTIME, ID_DBP_B_STARTSTOP,
+       ID_DBP_B_LEGRES,
        ID_DBP_LAST_ENTRY /* this has a reference in one of the routines; defining a "LAST_ENTRY" and
        setting the reference to it, is one codeline less to change (and find) when adding new
        instruments :-)  */
@@ -121,6 +123,8 @@ wxString GetInstrumentCaption(unsigned int id) {
             return _("Leg Distance & Time");
         case ID_DBP_I_LEGTIME:
             return wxEmptyString;
+        case ID_DBP_B_STARTSTOP:
+            return _("Start/Stop Leg");
         case ID_DBP_B_LEGRES:
             return _("Reset Leg");
 		default:
@@ -419,6 +423,7 @@ void odometer_pi::Odometer() {
 
     if (g_iResetLeg == 1) {  
         LegDist = 0.0; 
+        LegTime = 0;
         m_LegDist << LegDist;
         m_LegTime = "---";
         LegStart = LocalTime; 
@@ -483,23 +488,6 @@ void odometer_pi::Odometer() {
         UseSavedTrip = 0;
     }
 
-    if (UseSavedLeg == 1) {
-        LegDist = 0.0;
-        m_LegDist.ToDouble( &LegDist );
-
-        LegStart = LocalTime;
-        wxString strhrs = m_LegTime.Mid(0,2);
-        double hrs = wxAtoi(strhrs);
-        wxString strmins = m_LegTime.Mid(3,2);
-        double mins = wxAtoi(strmins);
-        wxString strsecs = m_LegTime.Mid(6,2);
-        double secs = wxAtoi(strsecs);
-
-        wxTimeSpan LegTime(hrs,mins,secs,0);
-        LegStart = LegStart.Subtract(LegTime);
-        UseSavedLeg = 0;
-    }
-
     GetDistance();
 
     // Need not save full double or spaces
@@ -515,23 +503,42 @@ void odometer_pi::Odometer() {
     m_TripDist.Trim(0);
     m_TripDist.Trim(1);
 
-    LegDist = (LegDist + StepDist);
-    if (g_iShowTripLeg != 1) LegDist = 0.0;  // avoid overcount
+    // Toggle leg counter
+    if (g_iStartStopLeg == 1) {
+        if (CountLeg == 1) {
+            CountLeg = 0;  // Counter paused
+        } else {
+            CountLeg = 1;
+        }
+        g_iStartStopLeg = 0;
+    }
+
+    if (g_iShowTripLeg != 1) {   // stop to avoid overcount
+        LegDist = 0.0; 
+        LegStart = LocalTime; 
+    }
+
+    // Count leg distance and time
+    if (CountLeg == 1) {
+        LegDist = (LegDist + StepDist);
+        LegTime = LocalTime.Subtract(LegStart); 
+    } else {
+        LegStart = LocalTime.Subtract(LegTime);
+    }
+
     m_LegDist = " ";
     m_LegDist.Printf("%.2f",LegDist);
     m_LegDist.Trim(0);
     m_LegDist.Trim(1);
 
+    m_LegTime = LegTime.Format("%H:%M:%S");
+    wxString strLegTime;
+    strLegTime = LegTime.Format("%H:%M:%S"); 
+
+
     SendSentenceToAllInstruments(OCPN_DBP_STC_SUMLOG, TotDist , DistUnit );
     SendSentenceToAllInstruments(OCPN_DBP_STC_TRIPLOG, TripDist , DistUnit );
     SendSentenceToAllInstruments(OCPN_DBP_STC_LEGDIST, LegDist , DistUnit );
-
-    if (g_iShowTripLeg != 1) LegStart = LocalTime;  // avoid overcount
-    LegTime = LocalTime.Subtract(LegStart); 
-    m_LegTime = LegTime.Format("%H:%M:%S");
-
-    wxString strLegTime;
-    strLegTime = LegTime.Format("%H:%M:%S"); 
     SendSentenceToAllInstruments(OCPN_DBP_STC_LEGTIME, ' ' , strLegTime );  
 }
 
@@ -566,8 +573,8 @@ void odometer_pi::GetDistance() {
         StepDist = (SecDiff * (CurrSpeed/DistDiv));
 
         /* TODO: Change this to regular second count? 
-                 Are at start randomly getting extreme values for distance even if validGPS is ok 
-                 (GPS position settling?).   */
+                 Are at start randomly getting extreme values for distance even if validGPS
+                 is ok (GPS position settling?).   */
  
         while ((StepCount < 15) && (validGPS == 1)) {
             StepDist = 0.0;
@@ -652,7 +659,7 @@ void odometer_pi::ShowPreferencesDialog(wxWindow* parent) {
         sz.Set(160,125);  // Minimum size with Total distance, Trip distance and Trip reset.
         if (g_iShowSpeed == 1) sz.IncBy(0,170);       // Add for Speed instrument
         if (g_iShowDepArrTimes == 1) sz.IncBy(0,50);  // Add for departure/arrival times
-        if (g_iShowTripLeg == 1) sz.IncBy(0,85);      // Add for trip dist, time and reset
+        if (g_iShowTripLeg == 1) sz.IncBy(0,120);      // Add for trip dist, time and reset
 
         pane.MinSize(sz).BestSize(sz).FloatingSize(sz);
 //        m_pauimgr->Update();
@@ -850,10 +857,10 @@ bool odometer_pi::LoadConfig(void) {
 		// Load the dedicated odometer settings plus set default values
         pConf->Read( _T("TotalDistance"), &m_TotDist, "0.0");  
         pConf->Read( _T("TripDistance"), &m_TripDist, "0.0");
-        pConf->Read( _T("LegDistance"), &m_LegDist, "0.0");
+//        pConf->Read( _T("LegDistance"), &m_LegDist, "0.0");
         pConf->Read( _T("DepartureTime"), &m_DepTime, "2020-01-01 00:00:00");
         pConf->Read( _T("ArrivalTime"), &m_ArrTime, "2020-01-01 00:00:00");
-        pConf->Read( _T("LegTime"), &m_LegTime, "00:00:00");
+//        pConf->Read( _T("LegTime"), &m_LegTime, "00:00:00");
 
         pConf->Read(_T("SpeedometerMax"), &g_iOdoSpeedMax, 12);
         pConf->Read(_T("OnRouteSpeedLimit"), &g_iOdoOnRoute, 2);
@@ -861,10 +868,15 @@ bool odometer_pi::LoadConfig(void) {
         pConf->Read(_T("SpeedUnit"), &g_iOdoSpeedUnit, SPEED_KNOTS);
         pConf->Read(_T("DistanceUnit"), &g_iOdoDistanceUnit, DISTANCE_NAUTICAL_MILES);
 
+/* TODO: This is not required, could be hard coded.
+
 		// Now retrieve the number of odometer containers and their instruments
         int d_cnt;
         pConf->Read(_T("OdometerCount"), &d_cnt, -1);
-      
+ */
+        // Set the total number of available instruments
+        int d_cnt = 10; 
+     
         // TODO: Memory leak? We should destroy everything first
         m_ArrayOfOdometerWindow.Clear();
         if (version.IsEmpty() && d_cnt == -1) {
@@ -892,6 +904,7 @@ bool odometer_pi::LoadConfig(void) {
                 ar.Add( ID_DBP_B_TRIPRES );
                 ar.Add( ID_DBP_I_LEGDIST );
                 ar.Add( ID_DBP_I_LEGTIME );
+                ar.Add( ID_DBP_B_STARTSTOP ); 
                 ar.Add( ID_DBP_B_LEGRES ); 
             // }
 	    
@@ -921,9 +934,9 @@ bool odometer_pi::LoadConfig(void) {
             bool b_tripleg;
             pConf->Read( _T("ShowTripLeg"), &b_tripleg, 1);
 
-            // Allways 9 numerically ordered instruments in the array
+            // Allways 10 numerically ordered instruments in the array
             wxArrayInt ar;
-            for (int i = 0; i < 9; i++) {
+            for (int i = 0; i < 10; i++) {
                 ar.Add(i);
 
 //                int id;
@@ -991,10 +1004,10 @@ bool odometer_pi::SaveConfig(void) {
 
         pConf->Write( _T("TotalDistance"), m_TotDist);
         pConf->Write( _T("TripDistance"), m_TripDist);
-        pConf->Write( _T("LegDistance"), m_LegDist);
+//        pConf->Write( _T("LegDistance"), m_LegDist);
         pConf->Write( _T("DepartureTime"), m_DepTime);
         pConf->Write( _T("ArrivalTime"), m_ArrTime);
-        pConf->Write( _T("LegTime"), m_LegTime);
+//        pConf->Write( _T("LegTime"), m_LegTime);
 
         pConf->Write(_T("SpeedometerMax"), g_iOdoSpeedMax);
         pConf->Write(_T("OnRouteSpeedLimit"), g_iOdoOnRoute);
@@ -1536,6 +1549,13 @@ void OdometerWindow::SetInstrumentList(wxArrayInt list) {
                 if ( g_iShowTripLeg == 1 ) { 
                     instrument = new OdometerInstrument_String( this, wxID_ANY,
                         GetInstrumentCaption( id ), OCPN_DBP_STC_LEGTIME,_T("%6s") ); 
+                }
+                break;
+
+            case ID_DBP_B_STARTSTOP:
+                if ( g_iShowTripLeg == 1 ) { 
+                    instrument = new OdometerInstrument_Button( this, wxID_ANY,
+                        GetInstrumentCaption( id ), OCPN_DBP_STC_STARTSTOP );
                 }
                 break;
 
