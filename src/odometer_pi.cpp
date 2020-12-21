@@ -69,7 +69,7 @@ int       g_iResetLeg = 0;
 
 
 // Watchdog timer, performs two functions, firstly refresh the odometer every second,  
-// and secondly, if no data is received, set instruments to zero (eg. Engine switched off)
+// and secondly, if no data is received, set instruments to zero.
 // BUG BUG Zeroing instruments not yet implemented
 wxDateTime watchDogTime;
 
@@ -572,14 +572,14 @@ void odometer_pi::GetDistance() {
         }
         StepDist = (SecDiff * (CurrSpeed/DistDiv));
 
-        /* TODO: Change this to regular second count? 
-                 Are at start randomly getting extreme values for distance even if validGPS
-                 is ok (GPS position settling?).   */
- 
-        while ((StepCount < 15) && (validGPS == 1)) {
-            StepDist = 0.0;
-            StepCount++ ;
-        } 
+        /*  Are at start randomly getting extreme values for distance even if validGPS
+            is ok (GPS position settling?). Need to delay distance measurement at start */ 
+        if (StartDelay == 1) {
+           wxTimeSpan StartDelayTime(0,0,15);
+           EnabledTime = LocalTime.Add(StartDelayTime);
+           StartDelay = 0;
+        }
+        if (LocalTime <= EnabledTime) StepDist = 0.0;
 
         // No distance accepted if validGPS equals 0
         if (validGPS == 0) StepDist = 0.0;

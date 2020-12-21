@@ -196,6 +196,7 @@ private:
     int SatsInView;
     int GPSQuality;
     int validGPS = 0;
+    int StartDelay = 1;
     int mRMC_Watchdog;
     int mGGA_Watchdog;
     int mGSV_Watchdog;
@@ -208,6 +209,7 @@ private:
     // Odometer trip time
     double CurrSpeed; 
     double m_OnRouteSpeed;
+    wxDateTime EnabledTime;
     wxDateTime DepTime;
     wxDateTime ArrTime;
     int ArrTimeShow = 1;
@@ -230,7 +232,6 @@ private:
     int SecDiff;
     int UseSavedTrip = 1; 
     double DistDiv = 3600;
-    int StepCount = 0;
 
     // Odometer leg distance and time 
     int DepTimeShow = 1;
