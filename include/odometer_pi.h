@@ -224,6 +224,7 @@ private:
     wxString m_TripDist;
     wxString m_DepTime; 
     wxString m_ArrTime;
+    wxString m_PwrOnDelSecs;
     double StepDist = 0;
     double TripDist = 0;
     int ResetDist;

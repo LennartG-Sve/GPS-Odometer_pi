@@ -317,12 +317,10 @@ wxString odometer_pi::GetCommonName() {
 
 wxString odometer_pi::GetShortDescription() {
     return _(PLUGIN_SHORT_DESCRIPTION);
-//    return _T(PLUGIN_SHORT_DESCRIPTION);
 }
 
 wxString odometer_pi::GetLongDescription() {
     return _(PLUGIN_LONG_DESCRIPTION);
-//    return _T(PLUGIN_LONG_DESCRIPTION);
 }
 
 // The plugin bitmap is loaded by the call to InitializeImages in icons.cpp
@@ -354,7 +352,10 @@ void odometer_pi::SetNMEASentence(wxString &sentence)
 
         else if( m_NMEA0183.LastSentenceIDReceived == _T("GSV") ) {
             if( m_NMEA0183.Parse() ) {
-                SatsInView = m_NMEA0183.Gsv.SatsInView;
+                // Only the first sentence required to read number of satellites
+                if (m_NMEA0183.Gsv.MessageNumber == 1) { 
+                    SatsInView = m_NMEA0183.Gsv.SatsInView;
+                }
                 mGSV_Watchdog = gps_watchdog_timeout_ticks;
             }
         }
@@ -417,7 +418,7 @@ void odometer_pi::Odometer() {
         m_ArrTime = "---";
         TripDist = 0.0;
         m_TripDist << TripDist;
-        // SaveConfig();              // BUG: Does not save config file
+        // SaveConfig();              // TODO BUG: Does not save config file
         g_iResetTrip = 0;
     } 
 
@@ -427,7 +428,7 @@ void odometer_pi::Odometer() {
         m_LegDist << LegDist;
         m_LegTime = "---";
         LegStart = LocalTime; 
-        // SaveConfig();              // BUG: Does not save config file
+        // SaveConfig();              // TODO BUG: Does not save config file
         g_iResetLeg = 0;
     } 
 
@@ -572,16 +573,19 @@ void odometer_pi::GetDistance() {
         }
         StepDist = (SecDiff * (CurrSpeed/DistDiv));
 
-        /*  Are at start randomly getting extreme values for distance even if validGPS
-            is ok (GPS position settling?). Need to delay distance measurement at start */ 
+        /*  Are at start randomly getting extreme values for distance even if validGPS is ok.
+            Delay a minimum of 15 seconds at power up to allow everything to be properly set 
+            before measuring distances */ 
         if (StartDelay == 1) {
-           wxTimeSpan StartDelayTime(0,0,15);
-           EnabledTime = LocalTime.Add(StartDelayTime);
+           int PwrOnDelaySecs = atoi(m_PwrOnDelSecs);
+           if (PwrOnDelaySecs <= 14) PwrOnDelaySecs = 15;
+           wxTimeSpan PwrOnDelay(0,0,PwrOnDelaySecs);
+           EnabledTime = LocalTime.Add(PwrOnDelay);
            StartDelay = 0;
         }
         if (LocalTime <= EnabledTime) StepDist = 0.0;
 
-        // No distance accepted if validGPS equals 0
+        // No distances accepted if validGPS equals 0
         if (validGPS == 0) StepDist = 0.0;
     }
     PrevSec = CurrSec;
@@ -671,7 +675,7 @@ void odometer_pi::ShowPreferencesDialog(wxWindow* parent) {
 		m_ArrayOfOdometerWindow = dialog->m_Config;
 
 		ApplyConfig();
-		SaveConfig();   // TODO: Does not save configuration file
+		SaveConfig();   // TODO BUG: Does not save configuration file
 
 		// Not exactly sure what this does. Pesumably if no odometers are displayed, the 
         // toolbar icon is toggled/untoggled??
@@ -857,7 +861,7 @@ bool odometer_pi::LoadConfig(void) {
 		// Load the dedicated odometer settings plus set default values
         pConf->Read( _T("TotalDistance"), &m_TotDist, "0.0");  
         pConf->Read( _T("TripDistance"), &m_TripDist, "0.0");
-//        pConf->Read( _T("LegDistance"), &m_LegDist, "0.0");
+        pConf->Read( _T("PowerOnDelaySecs"), &m_PwrOnDelSecs, "15");
         pConf->Read( _T("DepartureTime"), &m_DepTime, "2020-01-01 00:00:00");
         pConf->Read( _T("ArrivalTime"), &m_ArrTime, "2020-01-01 00:00:00");
 //        pConf->Read( _T("LegTime"), &m_LegTime, "00:00:00");
@@ -990,7 +994,7 @@ void odometer_pi::LoadFont(wxFont **target, wxString native_info)
 bool odometer_pi::SaveConfig(void) {
 
     /* TODO: Does not save when called from 'odometer_pi::ShowPreferencesDialog' (or several 
-             other routines), but works correct when starting/stopping OpenCPN.  */
+             other routines) but works correct when starting/stopping OpenCPN.  */
 
     wxFileConfig *pConf = (wxFileConfig *) m_pconfig;
 
@@ -1004,6 +1008,7 @@ bool odometer_pi::SaveConfig(void) {
 
         pConf->Write( _T("TotalDistance"), m_TotDist);
         pConf->Write( _T("TripDistance"), m_TripDist);
+        pConf->Write( _T("PowerOnDelaySecs"), m_PwrOnDelSecs);
 //        pConf->Write( _T("LegDistance"), m_LegDist);
         pConf->Write( _T("DepartureTime"), m_DepTime);
         pConf->Write( _T("ArrivalTime"), m_ArrTime);
