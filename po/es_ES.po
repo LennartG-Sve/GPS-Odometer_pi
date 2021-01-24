@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: opencpn\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-11-05 13:01+0100\n"
-"PO-Revision-Date: 2020-11-05 13:57\n"
+"POT-Creation-Date: 2021-01-07 09:12+0100\n"
+"PO-Revision-Date: 2021-01-24 22:51\n"
 "Last-Translator: \n"
 "Language-Team: Spanish\n"
 "Language: es_ES\n"
@@ -14,166 +14,170 @@ msgstr ""
 "X-Crowdin-Project: opencpn\n"
 "X-Crowdin-Project-ID: 49843\n"
 "X-Crowdin-Language: es-ES\n"
-"X-Crowdin-File: /plugins/GPS-Odometer_pi/po/gps-odometer_pi.pot\n"
+"X-Crowdin-File: /plugins/GPS-Odometer_pi/po/gpsodometer_pi.pot\n"
 "X-Crowdin-File-ID: 352\n"
 
-#: src\instrument.cpp:241
+#: src/instrument.cpp:237
 msgid " true"
-msgstr ""
+msgstr " verdadero"
 
-#: src\instrument.cpp:243
+#: src/instrument.cpp:239
 msgid " mag"
-msgstr ""
+msgstr "mag"
 
-#: src\odometer_pi.cpp:182
+#: src/odometer_pi.cpp:111
 msgid "Speedometer"
-msgstr ""
+msgstr "Velocímetro"
 
-#: src\odometer_pi.cpp:184
+#: src/odometer_pi.cpp:113
 msgid "Sum Log Distance"
-msgstr ""
+msgstr "Suma de Distancia total"
 
-#: src\odometer_pi.cpp:186
+#: src/odometer_pi.cpp:115
 msgid "Trip Log Distance"
-msgstr ""
+msgstr "Distancia de registro de viaje"
 
-#: src\odometer_pi.cpp:188
+#: src/odometer_pi.cpp:117
 msgid "Reset Trip"
-msgstr ""
+msgstr "Poner a cero"
 
-#: src\odometer_pi.cpp:190
+#: src/odometer_pi.cpp:119
 msgid "Departure & Arrival"
-msgstr ""
+msgstr "Salida y llegada"
 
-#: src\odometer_pi.cpp:194
+#: src/odometer_pi.cpp:123
 msgid "Leg Distance & Time"
+msgstr "Distancia y duración Etapa"
+
+#: src/odometer_pi.cpp:127
+msgid "Start/Stop Leg"
 msgstr ""
 
-#: src\odometer_pi.cpp:198
+#: src/odometer_pi.cpp:129
 msgid "Reset Leg"
-msgstr ""
+msgstr "Poner a cero etapa"
 
-#: src\odometer_pi.cpp:290 src\odometer_pi.cpp:1005
+#: src/odometer_pi.cpp:221 src/odometer_pi.cpp:916
 msgid "GPS Odometer"
-msgstr ""
+msgstr "Odómetro GPS"
 
-#: src\odometer_pi.cpp:539
+#: src/odometer_pi.cpp:466
 msgid "On Route"
-msgstr ""
+msgstr "En ruta"
 
-#: src\odometer_pi.cpp:1017
+#: src/odometer_pi.cpp:928
 msgid "Odometer"
-msgstr ""
+msgstr "Cuentakilómetros"
 
-#: src\odometer_pi.cpp:1212
+#: src/odometer_pi.cpp:1116
 msgid "Odometer Settings"
-msgstr ""
+msgstr "Configuración de Odometro"
 
-#: src\odometer_pi.cpp:1231
+#: src/odometer_pi.cpp:1135
 msgid "Display options"
-msgstr ""
+msgstr "Opciones de presentación"
 
-#: src\odometer_pi.cpp:1238
+#: src/odometer_pi.cpp:1142
 msgid "Show this odometer"
-msgstr ""
+msgstr "Mostrar este odometro"
 
-#: src\odometer_pi.cpp:1242
+#: src/odometer_pi.cpp:1146
 msgid "Show Speedometer instrument"
-msgstr ""
+msgstr "Mostrar instrumento de velocímetro"
 
-#: src\odometer_pi.cpp:1246
+#: src/odometer_pi.cpp:1150
 msgid "Show Dep. and Arr. times"
-msgstr ""
+msgstr "Mostrar tiempos de salida-llegada"
 
-#: src\odometer_pi.cpp:1250
+#: src/odometer_pi.cpp:1154
 msgid "Show/Reset Leg Distance and time"
-msgstr ""
+msgstr "Mostrar / Reiniciar Distancia de etapas y Duración"
 
-#: src\odometer_pi.cpp:1261
+#: src/odometer_pi.cpp:1165
 msgid "Caption:"
-msgstr ""
+msgstr "Leyenda:"
 
-#: src\odometer_pi.cpp:1272
+#: src/odometer_pi.cpp:1172
 msgid "Fonts"
-msgstr ""
+msgstr "Fuentes"
 
-#: src\odometer_pi.cpp:1280
+#: src/odometer_pi.cpp:1180
 msgid "Title:"
-msgstr ""
+msgstr "Título:"
 
-#: src\odometer_pi.cpp:1287
+#: src/odometer_pi.cpp:1187
 msgid "Data:"
-msgstr ""
+msgstr "Datos:"
 
-#: src\odometer_pi.cpp:1294
+#: src/odometer_pi.cpp:1194
 msgid "Label:"
-msgstr ""
+msgstr "Etiqueta:"
 
-#: src\odometer_pi.cpp:1301
+#: src/odometer_pi.cpp:1201
 msgid "Small:"
-msgstr ""
+msgstr "Pequeño:"
 
-#: src\odometer_pi.cpp:1309
+#: src/odometer_pi.cpp:1209
 msgid "Units, Ranges, Formats"
-msgstr ""
+msgstr "Unidades, rangos, formatos"
 
-#: src\odometer_pi.cpp:1317
+#: src/odometer_pi.cpp:1217
 msgid "Speedometer max value:"
-msgstr ""
+msgstr "Valor máximo del velocímetro:"
 
-#: src\odometer_pi.cpp:1324
+#: src/odometer_pi.cpp:1224
 msgid "Minimum On-Route speed:"
-msgstr ""
+msgstr "Velocidad mínima en ruta:"
 
-#: src\odometer_pi.cpp:1331
+#: src/odometer_pi.cpp:1231
 msgid "Local Time Offset From UTC:"
-msgstr ""
+msgstr "Diferencia entre hora local y UTC:"
 
-#: src\odometer_pi.cpp:1351
+#: src/odometer_pi.cpp:1251
 msgid "Boat speed units:"
-msgstr ""
+msgstr "Unidades velocidad barco:"
 
-#: src\odometer_pi.cpp:1354
+#: src/odometer_pi.cpp:1254
 msgid "Kts"
-msgstr ""
+msgstr "Kts"
 
-#: src\odometer_pi.cpp:1354
-msgid "mph"
-msgstr ""
-
-#: src\odometer_pi.cpp:1354
+#: src/odometer_pi.cpp:1254
 msgid "km/h"
-msgstr ""
+msgstr "km/h"
 
-#: src\odometer_pi.cpp:1354
+#: src/odometer_pi.cpp:1254
 msgid "m/s"
-msgstr ""
+msgstr "m/s"
 
-#: src\odometer_pi.cpp:1361
+#: src/odometer_pi.cpp:1254
+msgid "mph"
+msgstr "mph"
+
+#: src/odometer_pi.cpp:1261
 msgid "Distance units:"
-msgstr ""
+msgstr "Unidades distancia:"
 
-#: src\odometer_pi.cpp:1364
-msgid "Nautical miles"
-msgstr ""
-
-#: src\odometer_pi.cpp:1364
-msgid "Statute miles"
-msgstr ""
-
-#: src\odometer_pi.cpp:1364
+#: src/odometer_pi.cpp:1264
 msgid "Kilometers"
-msgstr ""
+msgstr "Kilómetros"
 
-#: src\odometer_pi.cpp:1380
+#: src/odometer_pi.cpp:1264
+msgid "Nautical miles"
+msgstr "Millas náuticas"
+
+#: src/odometer_pi.cpp:1264
+msgid "Statute miles"
+msgstr "Millas terrestres"
+
+#: src/odometer_pi.cpp:1280
 msgid "Instruments"
-msgstr ""
+msgstr "Instrumentos"
 
-#: src\odometer_pi.cpp:1819
+#: src/odometer_pi.cpp:1406
 msgid "Undock"
-msgstr ""
+msgstr "Desanclar"
 
-#: src\odometer_pi.cpp:1821
+#: src/odometer_pi.cpp:1408
 msgid "Preferences ..."
-msgstr ""
+msgstr "Preferencias ..."
 
