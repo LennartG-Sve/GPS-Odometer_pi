@@ -49,7 +49,7 @@ NMEA0183::NMEA0183()
    initialize();
 
    response_table.Append((RESPONSE *)&Gga);
-   response_table.Append((RESPONSE *)&Gsv);
+//   response_table.Append((RESPONSE *)&Gsv);
    response_table.Append((RESPONSE *)&Rmc);
 //   response_table.Append((RESPONSE *)&Rpm);
 //   response_table.Append((RESPONSE *)&Rsa);

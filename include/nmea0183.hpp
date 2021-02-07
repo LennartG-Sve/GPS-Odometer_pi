@@ -53,12 +53,8 @@
 #include "sentence.hpp"
 #include "response.hpp"
 #include "LatLong.hpp"
-#include "gsv.hpp"
 #include "gga.hpp"
 #include "rmc.hpp"
-//#include "rpm.hpp"
-//#include "rsa.hpp"
-//#include "xdr.hpp"
 
 WX_DECLARE_LIST(RESPONSE, MRL);
 
@@ -87,11 +83,7 @@ class NMEA0183
       ** NMEA 0183 used by the odometer dashboard.
 	  ** Almost all of the sentences used by thge original dashboard have been omitted
       */
-//	    XDR Xdr;
-//	    RPM Rpm;
-//	    RSA Rsa;
       GGA Gga;
-      GSV Gsv;
       RMC Rmc;
 
       wxString ErrorMessage; // Filled when Parse returns FALSE

@@ -15,7 +15,6 @@ src/lat.cpp
 src/latlong.cpp
 src/long.cpp
 src/gga.cpp
-src/gsv.cpp
 src/rmc.cpp
 include/button.h
 include/dial.h

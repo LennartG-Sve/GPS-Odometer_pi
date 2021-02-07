@@ -193,13 +193,15 @@ private:
     short mPriDateTime;
     wxDateTime mUTCDateTime;
     iirfilter mSOGFilter;
-    int SatsInView;
-    int GPSQuality;
+    wxString m_SatsInUse;
+    wxString m_PwrOnDelSecs;
+    wxString m_HDOPdefine;
+    int SatsInUse;
+    double HDOPlevel;
     int validGPS = 0;
     int StartDelay = 1;
     int mRMC_Watchdog;
     int mGGA_Watchdog;
-    int mGSV_Watchdog;
 
     // Odometer time
     wxDateTime UTCTime;
@@ -208,6 +210,7 @@ private:
 
     // Odometer trip time
     double CurrSpeed; 
+    double FilteredSpeed; 
     double m_OnRouteSpeed;
     wxDateTime EnabledTime;
     wxDateTime DepTime;
@@ -224,7 +227,6 @@ private:
     wxString m_TripDist;
     wxString m_DepTime; 
     wxString m_ArrTime;
-    wxString m_PwrOnDelSecs;
     double StepDist = 0;
     double TripDist = 0;
     int ResetDist;

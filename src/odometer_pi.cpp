@@ -54,7 +54,6 @@ wxFont *g_pFontSmall;
 
 
 // Preferences, Units and Values
-
 int       g_iShowSpeed = 1;
 int       g_iShowDepArrTimes = 1;
 int       g_iShowTripLeg = 1;
@@ -200,8 +199,6 @@ int odometer_pi::Init(void) {
     LoadConfig();
 
     // Scaleable Vector Graphics (SVG) icons are stored in the following path.
-//	wxString shareLocn = GetPluginDataDir("gpsodometer_pi") +  _T("/data/");
-
     wxString iconFolder = GetPluginDataDir("gpsodometer_pi") + wxFileName::GetPathSeparator() + _T("data") + wxFileName::GetPathSeparator();
 
     wxString normalIcon = iconFolder + _T("gpsodometer.svg");
@@ -278,14 +275,9 @@ void odometer_pi::Notify()
     //  Manage the watchdogs, watch messages used
     mGGA_Watchdog--;
     if( mGGA_Watchdog <= 0 ) {
-        GPSQuality = 0;
+        SatsInUse = 0;
+        HDOPlevel = 100.0;
         mGGA_Watchdog = gps_watchdog_timeout_ticks;
-    }
-
-    mGSV_Watchdog--;
-    if( mGSV_Watchdog <= 0 ) {
-        SatsInView = 0;
-        mGSV_Watchdog = gps_watchdog_timeout_ticks;
     }
 
     mRMC_Watchdog--;
@@ -345,39 +337,36 @@ void odometer_pi::SetNMEASentence(wxString &sentence)
     if (m_NMEA0183.PreParse()) {
         if( m_NMEA0183.LastSentenceIDReceived == _T("GGA") ) {
             if( m_NMEA0183.Parse() ) {
-                GPSQuality = m_NMEA0183.Gga.GPSQuality;
+                SatsInUse = m_NMEA0183.Gga.NumberOfSatellitesInUse;
+                HDOPlevel = m_NMEA0183.Gga.HorizontalDilutionOfPrecision;
                 mGGA_Watchdog = gps_watchdog_timeout_ticks;
-            }
-        }
-
-        else if( m_NMEA0183.LastSentenceIDReceived == _T("GSV") ) {
-            if( m_NMEA0183.Parse() ) {
-                // Only the first sentence required to read number of satellites
-                if (m_NMEA0183.Gsv.MessageNumber == 1) { 
-                    SatsInView = m_NMEA0183.Gsv.SatsInView;
-                }
-                mGSV_Watchdog = gps_watchdog_timeout_ticks;
             }
         }
 
         else if (m_NMEA0183.LastSentenceIDReceived == _T("RMC")) {
             if (m_NMEA0183.Parse() ) {
-                if( m_NMEA0183.Rmc.IsDataValid == NTrue ) {
+                if (m_NMEA0183.Rmc.IsDataValid == NTrue) {
 
-                    /* If neither GGA nor GSV is available you may get random values.  
-                       GGA should indicate GPS Quality 1 thru 5 or
-                       GSV should indicate at least four satellites in view  */
+                    // Data verification
                     validGPS = 0;
-                    if (((GPSQuality >= 1) && (GPSQuality <= 5)) || (SatsInView >= 4)) { 
+                    int SatsUsed = atoi(m_SatsInUse);
+                    if (SatsUsed <= 4) SatsUsed == 4;  // No less that 4 satellites
+
+                    int HDOPdefine = atoi(m_HDOPdefine);
+                    if (HDOPdefine <= 1) HDOPdefine == 1;  // HDOP between 1 and 10 
+                    if (HDOPdefine >= 10) HDOPdefine == 10;
+
+                    if ((SatsInUse >= SatsUsed) && (HDOPlevel <= HDOPdefine)) {
                         validGPS = 1;
+                        CurrSpeed = m_NMEA0183.Rmc.SpeedOverGroundKnots;
 
-                        // With SOG filter function
+                        // Use filtered speed as variable
+                        // TODO: FilteredSpeed is not filtered, why?
+                        FilteredSpeed = toUsrSpeed_Plugin (mSOGFilter.filter(CurrSpeed) );
+
                         SendSentenceToAllInstruments( OCPN_DBP_STC_SOG,
-                            toUsrSpeed_Plugin( mSOGFilter.filter(m_NMEA0183.Rmc.SpeedOverGroundKnots),
-                                g_iOdoSpeedUnit ), getUsrSpeedUnit_Plugin( g_iOdoSpeedUnit ) );
-
-                        // Need filterad speed as variable
-                        CurrSpeed = toUsrSpeed_Plugin( mSOGFilter.filter(m_NMEA0183.Rmc.SpeedOverGroundKnots) );
+                            toUsrSpeed_Plugin (mSOGFilter.filter(CurrSpeed), g_iOdoSpeedUnit ), 
+                            getUsrSpeedUnit_Plugin( g_iOdoSpeedUnit ) );
 
                         // Date and time are wxStrings, instruments use double
                         dt = m_NMEA0183.Rmc.Date + m_NMEA0183.Rmc.UTCTime;
@@ -388,7 +377,7 @@ void odometer_pi::SetNMEASentence(wxString &sentence)
             }
         } 
     }
-    if (validGPS == 0) CurrSpeed = 0.0;
+    if (validGPS == 0) FilteredSpeed = 0.0;
     Odometer(); 
 }
 
@@ -432,21 +421,21 @@ void odometer_pi::Odometer() {
         g_iResetLeg = 0;
     } 
 
-    // Set departure time to local time if CurrSpeed is greater than or equal to OnRouteSpeed
+    // Set departure time to local time if FilteredSpeed is greater than or equal to OnRouteSpeed
     m_OnRouteSpeed = g_iOdoOnRoute;
     // Reset after arrival, before system shutdown
-    if ((CurrSpeed >= m_OnRouteSpeed) && m_DepTime == "---" )  { 
+    if ((FilteredSpeed >= m_OnRouteSpeed) && m_DepTime == "---" )  { 
         m_DepTime = LocalTime.Format(wxT("%F %T"));
     }
 
     // Reset after power up, before trip start
-    if ((CurrSpeed >= m_OnRouteSpeed) && SetDepTime == 1 )  {   
+    if ((FilteredSpeed >= m_OnRouteSpeed) && SetDepTime == 1 )  {   
         m_DepTime = LocalTime.Format(wxT("%F %T"));
         SetDepTime = 0;
     }
 
     // Select departure time to use and enable if speed is enough
-    if (CurrSpeed >= m_OnRouteSpeed && DepTimeShow == 0 )  {
+    if (FilteredSpeed >= m_OnRouteSpeed && DepTimeShow == 0 )  {
         if (UseSavedDepTime == 0) {
             DepTime = LocalTime; 
         } else {
@@ -462,7 +451,7 @@ void odometer_pi::Odometer() {
 
     // Set and display arrival time 
     if (DepTimeShow == 1 )  {
-        if (CurrSpeed >= m_OnRouteSpeed) {
+        if (FilteredSpeed >= m_OnRouteSpeed) {
             strArr = _("On Route");
             ArrTimeShow = 0;
             UseSavedArrTime = 0;
@@ -493,12 +482,22 @@ void odometer_pi::Odometer() {
 
     // Need not save full double or spaces
     TotDist = (TotDist + StepDist); 
+
+// ------------------------------------------------------
+//    TotDist = CurrSpeed;
+// ------------------------------------------------------
+
     m_TotDist = " ";
     m_TotDist.Printf("%.1f",TotDist);
     m_TotDist.Trim(0);
     m_TotDist.Trim(1);
 
     TripDist = (TripDist + StepDist);
+
+// ------------------------------------------------------
+//    TripDist = FilteredSpeed;
+// ------------------------------------------------------
+
     m_TripDist = " ";
     m_TripDist.Printf("%.1f",TripDist);
     m_TripDist.Trim(0);
@@ -571,7 +570,7 @@ void odometer_pi::GetDistance() {
         } else {  
             PrevSec = (PrevSec - 58);  // Is this always ok no matter GPS update rates?
         }
-        StepDist = (SecDiff * (CurrSpeed/DistDiv));
+        StepDist = (SecDiff * (FilteredSpeed/DistDiv));
 
         /*  Are at start randomly getting extreme values for distance even if validGPS is ok.
             Delay a minimum of 15 seconds at power up to allow everything to be properly set 
@@ -862,9 +861,10 @@ bool odometer_pi::LoadConfig(void) {
         pConf->Read( _T("TotalDistance"), &m_TotDist, "0.0");  
         pConf->Read( _T("TripDistance"), &m_TripDist, "0.0");
         pConf->Read( _T("PowerOnDelaySecs"), &m_PwrOnDelSecs, "15");
+        pConf->Read( _T("SatsInUse"), &m_SatsInUse, "4");
+        pConf->Read( _T("HDOP"), &m_HDOPdefine, "4");
         pConf->Read( _T("DepartureTime"), &m_DepTime, "2020-01-01 00:00:00");
         pConf->Read( _T("ArrivalTime"), &m_ArrTime, "2020-01-01 00:00:00");
-//        pConf->Read( _T("LegTime"), &m_LegTime, "00:00:00");
 
         pConf->Read(_T("SpeedometerMax"), &g_iOdoSpeedMax, 12);
         pConf->Read(_T("OnRouteSpeedLimit"), &g_iOdoOnRoute, 2);
@@ -872,12 +872,6 @@ bool odometer_pi::LoadConfig(void) {
         pConf->Read(_T("SpeedUnit"), &g_iOdoSpeedUnit, SPEED_KNOTS);
         pConf->Read(_T("DistanceUnit"), &g_iOdoDistanceUnit, DISTANCE_NAUTICAL_MILES);
 
-/* TODO: This is not required, could be hard coded.
-
-		// Now retrieve the number of odometer containers and their instruments
-        int d_cnt;
-        pConf->Read(_T("OdometerCount"), &d_cnt, -1);
- */
         // Set the total number of available instruments
         int d_cnt = 10; 
      
@@ -885,34 +879,20 @@ bool odometer_pi::LoadConfig(void) {
         m_ArrayOfOdometerWindow.Clear();
         if (version.IsEmpty() && d_cnt == -1) {
 
-        /* TODO Version 1 never generated in OpenCPN 5.0 or later, section shall be removed
-            m_config_version = 1;
-            // Let's load version 1 or default settings.
-            int i_cnt;
-            pConf->Read(_T("InstrumentCount"), &i_cnt, -1);
-            wxArrayInt ar;
-            if (i_cnt != -1) {
-                for (int i = 0; i < i_cnt; i++) {
-                    int id;
-                    pConf->Read(wxString::Format(_T("Instrument%d"), i + 1), &id, -1);
-                    if (id != -1) ar.Add(id);
-                }
-            } else {  
-            */
-                // Load the default instrument list, do not change this order!
-                ar.Add( ID_DBP_D_SOG );
-                ar.Add( ID_DBP_I_SUMLOG );
-                ar.Add( ID_DBP_I_TRIPLOG );
-                ar.Add( ID_DBP_I_DEPART ); 
-                ar.Add( ID_DBP_I_ARRIV ); 
-                ar.Add( ID_DBP_B_TRIPRES );
-                ar.Add( ID_DBP_I_LEGDIST );
-                ar.Add( ID_DBP_I_LEGTIME );
-                ar.Add( ID_DBP_B_STARTSTOP ); 
-                ar.Add( ID_DBP_B_LEGRES ); 
-            // }
+            //  Version 1 style generated at first start also in OpenCPN 5.0 or later
+            // Load the default instrument list, do not change this order!
+            ar.Add( ID_DBP_D_SOG );
+            ar.Add( ID_DBP_I_SUMLOG );
+            ar.Add( ID_DBP_I_TRIPLOG );
+            ar.Add( ID_DBP_I_DEPART ); 
+            ar.Add( ID_DBP_I_ARRIV ); 
+            ar.Add( ID_DBP_B_TRIPRES );
+            ar.Add( ID_DBP_I_LEGDIST );
+            ar.Add( ID_DBP_I_LEGTIME );
+            ar.Add( ID_DBP_B_STARTSTOP ); 
+            ar.Add( ID_DBP_B_LEGRES ); 
 	    
-	        // Note generate a unique GUID for each odometer container
+	        // Generate a named GUID for the odometer container
             OdometerWindowContainer *cont = new OdometerWindowContainer(NULL, MakeName(), _("GPS Odometer"), _T("V"), ar);
             m_ArrayOfOdometerWindow.Add(cont);
             cont->m_bPersVisible = true;
@@ -927,8 +907,6 @@ bool odometer_pi::LoadConfig(void) {
             wxString caption;
             pConf->Read(_T("Caption"), &caption, _("Odometer"));
             wxString orient = "V";
-//            int i_cnt;
-//            pConf->Read(_T("InstrumentCount"), &i_cnt, -1);
             bool b_persist;
             pConf->Read(_T("Persistence"), &b_persist, 0);
             bool b_speedo;
@@ -938,23 +916,15 @@ bool odometer_pi::LoadConfig(void) {
             bool b_tripleg;
             pConf->Read( _T("ShowTripLeg"), &b_tripleg, 1);
 
-            // Allways 10 numerically ordered instruments in the array
+            // Always 10 numerically ordered instruments in the array
             wxArrayInt ar;
             for (int i = 0; i < 10; i++) {
                 ar.Add(i);
-
-//                int id;
-                /* Do not read from config, the order is fixed
-                pConf->Read(wxString::Format(_T("Instrument%d"), i + 1), &id, -1); 
-                if (id != -1) ar.Add(id);   */
             } 
-
-			// TODO: Do not add if GetCount == 0
 
             OdometerWindowContainer *cont = new OdometerWindowContainer(NULL, name, caption, orient, ar);
 
             cont->m_bPersVisible = b_persist;
-
             cont->m_bShowSpeed = b_speedo;
             cont->m_bShowDepArrTimes = b_deparr;
             cont->m_bShowTripLeg = b_tripleg;
@@ -1009,10 +979,10 @@ bool odometer_pi::SaveConfig(void) {
         pConf->Write( _T("TotalDistance"), m_TotDist);
         pConf->Write( _T("TripDistance"), m_TripDist);
         pConf->Write( _T("PowerOnDelaySecs"), m_PwrOnDelSecs);
-//        pConf->Write( _T("LegDistance"), m_LegDist);
+        pConf->Write( _T("SatsInUse"), m_SatsInUse);
+        pConf->Write( _T("HDOP"), m_HDOPdefine);
         pConf->Write( _T("DepartureTime"), m_DepTime);
         pConf->Write( _T("ArrivalTime"), m_ArrTime);
-//        pConf->Write( _T("LegTime"), m_LegTime);
 
         pConf->Write(_T("SpeedometerMax"), g_iOdoSpeedMax);
         pConf->Write(_T("OnRouteSpeedLimit"), g_iOdoOnRoute);
@@ -1028,14 +998,8 @@ bool odometer_pi::SaveConfig(void) {
         pConf->Write(_T("ShowSpeedometer"), cont->m_bShowSpeed);
         pConf->Write(_T("ShowDepArrTimes"), cont->m_bShowDepArrTimes);
         pConf->Write(_T("ShowTripLeg"), cont->m_bShowTripLeg);
-/*
-        pConf->Write(_T("InstrumentCount"), (int) cont->m_aInstrumentList.GetCount());
-	    for (unsigned int j = 0; j < cont->m_aInstrumentList.GetCount(); j++) {
-    		pConf->Write(wxString::Format(_T("Instrument%d"), j + 1), cont->m_aInstrumentList.Item(j));
-	    }
-*/
 
-    return true;
+        return true;
 	} else {
 		return false;
 	}
@@ -1281,7 +1245,6 @@ OdometerPreferencesDialog::OdometerPreferencesDialog(wxWindow *parent, wxWindowI
 
 
     UpdateOdometerButtonsState();
-//    SetMinSize(wxSize(450, -1));
     SetMinSize(wxSize(200, -1));
     Fit();
 }
@@ -1306,12 +1269,6 @@ void OdometerPreferencesDialog::SaveOdometerConfig(void) {
     cont->m_bShowDepArrTimes = m_pCheckBoxShowDepArrTimes->IsChecked();
     cont->m_bShowTripLeg = m_pCheckBoxShowTripLeg->IsChecked();
     cont->m_sCaption = m_pTextCtrlCaption->GetValue();
-
-    /* Do not regenreate the array, reorders the instruments on Windows (only!)
-    cont->m_aInstrumentList.Clear();
-    for (int i = 0; i < m_pListCtrlInstruments->GetItemCount(); i++)
-        cont->m_aInstrumentList.Add((int) m_pListCtrlInstruments->GetItemData(i));
-     */
 }
 
 void OdometerPreferencesDialog::OnOdometerSelected(wxListEvent& event) {
@@ -1323,7 +1280,6 @@ void OdometerPreferencesDialog::UpdateOdometerButtonsState() {
     long item = -1;
 
     // Forcing 'item = 0' enables the one (and only) panel in the settings dialogue.
-    // item = m_pListCtrlOdometers->GetNextItem(item, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
     item = 0; 
 
     bool enable = (item != -1);
@@ -1390,6 +1346,7 @@ void OdometerWindow::OnSize(wxSizeEvent& event) {
         OdometerInstrument* inst = m_ArrayOfInstrument.Item(i)->m_pInstrument;
         inst->SetMinSize(inst->GetSize(itemBoxSizer->GetOrientation(), GetClientSize()));
     }
+
     // TODO: Better handling of size after repetitive closing of preferences (almost ok)
     SetMinSize(wxDefaultSize);
     Fit();
