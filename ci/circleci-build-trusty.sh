@@ -1,48 +1,42 @@
 #!/usr/bin/env bash
 
 #
-# Build the Trusty Ubuntu artifacts
+# Build the Debian artifacts
 #
 set -xe
 sudo apt-get -qq update
-sudo apt-get install devscripts equivs gdebi libglu1-mesa-dev
+sudo apt-get install devscripts equivs
 
-# Install extra libs
-ME=$(echo ${0##*/} | sed 's/\.sh//g')
-EXTRA_LIBS=extras/extra_libs.txt
-if test -f "$EXTRA_LIBS"; then
-    while read line; do
-        sudo apt-get install $line
-    done < $EXTRA_LIBS
-fi
-EXTRA_LIBS=extras/${ME}_extra_libs.txt
-if test -f "$EXTRA_LIBS"; then
-    while read line; do
-        sudo apt-get install $line
-    done < $EXTRA_LIBS
-fi
-
-rm -rf build && mkdir build && cd build
-mk-build-deps ../ci/control
-sudo gdebi -n ./*all.deb  || :
+mk-build-deps build-deps/control
+sudo dpkg -i ./*all.deb   || :
 sudo apt-get --allow-unauthenticated install -f
-rm -f ./*all.deb
+sudo apt-get install libglu1-mesa-dev 
 
-tag=$(git tag --contains HEAD)
+# Get  reasonably modern cmake which meets the requirements
+wget https://cmake.org/files/v3.12/cmake-3.12.0-Linux-x86_64.sh
+sudo sh cmake-3.12.0-Linux-x86_64.sh --prefix=/usr/local --exclude-subdir
 
-CMAKE_GTK3=""
+# Update python and python-pip to extent possible.
+sudo apt install python3.5  python3-pip
+python3.5 -m pip install --user --force-reinstall pip==20.3.4 setuptools==49.1.3
 
-if [ -n "$BUILD_GTK3" ] && [ "$BUILD_GTK3" = "true" ]; then
-  sudo update-alternatives --set wx-config /usr/lib/*-linux-*/wx/config/gtk3-unicode-3.0
-  CMAKE_GTK3="-DBUILD_GTK3=true"
-fi
 
-if [ -n "$tag" ]; then
-  cmake -DCMAKE_BUILD_TYPE=Release $CMAKE_GTK3 -DCMAKE_INSTALL_PREFIX=/usr/local ..
-else
-  cmake -DCMAKE_BUILD_TYPE=Debug $CMAKE_GTK3 -DCMAKE_INSTALL_PREFIX=/usr/local ..
-fi
+# Install cloudsmith-cli (for upload) and cryptography (for git-push)
+sudo apt remove python3-six python3-colorama python3-urllib3
+export LC_ALL=C.UTF-8  LANG=C.UTF-8
+# https://github.com/pyca/cryptography/issues/5753 -> cryptography < 3.4
+python3.5 -m pip install --user cloudsmith-cli 'cryptography<3.4'
 
-make -j2
+
+# Build tarball and package
+mkdir build && cd build
+cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo ..
+make -j $(nproc) VERBOSE=1 tarball
 make package
-ls -l
+
+
+# python install scripts in ~/.local/bin, teach upload.sh to use it in PATH:
+echo 'export PATH=$PATH:$HOME/.local/bin' >> ~/.uploadrc
+
+# Both python modules needs 3.5:
+sudo ln -sf /usr/bin/python3.5 /usr/bin/python3

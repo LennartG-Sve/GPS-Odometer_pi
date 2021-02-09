@@ -37,9 +37,9 @@ set(LONG_DESCRIPTION "GPS controlled Dashboard based Odometer plugin for OpenCPN
 
 set(VERSION_MAJOR "0")
 set(VERSION_MINOR "4")
-set(VERSION_PATCH "3")
+set(VERSION_PATCH "4")
 set(VERSION_TWEAK "0")
-set(VERSION_DATE "07/02/2021")
+set(VERSION_DATE "09/02/2021")
 set(OCPN_MIN_VERSION "ov50")
 set(OCPN_API_VERSION_MAJOR "1")
 set(OCPN_API_VERSION_MINOR "16")
