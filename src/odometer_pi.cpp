@@ -60,6 +60,7 @@ int       g_iShowTripLeg = 1;
 int       g_iOdoSpeedMax;
 int       g_iOdoOnRoute;
 int       g_iOdoUTCOffset;
+int       g_iOdoSOGDamp;
 int       g_iOdoSpeedUnit;
 int       g_iOdoDistanceUnit;
 int       g_iResetTrip = 0; 
@@ -364,8 +365,8 @@ void odometer_pi::SetNMEASentence(wxString &sentence)
                         // TODO: FilteredSpeed is not filtered, why?
                         FilteredSpeed = toUsrSpeed_Plugin (mSOGFilter.filter(CurrSpeed) );
 
-                        SendSentenceToAllInstruments( OCPN_DBP_STC_SOG,
-                            toUsrSpeed_Plugin (mSOGFilter.filter(CurrSpeed), g_iOdoSpeedUnit ), 
+                        SendSentenceToAllInstruments( OCPN_DBP_STC_SOG, 
+                            toUsrSpeed_Plugin (mSOGFilter.filter(CurrSpeed), g_iOdoSpeedUnit ),
                             getUsrSpeedUnit_Plugin( g_iOdoSpeedUnit ) );
 
                         // Date and time are wxStrings, instruments use double
@@ -1051,6 +1052,7 @@ void odometer_pi::ApplyConfig(void) {
         }
     }
     m_pauimgr->Update();
+    mSOGFilter.setFC(g_iOdoSOGDamp ? 1.0 / (2.0*g_iOdoSOGDamp) : 0.0);
 }
 
 void odometer_pi::PopulateContextMenu(wxMenu* menu) {
