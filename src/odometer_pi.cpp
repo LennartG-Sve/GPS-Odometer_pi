@@ -60,7 +60,6 @@ int       g_iShowTripLeg = 1;
 int       g_iOdoSpeedMax;
 int       g_iOdoOnRoute;
 int       g_iOdoUTCOffset;
-int       g_iOdoSOGDamp;
 int       g_iOdoSpeedUnit;
 int       g_iOdoDistanceUnit;
 int       g_iResetTrip = 0; 
@@ -361,10 +360,8 @@ void odometer_pi::SetNMEASentence(wxString &sentence)
                         validGPS = 1;
                         CurrSpeed = m_NMEA0183.Rmc.SpeedOverGroundKnots;
 
-                        // Use filtered speed as variable
-                        // TODO: FilteredSpeed is not filtered, why?
-                        FilteredSpeed = toUsrSpeed_Plugin (mSOGFilter.filter(CurrSpeed) );
-
+                        // Use filtered speed for the instrument
+                        // TODO: Speed is not filtered, why? iirfilter incorrectly called?
                         SendSentenceToAllInstruments( OCPN_DBP_STC_SOG, 
                             toUsrSpeed_Plugin (mSOGFilter.filter(CurrSpeed), g_iOdoSpeedUnit ),
                             getUsrSpeedUnit_Plugin( g_iOdoSpeedUnit ) );
@@ -422,21 +419,21 @@ void odometer_pi::Odometer() {
         g_iResetLeg = 0;
     } 
 
-    // Set departure time to local time if FilteredSpeed is greater than or equal to OnRouteSpeed
+    // Set departure time to local time if CurrSpeed is greater than or equal to OnRouteSpeed
     m_OnRouteSpeed = g_iOdoOnRoute;
     // Reset after arrival, before system shutdown
-    if ((FilteredSpeed >= m_OnRouteSpeed) && m_DepTime == "---" )  { 
+    if ((CurrSpeed >= m_OnRouteSpeed) && m_DepTime == "---" )  { 
         m_DepTime = LocalTime.Format(wxT("%F %T"));
     }
 
     // Reset after power up, before trip start
-    if ((FilteredSpeed >= m_OnRouteSpeed) && SetDepTime == 1 )  {   
+    if ((CurrSpeed >= m_OnRouteSpeed) && SetDepTime == 1 )  {   
         m_DepTime = LocalTime.Format(wxT("%F %T"));
         SetDepTime = 0;
     }
 
     // Select departure time to use and enable if speed is enough
-    if (FilteredSpeed >= m_OnRouteSpeed && DepTimeShow == 0 )  {
+    if (CurrSpeed >= m_OnRouteSpeed && DepTimeShow == 0 )  {
         if (UseSavedDepTime == 0) {
             DepTime = LocalTime; 
         } else {
@@ -452,7 +449,7 @@ void odometer_pi::Odometer() {
 
     // Set and display arrival time 
     if (DepTimeShow == 1 )  {
-        if (FilteredSpeed >= m_OnRouteSpeed) {
+        if (CurrSpeed >= m_OnRouteSpeed) {
             strArr = _("On Route");
             ArrTimeShow = 0;
             UseSavedArrTime = 0;
@@ -483,22 +480,12 @@ void odometer_pi::Odometer() {
 
     // Need not save full double or spaces
     TotDist = (TotDist + StepDist); 
-
-// ------------------------------------------------------
-//    TotDist = CurrSpeed;
-// ------------------------------------------------------
-
     m_TotDist = " ";
     m_TotDist.Printf("%.1f",TotDist);
     m_TotDist.Trim(0);
     m_TotDist.Trim(1);
 
     TripDist = (TripDist + StepDist);
-
-// ------------------------------------------------------
-//    TripDist = FilteredSpeed;
-// ------------------------------------------------------
-
     m_TripDist = " ";
     m_TripDist.Printf("%.1f",TripDist);
     m_TripDist.Trim(0);
@@ -571,7 +558,7 @@ void odometer_pi::GetDistance() {
         } else {  
             PrevSec = (PrevSec - 58);  // Is this always ok no matter GPS update rates?
         }
-        StepDist = (SecDiff * (FilteredSpeed/DistDiv));
+        StepDist = (SecDiff * (CurrSpeed/DistDiv));
 
         /*  Are at start randomly getting extreme values for distance even if validGPS is ok.
             Delay a minimum of 15 seconds at power up to allow everything to be properly set 
@@ -1052,7 +1039,6 @@ void odometer_pi::ApplyConfig(void) {
         }
     }
     m_pauimgr->Update();
-    mSOGFilter.setFC(g_iOdoSOGDamp ? 1.0 / (2.0*g_iOdoSOGDamp) : 0.0);
 }
 
 void odometer_pi::PopulateContextMenu(wxMenu* menu) {
