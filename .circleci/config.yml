@@ -461,28 +461,28 @@ jobs:
             # setting on the circleci command line as this will supress the deploy to cloudsmith whilst generating all the required deployment files
             #- run: sudo cp build/*.gz ~/circleci-output
 workflows:
-#    build_1:
-#        when: <<pipeline.parameters.run_build_armhf_stretch>>
-#        jobs:
-#        - build-armhf-stretch:
-#            filters:
-#                branches:
-#                    ignore:
-#                    - devel
-#                    - tmp
-#                tags:
-#                    only: /.*/
-#    build_2:
-#        when: <<pipeline.parameters.run_build_armhf_buster>>
-#        jobs:
-#        - build-armhf-buster:
-#            filters:
-#                branches:
-#                    ignore:
-#                    - devel
-#                    - tmp
-#                tags:
-#                    only: /.*/
+    build_1:
+        when: <<pipeline.parameters.run_build_armhf_stretch>>
+        jobs:
+        - build-armhf-stretch:
+            filters:
+                branches:
+                    ignore:
+                    - devel
+                    - tmp
+                tags:
+                    only: /.*/
+    build_2:
+        when: <<pipeline.parameters.run_build_armhf_buster>>
+        jobs:
+        - build-armhf-buster:
+            filters:
+                branches:
+                    ignore:
+                    - devel
+                    - tmp
+                tags:
+                    only: /.*/
 # Currently circleci does not build armf64 correctly due to no suitable docker image
 #    build_3:
 #        when: <<pipeline.parameters.run_build_armhf_bionic_64>>
@@ -507,39 +507,39 @@ workflows:
 #                    - tmp
 #                tags:
 #                    only: /.*/
-#    build_5:
-#        when: <<pipeline.parameters.run_build_xenial>>
-#        jobs:
-#        - build-xenial:
-#            filters:
-#                branches:
-#                    ignore:
-#                    - devel
-#                    - tmp
-#                tags:
-#                    only: /.*/
-#    build_6:
-#        when: <<pipeline.parameters.run_build_bionic>>
-#        jobs:
-#        - build-bionic:
-#            filters:
-#                branches:
-#                    ignore:
-#                    - devel
-#                    - tmp
-#                tags:
-#                    only: /.*/
-#    build_7:
-#        when: <<pipeline.parameters.run_build_bionic_gtk3>>
-#        jobs:
-#        - build-bionic-gtk3:
-#            filters:
-#                branches:
-#                    ignore:
-#                    - devel
-#                    - tmp
-#                tags:
-#                    only: /.*/
+    build_5:
+        when: <<pipeline.parameters.run_build_xenial>>
+        jobs:
+        - build-xenial:
+            filters:
+                branches:
+                    ignore:
+                    - devel
+                    - tmp
+                tags:
+                    only: /.*/
+    build_6:
+        when: <<pipeline.parameters.run_build_bionic>>
+        jobs:
+        - build-bionic:
+            filters:
+                branches:
+                    ignore:
+                    - devel
+                    - tmp
+                tags:
+                    only: /.*/
+    build_7:
+        when: <<pipeline.parameters.run_build_bionic_gtk3>>
+        jobs:
+        - build-bionic-gtk3:
+            filters:
+                branches:
+                    ignore:
+                    - devel
+                    - tmp
+                tags:
+                    only: /.*/
 # there is no focal gtk2 available so this will not be built
 #    build_8:
 #        when: <<pipeline.parameters.run_build_focal>>
@@ -563,17 +563,17 @@ workflows:
                     - tmp
                 tags:
                     only: /.*/
-#    build_10:
-#        when: <<pipeline.parameters.run_build_buster>>
-#        jobs:
-#        - build-buster:
-#            filters:
-#                branches:
-#                    ignore:
-#                    - devel
-#                    - tmp
-#                tags:
-#                    only: /.*/
+    build_10:
+        when: <<pipeline.parameters.run_build_buster>>
+        jobs:
+        - build-buster:
+            filters:
+                branches:
+                    ignore:
+                    - devel
+                    - tmp
+                tags:
+                    only: /.*/
 # Removed as replaced by following flatpack builds
 #    build_11:
 #        when: <<pipeline.parameters.run_build_flatpack>>
@@ -586,39 +586,39 @@ workflows:
 #                    - tmp
 #                tags:
 #                    only: /.*/
-#    build_12:
-#        when: <<pipeline.parameters.run_build_flatpack-arm64>>
-#        jobs:
-#        - build-flatpak-arm64:
-#            filters:
-#                branches:
-#                    ignore:
-#                    - devel
-#                    - tmp
-#                tags:
-#                    only: /.*/
-#    build_13:
-#        when: <<pipeline.parameters.run_build_flatpak_x86_2008>>
-#        jobs:
-#        - build-flatpak-x86-2008:
-#            filters:
-#                branches:
-#                    ignore:
-#                    - devel
-#                    - tmp
-#                tags:
-#                    only: /.*/
-#    build_14:
-#        when: <<pipeline.parameters.run_build_flatpak_x86_1808>>
-#        jobs:
-#        - build-flatpak-x86-1808:
-#            filters:
-#                branches:
-#                    ignore:
-#                    - devel
-#                    - tmp
-#                tags:
-#                    only: /.*/
+    build_12:
+        when: <<pipeline.parameters.run_build_flatpack-arm64>>
+        jobs:
+        - build-flatpak-arm64:
+            filters:
+                branches:
+                    ignore:
+                    - devel
+                    - tmp
+                tags:
+                    only: /.*/
+    build_13:
+        when: <<pipeline.parameters.run_build_flatpak_x86_2008>>
+        jobs:
+        - build-flatpak-x86-2008:
+            filters:
+                branches:
+                    ignore:
+                    - devel
+                    - tmp
+                tags:
+                    only: /.*/
+    build_14:
+        when: <<pipeline.parameters.run_build_flatpak_x86_1808>>
+        jobs:
+        - build-flatpak-x86-1808:
+            filters:
+                branches:
+                    ignore:
+                    - devel
+                    - tmp
+                tags:
+                    only: /.*/
 # Fedora is being removed from the supplied list of environments so don't build
 #    build_15:
 #        when: <<pipeline.parameters.run_build_fedora>>
@@ -631,28 +631,28 @@ workflows:
 #                    - tmp
 #                tags:
 #                    only: /.*/
-#    build_16:
-#        when: <<pipeline.parameters.run_build_mingw>>
-#        jobs:
-#        - build-mingw:
-#            filters:
-#                branches:
-#                    ignore:
-#                    - devel
-#                    - tmp
-#                tags:
-#                    only: /.*/
-#    build_17:
-#        when: <<pipeline.parameters.run_build_macos>>
-#        jobs:
-#        - build-macos:
-#            filters:
-#                branches:
-#                    ignore:
-#                    - devel
-#                    - tmp
-#                tags:
-#                    only: /.*/
+    build_16:
+        when: <<pipeline.parameters.run_build_mingw>>
+        jobs:
+        - build-mingw:
+            filters:
+                branches:
+                    ignore:
+                    - devel
+                    - tmp
+                tags:
+                    only: /.*/
+    build_17:
+        when: <<pipeline.parameters.run_build_macos>>
+        jobs:
+        - build-macos:
+            filters:
+                branches:
+                    ignore:
+                    - devel
+                    - tmp
+                tags:
+                    only: /.*/
 #    build_18:
 #        when: <<pipeline.parameters.run_build_android_arm64>>
 #        jobs:
