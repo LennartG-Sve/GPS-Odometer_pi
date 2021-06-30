@@ -38,7 +38,7 @@ set(LONG_DESCRIPTION "GPS controlled Dashboard based Odometer plugin for OpenCPN
 set(VERSION_MAJOR "0")
 set(VERSION_MINOR "6")
 set(VERSION_PATCH "0")
-set(VERSION_TWEAK "1")
+set(VERSION_TWEAK "2")
 set(VERSION_DATE "30/06/2021")
 set(OCPN_MIN_VERSION "ov50")
 set(OCPN_API_VERSION_MAJOR "1")
@@ -155,7 +155,7 @@ include_directories(BEFORE ${PROJECT_SOURCE_DIR}/libs/)
 include_directories(BEFORE ${PROJECT_SOURCE_DIR}/libs/ocpn-api)
 
 ## Statement below is required to collect all the set (headers and SRCS) - Adjust as required
-target_sources(${PACKAGE_NAME} SHARED ${SRCS} ${HDRS})
+target_sources(${PACKAGE_NAME} PUBLIC ${SRCS} ${HDRS})
 
 add_definitions(-DTIXML_USE_STL)
 
