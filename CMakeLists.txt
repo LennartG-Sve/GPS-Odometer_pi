@@ -36,10 +36,10 @@ set(SHORT_DESCRIPTION "GPS Odometer plugin for OpenCPN")
 set(LONG_DESCRIPTION "GPS controlled Dashboard based Odometer plugin for OpenCPN, displays GPS calculated Log and Trip information")
 
 set(VERSION_MAJOR "0")
-set(VERSION_MINOR "4")
-set(VERSION_PATCH "5")
-set(VERSION_TWEAK "1")
-set(VERSION_DATE "11/02/2021")
+set(VERSION_MINOR "6")
+set(VERSION_PATCH "0")
+set(VERSION_TWEAK "0")
+set(VERSION_DATE "30/06/2021")
 set(OCPN_MIN_VERSION "ov50")
 set(OCPN_API_VERSION_MAJOR "1")
 set(OCPN_API_VERSION_MINOR "16")
@@ -124,6 +124,8 @@ SET(SRCS
     src/long.cpp
     src/gga.cpp
     src/rmc.cpp
+    src/wxJSON/jsonval.cpp
+    src/wxJSON/jsonreader.cpp
 )
 
 SET(HDRS
@@ -136,16 +138,21 @@ SET(HDRS
 	include/speedometer.h
 	include/nmea0183.h
 	include/SatInfo.h
+    include/wx/json_defs.h
+    include/wx/jsonreader.h
+    include/wx/jsonval.h
+    include/wx/jsonwriter.h
 )	
 
 ## GPS Odometer plugin uses SVG for toolbar icons
 add_definitions(-DPLUGIN_USE_SVG)
 
-## Need api-16 for ocpn_plugin.h
-##include_directories(BEFORE ${PROJECT_SOURCE_DIR}/ocpninclude)
-INCLUDE_DIRECTORIES(BEFORE ${PROJECT_SOURCE_DIR}/api-16)
+## Need ocpn-api for ocpn_plugin.h
+##INCLUDE_DIRECTORIES(BEFORE ${PROJECT_SOURCE_DIR}/api-16)
 INCLUDE_DIRECTORIES(BEFORE ${PROJECT_SOURCE_DIR}/src)
 INCLUDE_DIRECTORIES(BEFORE ${CMAKE_SOURCE_DIR}/include)
+include_directories(BEFORE ${PROJECT_SOURCE_DIR}/libs/)
+include_directories(BEFORE ${PROJECT_SOURCE_DIR}/libs/ocpn-api)
 
 ## Statement below is required to collect all the set (headers and SRCS) - Adjust as required
 add_library(${PACKAGE_NAME} SHARED ${SRCS} ${HDRS})

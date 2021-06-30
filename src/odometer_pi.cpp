@@ -33,18 +33,21 @@
 
 // wxWidgets Precompiled Headers
 #include "wx/wxprec.h"
+#include "stdlib.h"
 
 #ifndef  WX_PRECOMP
 #include "wx/wx.h"
 #endif 
-
-#include <wx/msgdlg.h>  // Message box for test purposes (wxMessageBox)
 
 #include "odometer_pi.h"
 #include "version.h"
 
 #include <typeinfo>
 #include "icons.h"
+#include "wx/json_defs.h"
+#include "wx/jsonreader.h"
+#include "wx/jsonval.h"
+#include "wx/jsonwriter.h"
 
 // Global variables for fonts
 wxFont *g_pFontTitle;
@@ -57,6 +60,7 @@ wxFont *g_pFontSmall;
 int       g_iShowSpeed = 1;
 int       g_iShowDepArrTimes = 1;
 int       g_iShowTripLeg = 1;
+int       g_iOdoProtocol;
 int       g_iOdoSpeedMax;
 int       g_iOdoOnRoute;
 int       g_iOdoUTCOffset;
@@ -181,6 +185,9 @@ int odometer_pi::Init(void) {
 
     // Used at startup, once started the plugin only uses version 2 configuration style
     m_config_version = -1;
+    mPriDateTime = 99;
+    mUTC_Watchdog = 2;
+
     
     // Load the fonts
     g_pFontTitle = new wxFont(10, wxFONTFAMILY_SWISS, wxFONTSTYLE_ITALIC, wxFONTWEIGHT_NORMAL);
@@ -229,8 +236,9 @@ int odometer_pi::Init(void) {
     // Initialize the watchdog timer
     Start(1000, wxTIMER_CONTINUOUS);
 
-    // Reduced from the original odometer requests
-    return (WANTS_TOOLBAR_CALLBACK | INSTALLS_TOOLBAR_TOOL | WANTS_PREFERENCES | WANTS_CONFIG | WANTS_NMEA_SENTENCES | USES_AUI_MANAGER);
+    return ( WANTS_CURSOR_LATLON | WANTS_TOOLBAR_CALLBACK | INSTALLS_TOOLBAR_TOOL
+            | WANTS_PREFERENCES | WANTS_CONFIG | WANTS_NMEA_SENTENCES | WANTS_NMEA_EVENTS
+            | USES_AUI_MANAGER | WANTS_PLUGIN_MESSAGING );
 }
 
 bool odometer_pi::DeInit(void) {
@@ -263,6 +271,17 @@ bool odometer_pi::DeInit(void) {
     return true;
 }
 
+double GetJsonDouble(wxJSONValue &value) {
+    double d_ret;
+    if (value.IsDouble()) {
+        return d_ret = value.AsDouble();
+    }
+    else if (value.IsInt()) {
+        int i_ret = value.AsInt();
+        return d_ret = i_ret;
+    }
+}
+
 // Called for each timer tick, refreshes each display
 void odometer_pi::Notify()
 {
@@ -272,18 +291,12 @@ void odometer_pi::Notify()
 	    odometer_window->Refresh();
 	}
 
-    //  Manage the watchdogs, watch messages used
-    mGGA_Watchdog--;
-    if( mGGA_Watchdog <= 0 ) {
-        SatsInUse = 0;
-        HDOPlevel = 100.0;
-        mGGA_Watchdog = gps_watchdog_timeout_ticks;
-    }
 
-    mRMC_Watchdog--;
-    if( mRMC_Watchdog <= 0 ) {
-        SendSentenceToAllInstruments( OCPN_DBP_STC_SOG, NAN, _T("-") );
-        mRMC_Watchdog = gps_watchdog_timeout_ticks;
+    //  Manage the watchdogs, watch messages used
+    mUTC_Watchdog--;
+    if (mUTC_Watchdog <= 0) {
+        mPriDateTime = 99; 
+        mUTC_Watchdog = gps_watchdog_timeout_ticks;
     }
 }
 
@@ -329,17 +342,155 @@ void odometer_pi::SendSentenceToAllInstruments(int st, double value, wxString un
 	}
 }
 
-// This method is invoked by OpenCPN when we specify WANTS_NMEA_SENTENCES
-void odometer_pi::SetNMEASentence(wxString &sentence) 
+// Using pluginmanager for NMEA Course and Speed data filter
+void odometer_pi::SetPositionFix(PlugIn_Position_Fix &pfix)
 {
-    m_NMEA0183 << sentence;
+    FilteredSpeed = pfix.Sog;
+}
 
+// This method is invoked by OpenCPN when reading Signal K sentences
+void odometer_pi::ParseSignalK( wxString &msg) {
+
+   wxJSONValue root;
+   wxJSONReader jsonReader;
+
+   int errors = jsonReader.Parse(msg, &root);
+
+/*
+    // Message log, prints to stdout
+    wxString dmsg( _T("GPS Odometer:SignalK Event received: ") );
+    dmsg.append(msg);
+    wxLogMessage(dmsg);
+    printf("%s\n", dmsg.ToUTF8().data());
+*/
+
+    if(root.HasMember("self")) {
+        if(root["self"].AsString().StartsWith(_T("vessels.")))
+            m_self = (root["self"].AsString());                                 // for java server, and OpenPlotter node.js server 1.20
+        else
+            m_self = _T("vessels.") + (root["self"].AsString());                // for Node.js server
+    }
+    
+    if(root.HasMember("context")
+       && root["context"].IsString()) {
+        auto context = root["context"].AsString();
+        if (context != m_self) {
+            return;
+        }
+    }
+
+    if(root.HasMember("updates")
+       && root["updates"].IsArray()) {
+        wxJSONValue &updates = root["updates"];
+        for (int i = 0; i < updates.Size(); ++i) {
+            handleSKUpdate(updates[i]);
+        }
+    }
+}
+
+void odometer_pi::handleSKUpdate(wxJSONValue &update) {
+    wxString sfixtime = "";
+
+    if(update.HasMember("timestamp")) {
+        sfixtime = update["timestamp"].AsString();
+    }
+    if(update.HasMember("values")
+       && update["values"].IsArray())
+    {
+        for (int j = 0; j < update["values"].Size(); ++j) {
+            wxJSONValue &item = update["values"][j];
+            updateSKItem(item, sfixtime);
+        }
+    }
+}
+
+void odometer_pi::updateSKItem(wxJSONValue &item, wxString &sfixtime) {
+
+    if(item.HasMember("path")
+       && item.HasMember("value")) {
+        const wxString &update_path = item["path"].AsString();
+        wxJSONValue &value = item["value"];
+
+        SatsRequired = atoi(m_SatsRequired);
+        HDOPdefine = atoi(m_HDOPdefine);
+
+        if (update_path == _T("navigation.speedOverGround")){
+            SKSpeed = 1.943844494 * GetJsonDouble(value);
+            if (std::isnan(SKSpeed)) SKSpeed = 0;
+        }
+
+        else if (update_path == _T("navigation.datetime")) {
+            if (mPriDateTime >= 1) {
+                mPriDateTime = 1;
+                wxString s_dt = (value.AsString()); //"2019-12-28T09:26:58.000Z"
+                s_dt.Replace('-', wxEmptyString);
+                s_dt.Replace(':', wxEmptyString);
+                wxString utc_dt = s_dt.BeforeFirst('T'); //Date
+                utc_dt.Append(s_dt.AfterFirst('T').Left( 6 )); //time
+                mUTCDateTime.ParseFormat(utc_dt.c_str(), _T("%Y%m%d%H%M%S"));
+                mUTC_Watchdog = gps_watchdog_timeout_ticks;
+            }
+        }
+
+
+        else if (update_path == _T("navigation.gnss.methodQuality")) {
+             wxString SKGNSS_quality = (value.AsString());
+             SKQuality = 0; 
+             if (SKGNSS_quality == "GNSS Fix")  {
+                 SKQuality = 1;
+             }
+        }
+
+        else if (update_path == _T("navigation.gnss.satellites")) {
+            if (value.IsInt()) {
+                SatsUsed = (value.AsInt());
+                if (SatsRequired <= 4) SatsRequired == 4;  // at least 4 satellites required
+            }
+        }
+
+        else if (update_path == _T("navigation.gnss.horizontalDilution")){
+            HDOPlevel = GetJsonDouble(value);
+            int HDOPdefine = atoi(m_HDOPdefine);
+            if (HDOPdefine <= 1) HDOPdefine == 1;  // HDOP limit between 1 and 10 
+            if (HDOPdefine >= 10) HDOPdefine == 10;
+        }
+        if ((SKQuality == 1) && (SatsUsed >= SatsRequired) && (HDOPlevel <= HDOPdefine)) {
+            CurrSpeed = SKSpeed;
+            if (g_iOdoProtocol == 1) Odometer(); 
+        }
+    }
+}
+
+
+// This method is invoked by OpenCPN when we specify WANTS_NMEA_SENTENCES
+void odometer_pi::SetNMEASentence(wxString &sentence) {
+
+    SignalQuality = 0;
+
+    m_NMEA0183 << sentence;
     if (m_NMEA0183.PreParse()) {
         if( m_NMEA0183.LastSentenceIDReceived == _T("GGA") ) {
             if( m_NMEA0183.Parse() ) {
-                SatsInUse = m_NMEA0183.Gga.NumberOfSatellitesInUse;
+
+                GPSQuality = m_NMEA0183.Gga.GPSQuality;
+                if ((GPSQuality >= 0 ) && (GPSQuality <=5)) {
+                    SignalQuality = 1;
+                } else {
+                    SignalQuality = 0;
+                }
+
+                SatsUsed = m_NMEA0183.Gga.NumberOfSatellitesInUse;
+                SatsRequired = atoi(m_SatsRequired);
+                if (SatsRequired <= 4) SatsRequired == 4;  // at least 4 satellites required
+
                 HDOPlevel = m_NMEA0183.Gga.HorizontalDilutionOfPrecision;
-                mGGA_Watchdog = gps_watchdog_timeout_ticks;
+                HDOPdefine = atoi(m_HDOPdefine);
+                if (HDOPdefine <= 1) HDOPdefine == 1;  // HDOP limit between 1 and 10 
+                if (HDOPdefine >= 10) HDOPdefine == 10;
+
+                // Ensure HDOP level is valid, will be 999 if field is empty
+                if ((HDOPlevel == 0.0) || (HDOPlevel >= 100)) HDOPlevel == 100;
+
             }
         }
 
@@ -347,45 +498,56 @@ void odometer_pi::SetNMEASentence(wxString &sentence)
             if (m_NMEA0183.Parse() ) {
                 if (m_NMEA0183.Rmc.IsDataValid == NTrue) {
 
-                    // Data verification
-                    validGPS = 0;
-                    int SatsUsed = atoi(m_SatsInUse);
-                    if (SatsUsed <= 4) SatsUsed == 4;  // No less that 4 satellites
-
-                    int HDOPdefine = atoi(m_HDOPdefine);
-                    if (HDOPdefine <= 1) HDOPdefine == 1;  // HDOP between 1 and 10 
-                    if (HDOPdefine >= 10) HDOPdefine == 10;
-
-                    if ((SatsInUse >= SatsUsed) && (HDOPlevel <= HDOPdefine)) {
-                        validGPS = 1;
-                        CurrSpeed = m_NMEA0183.Rmc.SpeedOverGroundKnots;
-
-                        // Use filtered speed for the instrument
-                        // TODO: Speed is not filtered, why? iirfilter incorrectly called?
-                        SendSentenceToAllInstruments( OCPN_DBP_STC_SOG, 
-                            toUsrSpeed_Plugin (mSOGFilter.filter(CurrSpeed), g_iOdoSpeedUnit ),
-                            getUsrSpeedUnit_Plugin( g_iOdoSpeedUnit ) );
-
-                        // Date and time are wxStrings, instruments use double
-                        dt = m_NMEA0183.Rmc.Date + m_NMEA0183.Rmc.UTCTime;
+                    if( mPriDateTime >= 3 ) {
+                        mPriDateTime = 3;
+                        wxString dt = m_NMEA0183.Rmc.Date + m_NMEA0183.Rmc.UTCTime;
                         mUTCDateTime.ParseFormat( dt.c_str(), _T("%d%m%y%H%M%S") );
-                        mRMC_Watchdog = gps_watchdog_timeout_ticks;
+                        mUTC_Watchdog = gps_watchdog_timeout_ticks;
                     }
+
+                    NMEASpeed = m_NMEA0183.Rmc.SpeedOverGroundKnots;
+                    if (std::isnan(NMEASpeed)) NMEASpeed = 0;
+ 
                 }
             }
         } 
+
+        if ((SignalQuality == 1) && (SatsUsed >= SatsRequired) && (HDOPlevel <= HDOPdefine)) {
+            CurrSpeed = NMEASpeed;
+            if (g_iOdoProtocol == 0) Odometer(); 
+        }
     }
-    if (validGPS == 0) FilteredSpeed = 0.0;
-    Odometer(); 
 }
 
+
 void odometer_pi::Odometer() {
+
+    if (std::isnan(CurrSpeed)) CurrSpeed = 0;
+    if (CurrSpeed <= 0.2) CurrSpeed = 0;
+
+    // Message log, prints to stdout
+    wxString dmsg( _T("Log: ") );
+    wxString txtmsg;
+    txtmsg << CurrSpeed;
+    dmsg.append(txtmsg);
+    wxLogMessage(dmsg);
+    printf("%s\n", dmsg.ToUTF8().data());
+
+
+    // Speedometer
+    FilterSOG = atoi(m_FilterSOG);
+    if (FilterSOG != 0 ) CurrSpeed = FilteredSpeed;
+
+    SendSentenceToAllInstruments( OCPN_DBP_STC_SOG, 
+        toUsrSpeed_Plugin (mSOGFilter.filter(CurrSpeed),
+        g_iOdoSpeedUnit), getUsrSpeedUnit_Plugin(g_iOdoSpeedUnit));
 
     //  Adjust time to local time zone used by departure and arrival times
     UTCTime = wxDateTime::Now();
     double offset = ((g_iOdoUTCOffset-24)*30); 
     wxTimeSpan TimeOffset(0, offset,0);
     LocalTime = UTCTime.Add(TimeOffset);
+
 
     // First time start
     if (m_DepTime == "2020-01-01 00:00:00") {
@@ -550,7 +712,6 @@ void odometer_pi::GetDistance() {
     CurrSec = wxAtoi(LocalTime.Format(wxT("%S")));
 
     // Calculate distance travelled during the elapsed time
-
     StepDist = 0.0;
     if (CurrSec != PrevSec) { 
         if (CurrSec > PrevSec) { 
@@ -571,13 +732,41 @@ void odometer_pi::GetDistance() {
            StartDelay = 0;
         }
         if (LocalTime <= EnabledTime) StepDist = 0.0;
-
-        // No distances accepted if validGPS equals 0
-        if (validGPS == 0) StepDist = 0.0;
+        if (std::isnan(StepDist)) StepDist = 0.0;
     }
     PrevSec = CurrSec;
 }
 
+void odometer_pi::SetPluginMessage(wxString &message_id, wxString &message_body)
+{
+    if(message_id == _T("WMM_VARIATION_BOAT"))
+    {
+
+        // construct the JSON root object
+        wxJSONValue  root;
+        // construct a JSON parser
+        wxJSONReader reader;
+
+        // now read the JSON text and store it in the 'root' structure
+        // check for errors before retreiving values...
+        int numErrors = reader.Parse( message_body, &root );
+        if ( numErrors > 0 )  {
+            //              const wxArrayString& errors = reader.GetErrors();
+            return;
+        }
+
+        // get the DECL value from the JSON message
+        wxString decl = root[_T("Decl")].AsString();
+        double decl_val;
+        decl.ToDouble(&decl_val);
+
+    }
+    else if(message_id == _T("OCPN_CORE_SIGNALK"))
+    {
+        ParseSignalK( message_body);
+    }
+
+}
 
 // Not sure what this does, I guess we only install one toolbar item?? It is however required.
 int odometer_pi::GetToolbarToolCount(void) {
@@ -849,11 +1038,13 @@ bool odometer_pi::LoadConfig(void) {
         pConf->Read( _T("TotalDistance"), &m_TotDist, "0.0");  
         pConf->Read( _T("TripDistance"), &m_TripDist, "0.0");
         pConf->Read( _T("PowerOnDelaySecs"), &m_PwrOnDelSecs, "15");
-        pConf->Read( _T("SatsInUse"), &m_SatsInUse, "4");
+        pConf->Read( _T("SatsRequired"), &m_SatsRequired, "4");
         pConf->Read( _T("HDOP"), &m_HDOPdefine, "4");
         pConf->Read( _T("DepartureTime"), &m_DepTime, "2020-01-01 00:00:00");
         pConf->Read( _T("ArrivalTime"), &m_ArrTime, "2020-01-01 00:00:00");
+        pConf->Read( _T("FilterSpeed"), &m_FilterSOG, "1");
 
+        pConf->Read(_T("Protocol"), &g_iOdoProtocol, NMEA_0183);
         pConf->Read(_T("SpeedometerMax"), &g_iOdoSpeedMax, 12);
         pConf->Read(_T("OnRouteSpeedLimit"), &g_iOdoOnRoute, 2);
         pConf->Read(_T("UTCOffset"), &g_iOdoUTCOffset, 24 );
@@ -967,11 +1158,13 @@ bool odometer_pi::SaveConfig(void) {
         pConf->Write( _T("TotalDistance"), m_TotDist);
         pConf->Write( _T("TripDistance"), m_TripDist);
         pConf->Write( _T("PowerOnDelaySecs"), m_PwrOnDelSecs);
-        pConf->Write( _T("SatsInUse"), m_SatsInUse);
+        pConf->Write( _T("SatsRequired"), m_SatsRequired);
         pConf->Write( _T("HDOP"), m_HDOPdefine);
         pConf->Write( _T("DepartureTime"), m_DepTime);
         pConf->Write( _T("ArrivalTime"), m_ArrTime);
+        pConf->Write( _T("FilterSpeed"), m_FilterSOG);
 
+        pConf->Write(_T("Protocol"), g_iOdoProtocol);
         pConf->Write(_T("SpeedometerMax"), g_iOdoSpeedMax);
         pConf->Write(_T("OnRouteSpeedLimit"), g_iOdoOnRoute);
         pConf->Write(_T("UTCOffset"), g_iOdoUTCOffset);
@@ -1165,24 +1358,34 @@ OdometerPreferencesDialog::OdometerPreferencesDialog(wxWindow *parent, wxWindowI
     itemFlexGridSizer03->AddGrowableCol( 1 );
     itemStaticBoxSizer05->Add( itemFlexGridSizer03, 1, wxEXPAND | wxALL, 0 );
     itemBoxSizerMainFrame->AddSpacer( 5 );
- 
-    wxStaticText* itemStaticText06 = new wxStaticText( m_pPanelPreferences, wxID_ANY, _("Speedometer max value:"), 
+
+    wxStaticText* itemStaticText06 = new wxStaticText( m_pPanelPreferences, wxID_ANY, _("Protocol:"), 
         wxDefaultPosition, wxDefaultSize, 0 );
     itemFlexGridSizer03->Add( itemStaticText06, 0, wxEXPAND | wxALL, border_size );
+    wxString m_ProtocolChoices[] = { _("NMEA 0183"), _("Signal K") };
+    int m_ProtocolNChoices = sizeof( m_ProtocolChoices ) / sizeof( wxString );
+    m_pChoiceProtocol = new wxChoice( m_pPanelPreferences, wxID_ANY, wxDefaultPosition, wxDefaultSize, 
+        m_ProtocolNChoices, m_ProtocolChoices, 0 );
+    m_pChoiceProtocol->SetSelection( g_iOdoProtocol );
+    itemFlexGridSizer03->Add( m_pChoiceProtocol, 0, wxALIGN_RIGHT | wxALL, 0 );
+
+    wxStaticText* itemStaticText07 = new wxStaticText( m_pPanelPreferences, wxID_ANY, _("Speedometer max value:"), 
+        wxDefaultPosition, wxDefaultSize, 0 );
+    itemFlexGridSizer03->Add( itemStaticText07, 0, wxEXPAND | wxALL, border_size );
     m_pSpinSpeedMax = new wxSpinCtrl( m_pPanelPreferences, wxID_ANY, wxEmptyString, wxDefaultPosition, 
         wxDefaultSize, wxSP_ARROW_KEYS, 10, 80, g_iOdoSpeedMax );
     itemFlexGridSizer03->Add(m_pSpinSpeedMax, 0, wxALIGN_RIGHT | wxALL, 0);
 
-    wxStaticText* itemStaticText07 = new wxStaticText( m_pPanelPreferences, wxID_ANY, _("Minimum On-Route speed:"), 
+    wxStaticText* itemStaticText08 = new wxStaticText( m_pPanelPreferences, wxID_ANY, _("Minimum On-Route speed:"), 
         wxDefaultPosition, wxDefaultSize, 0);
-    itemFlexGridSizer03->Add(itemStaticText07, 0, wxEXPAND | wxALL, border_size);
+    itemFlexGridSizer03->Add(itemStaticText08, 0, wxEXPAND | wxALL, border_size);
     m_pSpinOnRoute = new wxSpinCtrl(m_pPanelPreferences, wxID_ANY, wxEmptyString, wxDefaultPosition, 
         wxDefaultSize, wxSP_ARROW_KEYS, 0, 5, g_iOdoOnRoute);
     itemFlexGridSizer03->Add(m_pSpinOnRoute, 0, wxALIGN_RIGHT | wxALL, 0);
 
-    wxStaticText* itemStaticText11 = new wxStaticText( m_pPanelPreferences, wxID_ANY, _( "Local Time Offset From UTC:" ), 
+    wxStaticText* itemStaticText09 = new wxStaticText( m_pPanelPreferences, wxID_ANY, _( "Local Time Offset From UTC:" ), 
         wxDefaultPosition, wxDefaultSize, 0 );
-    itemFlexGridSizer03->Add( itemStaticText11, 0, wxEXPAND | wxALL, border_size );
+    itemFlexGridSizer03->Add( itemStaticText09, 0, wxEXPAND | wxALL, border_size );
     wxString m_UTCOffsetChoices[] = {
         _T( "-12:00" ), _T( "-11:30" ), _T( "-11:00" ), _T( "-10:30" ), _T( "-10:00" ), _T( "-09:30" ),
         _T( "-09:00" ), _T( "-08:30" ), _T( "-08:00" ), _T( "-07:30" ), _T( "-07:00" ), _T( "-06:30" ),
@@ -1200,9 +1403,9 @@ OdometerPreferencesDialog::OdometerPreferencesDialog(wxWindow *parent, wxWindowI
     m_pChoiceUTCOffset->SetSelection( g_iOdoUTCOffset );
     itemFlexGridSizer03->Add( m_pChoiceUTCOffset, 0, wxALIGN_RIGHT | wxALL, 0 );
 
-    wxStaticText* itemStaticText12 = new wxStaticText( m_pPanelPreferences, wxID_ANY, _("Boat speed units:"), 
+    wxStaticText* itemStaticText10 = new wxStaticText( m_pPanelPreferences, wxID_ANY, _("Boat speed units:"), 
         wxDefaultPosition, wxDefaultSize, 0 );
-    itemFlexGridSizer03->Add( itemStaticText12, 0, wxEXPAND | wxALL, border_size );
+    itemFlexGridSizer03->Add( itemStaticText10, 0, wxEXPAND | wxALL, border_size );
     wxString m_SpeedUnitChoices[] = { _("Kts"), _("mph"), _("km/h"), _("m/s") };
     int m_SpeedUnitNChoices = sizeof( m_SpeedUnitChoices ) / sizeof( wxString );
     m_pChoiceSpeedUnit = new wxChoice( m_pPanelPreferences, wxID_ANY, wxDefaultPosition, wxDefaultSize, 
@@ -1210,9 +1413,9 @@ OdometerPreferencesDialog::OdometerPreferencesDialog(wxWindow *parent, wxWindowI
     m_pChoiceSpeedUnit->SetSelection( g_iOdoSpeedUnit );
     itemFlexGridSizer03->Add( m_pChoiceSpeedUnit, 0, wxALIGN_RIGHT | wxALL, 0 );
 
-    wxStaticText* itemStaticText13 = new wxStaticText( m_pPanelPreferences, wxID_ANY, _("Distance units:"), 
+    wxStaticText* itemStaticText11 = new wxStaticText( m_pPanelPreferences, wxID_ANY, _("Distance units:"), 
         wxDefaultPosition, wxDefaultSize, 0 );
-    itemFlexGridSizer03->Add( itemStaticText13, 0, wxEXPAND | wxALL, border_size );
+    itemFlexGridSizer03->Add( itemStaticText11, 0, wxEXPAND | wxALL, border_size );
     wxString m_DistanceUnitChoices[] = { _("Nautical miles"), _("Statute miles"), _("Kilometers") };
     int m_DistanceUnitNChoices = sizeof( m_DistanceUnitChoices ) / sizeof( wxString );
     m_pChoiceDistanceUnit = new wxChoice( m_pPanelPreferences, wxID_ANY, wxDefaultPosition, wxDefaultSize, 
@@ -1245,6 +1448,7 @@ void OdometerPreferencesDialog::OnCloseDialog(wxCloseEvent& event) {
 
 void OdometerPreferencesDialog::SaveOdometerConfig(void) {
     
+    g_iOdoProtocol = m_pChoiceProtocol->GetSelection();  
     g_iOdoSpeedMax = m_pSpinSpeedMax->GetValue();  
     g_iOdoOnRoute = m_pSpinOnRoute->GetValue(); 
     g_iOdoUTCOffset = m_pChoiceUTCOffset->GetSelection();

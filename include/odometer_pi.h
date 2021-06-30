@@ -45,6 +45,10 @@
 #include <wx/spinctrl.h>
 #include <wx/aui/aui.h>
 #include <wx/fontpicker.h>
+#include "wx/json_defs.h"
+#include "wx/jsonreader.h"
+#include "wx/jsonval.h"
+#include "wx/jsonwriter.h"
 
 // Differs from the built-in plugins, so that we can build outside of OpenCPN source tree
 #include "ocpn_plugin.h"
@@ -141,7 +145,7 @@ public:
 
 	// The optional OpenCPN plugin methods
 	void SetNMEASentence(wxString &sentence);
-//    void SetPositionFix(PlugIn_Position_Fix &pfix);
+    void SetPositionFix(PlugIn_Position_Fix &pfix);
 	int GetToolbarToolCount(void);
 	void OnToolbarToolCallback(int id);
 	void ShowPreferencesDialog(wxWindow *parent);
@@ -157,11 +161,12 @@ public:
 
 	  
     int id;
-    wxString dt;
+//    wxString dt;
 
     double TotDist = 0.0;
     wxString DistUnit;
 //	wxAuiManager *m_pauimgr;
+    void SetPluginMessage(wxString &message_id, wxString &message_body);
 
 
 
@@ -191,17 +196,34 @@ private:
 	NMEA0183 m_NMEA0183;
     short mPriCOGSOG;
     short mPriDateTime;
+    short mPriVar;
+    double mVar;
     wxDateTime mUTCDateTime;
     iirfilter mSOGFilter;
-    wxString m_SatsInUse;
+    wxString m_SatsRequired;
     wxString m_PwrOnDelSecs;
     wxString m_HDOPdefine;
-    int SatsInUse;
+    wxString m_FilterSOG;
+    int FilterSOG = 1;
+    int GPSQuality;
+    int SignalQuality = 0;
+    int SatsRequired;
+    int SatsUsed;
+    int HDOPdefine;
     double HDOPlevel;
     int validGPS = 0;
+    int useNMEA = 0;
     int StartDelay = 1;
-    int mRMC_Watchdog;
-    int mGGA_Watchdog;
+    int mUTC_Watchdog;
+
+	// Used to parse Signal K Sentences
+    void ParseSignalK( wxString &msg);
+    void handleSKUpdate(wxJSONValue &update);
+    void updateSKItem(wxJSONValue &item, wxString &sfixtime);
+    wxString m_self;
+    double SKSpeed;
+    int SKQuality;
+
 
     // Odometer time
     wxDateTime UTCTime;
@@ -209,6 +231,7 @@ private:
     wxDateTime LocalTime;
 
     // Odometer trip time
+    double NMEASpeed; 
     double CurrSpeed; 
     double FilteredSpeed; 
     double m_OnRouteSpeed;
@@ -268,6 +291,7 @@ public:
 	wxSpinCtrl *m_pSpinSpeedMax;
     wxSpinCtrl *m_pSpinCOGDamp;
     wxSpinCtrl *m_pSpinOnRoute;
+    wxChoice *m_pChoiceProtocol;
     wxChoice *m_pChoiceUTCOffset;
     wxChoice *m_pChoiceSpeedUnit;
     wxChoice *m_pChoiceDistanceUnit;
@@ -308,6 +332,11 @@ enum {
 //	ID_DASH_VERTICAL,
 //	ID_DASH_HORIZONTAL,
 	ID_ODO_UNDOCK
+};
+
+enum {
+    NMEA_0183,
+    SIGNAL_K
 };
 
 enum {
