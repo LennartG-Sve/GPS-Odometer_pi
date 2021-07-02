@@ -443,18 +443,18 @@ void odometer_pi::updateSKItem(wxJSONValue &item, wxString &sfixtime) {
 
         else if (update_path == _T("navigation.gnss.satellites")) {
             if (value.IsInt()) {
-                SatsUsed = (value.AsInt());
+                SKSatsUsed = (value.AsInt());
                 if (SatsRequired <= 4) SatsRequired == 4;  // at least 4 satellites required
             }
         }
 
         else if (update_path == _T("navigation.gnss.horizontalDilution")){
-            HDOPlevel = GetJsonDouble(value);
+            SKHDOPlevel = GetJsonDouble(value);
             int HDOPdefine = atoi(m_HDOPdefine);
             if (HDOPdefine <= 1) HDOPdefine == 1;  // HDOP limit between 1 and 10 
             if (HDOPdefine >= 10) HDOPdefine == 10;
         }
-        if ((SKQuality == 1) && (SatsUsed >= SatsRequired) && (HDOPlevel <= HDOPdefine)) {
+        if ((SKQuality == 1) && (SKSatsUsed >= SatsRequired) && (SKHDOPlevel <= HDOPdefine)) {
             CurrSpeed = SKSpeed;
             if (g_iOdoProtocol == 1) Odometer(); 
         }
@@ -525,6 +525,7 @@ void odometer_pi::Odometer() {
     if (std::isnan(CurrSpeed)) CurrSpeed = 0;
     if (CurrSpeed <= 0.2) CurrSpeed = 0;
 
+/*
     // Message log, prints to stdout
     wxString dmsg( _T("Log: ") );
     wxString txtmsg;
@@ -532,7 +533,7 @@ void odometer_pi::Odometer() {
     dmsg.append(txtmsg);
     wxLogMessage(dmsg);
     printf("%s\n", dmsg.ToUTF8().data());
-
+*/
 
     // Speedometer
     FilterSOG = atoi(m_FilterSOG);

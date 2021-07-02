@@ -223,6 +223,8 @@ private:
     wxString m_self;
     double SKSpeed;
     int SKQuality;
+    double SKHDOPlevel;
+    int SKSatsUsed;
 
 
     // Odometer time
