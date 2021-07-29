@@ -432,11 +432,11 @@ void odometer_pi::updateSKItem(wxJSONValue &item, wxString &sfixtime) {
             }
         }
 
-
         else if (update_path == _T("navigation.gnss.methodQuality")) {
              wxString SKGNSS_quality = (value.AsString());
              SKQuality = 0; 
-             if (SKGNSS_quality == "GNSS Fix")  {
+             // Should be one of 'GNSS Fix', 'DGNSS fix' or 'Precise GNSS'
+             if ((SKGNSS_quality == "GNSS Fix") || (SKGNSS_quality == "DGNSS Fix") || (SKGNSS_quality == "Precise GNSS")) {
                  SKQuality = 1;
              }
         }
