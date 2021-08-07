@@ -81,9 +81,12 @@ OpenCPN configuration file, they both default to '4'. +
 HDOP can be adjusted from 1 to 10 and Satellites in use must be at least
 4 but can be increased if required. Do not alter these settings unless
 you know what you are doing!
+Please note that HDOP and Satellites are used with SIGNAL K as it uses
+the quality values 'GNSS Fix', 'DGNSS fix' and 'Precise GNSS'. One of 
+these must be present.
 
-A few notes about GPS signal information, coming from NMEA 0183 or the 
-corresponding Signal K messages. If one more of the RMC and/or GGA 
+A few notes about GPS signal information, coming from NMEA 0183 (or the 
+corresponding Signal K messages). If one more of the RMC and/or GGA 
 sentences are missing:
 
 . There will be no speed or distance count if NMEA 0183 sentence RMC is
