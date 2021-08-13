@@ -436,7 +436,7 @@ void odometer_pi::updateSKItem(wxJSONValue &item, wxString &sfixtime) {
              wxString SKGNSS_quality = (value.AsString());
              SKQuality = 0; 
              // Should be one of 'GNSS Fix', 'DGNSS fix' or 'Precise GNSS'
-             if ((SKGNSS_quality == "GNSS Fix") || (SKGNSS_quality == "DGNSS Fix") || (SKGNSS_quality == "Precise GNSS")) {
+             if ((SKGNSS_quality == "GNSS Fix") || (SKGNSS_quality == "DGNSS fix") || (SKGNSS_quality == "Precise GNSS")) {
                  SKQuality = 1;
              }
         }
