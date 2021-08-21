@@ -5,7 +5,7 @@ indexmenu_n_8
 === Links
 
 * Cruiser Forum Thread:
-* Github: https://github.com/LennartG-Sve/GPS-Odometer
+* Github: https://github.com/LennartG-Sve/GPS-Odometer_pi
 
 === Purpose
 
