@@ -1,7 +1,7 @@
 site:
   title: Odometer Plugin Manual
   url:  https://nowhere.net
-  start_page: odometer:ROOT:odometer.adoc
+  start_page: odometer:ROOT:index.adoc
 
 content:
   sources:
