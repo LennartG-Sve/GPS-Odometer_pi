@@ -1,13 +1,11 @@
-indexmenu_n_8
+= GPS Odometer
 
-== GPS Odometer
-
-=== Links
+== Links
 
 * Cruiser Forum Thread:
 * Github: https://github.com/LennartG-Sve/GPS-Odometer_pi
 
-=== Purpose
+== Purpose
 
 The GPS Odometer is a plugin for OpenCPN version 5.0 and higher. The
 keyword for this GPS Odometer is simplicity. Note that, as this is a GPS
@@ -25,7 +23,7 @@ The GPS Odometer contain just these basic functions:
 * An optional Leg Trip time and Distance including Start/Stop Leg and
 Leg reset buttons
 
-=== Instruments
+== Instruments
 
 The instruments are shown in the above listed order and it is not
 possible to change this order. It is however possible to toggle the
@@ -101,7 +99,7 @@ GPS units are quite unstable when starting (although indicating a valid
 fix) and, as all distances are added, this will add to the trip and
 total distances or trigger false departure times.
 
-=== Bugs and inconveniences
+== Bugs and inconveniences
 
 There are a few bugs/inconveniences inherited from the original
 dashboard as the instrument window downsizing when e.g. removing the
@@ -114,7 +112,7 @@ Also, some of the parameters from the Settings menu does not update the
 instruments until OpenCPN is restarted, like the maximum speed setting
 in the speedometer.
 
-=== Installing
+== Installing
 
 The best and most convenient way to install is to use the package
 manager but if a suitable version is not availanble you may also build
@@ -124,7 +122,7 @@ There is (currently?) no version available for the Android environment
 as I don't have either the tools nor the knowledge to do that. Any help
 from the community would be appreciated.
 
-=== A final comment
+== A final comment
 
 I did this plugin as I wanted a simple GPS based Odometer. The Logbook
 has the option but you may not need all the other stuff in there and
