@@ -1,5 +1,5 @@
 site:
-  title: Odometer Plugin Manual
+  title: Odometer
   url:  https://nowhere.net
   start_page: odometer:ROOT:index.adoc
 
