@@ -37,9 +37,9 @@ set(LONG_DESCRIPTION "GPS controlled Dashboard based Odometer plugin for OpenCPN
 
 set(VERSION_MAJOR "0")
 set(VERSION_MINOR "6")
-set(VERSION_PATCH "2")
-set(VERSION_TWEAK "2")
-set(VERSION_DATE "08/10/2021")  # DD/MM/YYYY format
+set(VERSION_PATCH "3")
+set(VERSION_TWEAK "0")
+set(VERSION_DATE "11/10/2021")  # DD/MM/YYYY format
 set(OCPN_MIN_VERSION "ov50")
 set(OCPN_API_VERSION_MAJOR "1")
 set(OCPN_API_VERSION_MINOR "16")
@@ -96,7 +96,9 @@ message(STATUS "${CMLOC}Build type: ${CMAKE_BUILD_TYPE}")
 project(${PACKAGE})
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
+# ==================================================================
 include("PluginSetup")
+# ==================================================================
 
 ## ----- The above is used to setup standard variables that are required by the CMAKE process - do not remove ----- ##
 ## ----- Modify section below if there are special requirements for the plugin ----- ##
@@ -108,8 +110,9 @@ option(Plugin_CXX11 "Use c++11" OFF)
 ## ----- Modify section above if there are special requirements for the plugin ----- ##
 ## ----- Do not change next section - needed to configure build process ----- ##
 
+# ==================================================================
 include("PluginConfigure")
-
+# ==================================================================
 ## ----- Do not change section above - needed to configure build process ----- ##
 ## ----- Change below to match project requirements for source, headers, etc. ----- ##
 
@@ -154,10 +157,10 @@ SET(HDRS
 #    include/wx/jsonwriter.h
 )	
 
-set(OCPNSRC
-    ocpnsrc/cutil.cpp
-    ocpnsrc/TexFont.cpp
-)
+#set(OCPNSRC
+#    ocpnsrc/cutil.cpp
+#    ocpnsrc/TexFont.cpp
+#)
 
 set(OCPNHDRS
     ocpninclude/cutil.h
@@ -187,6 +190,10 @@ set(LIBHDRS
     libs/wxJSON/include/jsonreader.h
     libs/wxJSON/include/jsonval.h
     libs/wxJSON/include/jsonwriter.h
+#    include/wx/json_defs.h
+#    include/wx/jsonreader.h
+#    include/wx/jsonval.h
+#    include/wx/jsonwriter.h	
 )
 
 ## GPS Odometer plugin uses SVG for toolbar icons
@@ -198,7 +205,7 @@ set(EXTINCLUDE_DIR ${EXTINCLUDE_DIR} extinclude libs/ocpn-api/)
 ## Need ocpn-api for ocpn_plugin.h
 
 #INCLUDE_DIRECTORIES(BEFORE ${PROJECT_SOURCE_DIR}/api-16)
-INCLUDE_DIRECTORIES(BEFORE ${PROJECT_SOURCE_DIR}/src)
+# INCLUDE_DIRECTORIES(BEFORE ${PROJECT_SOURCE_DIR}/src)
 include_directories(BEFORE ${PROJECT_SOURCE_DIR}/include)
 include_directories(BEFORE ${PROJECT_SOURCE_DIR}/ocpninclude)
 include_directories(BEFORE ${PROJECT_SOURCE_DIR}/ocpnsrc/glu/include)
@@ -206,6 +213,7 @@ include_directories(BEFORE ${PROJECT_SOURCE_DIR}/${EXTINCLUDE_DIR})
 include_directories(BEFORE ${PROJECT_SOURCE_DIR}/libs/)
 include_directories(BEFORE ${PROJECT_SOURCE_DIR}/libs/GL)
 include_directories(BEFORE ${PROJECT_SOURCE_DIR}/libs/ocpn-api)
+#include_directories(BEFORE ${PROJECT_SOURCE_DIR}/include/wx)
 include_directories(BEFORE ${PROJECT_SOURCE_DIR}/libs/wxJSON/include)
 
 if(QT_ANDROID)
@@ -216,9 +224,9 @@ if(QT_ANDROID)
 endif(QT_ANDROID)
 
 # ==================================================================
-target_sources(${PACKAGE_NAME} PUBLIC ${SRCS} ${HDRS} ${OCPNSRC} ${EXTSRC} ${LIBHDRS} ${LIBSSRC})
+target_sources(${PACKAGE_NAME} PUBLIC ${SRCS} ${HDRS} ${EXTSRC} ${LIBHDRS} ${LIBSSRC})
 # ==================================================================
-
+# target_sources(${PACKAGE_NAME} PUBLIC ${SRCS} ${HDRS} ${OCPNSRC} ${EXTSRC} ${LIBHDRS} ${LIBSSRC})
 ## Statement below is required to collect all the set (headers and SRCS) - Adjust as required
 ## target_sources(${PACKAGE_NAME} PUBLIC ${SRCS} ${HDRS})
 
@@ -227,8 +235,8 @@ if(NOT OCPN_FLATPAK_CONFIG)
     message(STATUS "${CMLOC}Adding target link libraries to ${PACKAGE_NAME}")
 
     add_subdirectory(libs/tinyxml)
-
     target_link_libraries(${PACKAGE_NAME} ocpn::tinyxml)
+
 endif(NOT OCPN_FLATPAK_CONFIG)
 
 add_definitions(-DTIXML_USE_STL)
@@ -244,10 +252,11 @@ if(QT_ANDROID)
 endif(QT_ANDROID)
 
 # Needed for all builds
+# ==================================================================
 include("PluginInstall")
 include("PluginLocalization")
 include("PluginPackage")
-
+# ==================================================================
 ## ----- do not change section above - needed to configure build process ----- ##
 
 message(STATUS "${CMLOC}include directories: ")
