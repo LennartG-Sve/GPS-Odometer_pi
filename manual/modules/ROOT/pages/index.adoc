@@ -8,12 +8,13 @@
 == Purpose
 
 The GPS Odometer is a plugin for OpenCPN version 5.0 and higher. The
-keyword for this GPS Odometer is simplicity. Note that, as this is a GPS
-based instrument, it requires GPS data to display any data at all. The
-GPS MNEA 0183 sentences RMC and GGA messages, or the corresponding
-messages from Signal K, is a must. See furter information below.
+keyword for this GPS Odometer is simplicity. Note that, as this is a 
+GPS/GNSS based instrument, it requires GPS/GNSS data to display any 
+data at all. The MNEA 0183 sentences RMC and GGA messages, or the 
+corresponding messages from Signal K, is a must. See furter information 
+below.
 
-The GPS Odometer contain just these basic functions:
+The GPS Odometer contain these basic functions:
 
 * An optional Speedometer with both analog and digital readout.
 * A Total Distance log, always displayed.
@@ -62,42 +63,43 @@ and time counters clicking the Start/Stop Leg button, it will count
 distance and time until the button is clicked again. Click the Leg Reset
 button to zero distance and time and begin a new count session. This
 counter does not use the 'Minimum Route Speed' setting.
+
 . Several parameters can be adjusted in the 'Settings' menu, just
 right-click somewhere on the instrument and select to change the
 settings. 
-. The most important setting there is the selection between NMEA 0183
+. The most important setting is the selection between NMEA 0183 
 (default) or Signal K as the source protocol. This selection is used to 
 avoid the same type of information from multiple sources but still 
 allowing e.g. NMEA 0183 to be generated from Signal K without affecting 
 the Odometer. This is a common situation when e.g. using a NMEA 2000 GPS 
 and a VHF with NMEA 0183 input.
-. Please do not set 'Min Route Speed' to low or you will get
-false trip start/stop times due to position inaccuracies and/or when
-anchored.
+. Please do not set 'Min Route Speed' to low or you will get false trip 
+start/stop times due to position inaccuracies and/or when anchored.
 . The HDOP and Satellites in use values can be adjusted editing the
 OpenCPN configuration file, they both default to '4'. +
 HDOP can be adjusted from 1 to 10 and Satellites in use must be at least
 4 but can be increased if required. Do not alter these settings unless
 you know what you are doing!
-Please note that HDOP and Satellites are used with SIGNAL K as it uses
-the quality values 'GNSS Fix', 'DGNSS fix' and 'Precise GNSS'. One of 
-these must be present.
+Please note that HDOP and Satellites are used with SIGNAL K even if it 
+defines the quality values as 'GNSS Fix', 'DGNSS fix' and 'Precise GNSS'. 
+One of these must be present.
 
-A few notes about GPS signal information, coming from NMEA 0183 (or the 
-corresponding Signal K messages). If one more of the RMC and/or GGA 
-sentences are missing:
+A few notes about GPS/GNSS signal information, coming from NMEA 0183 
+(or the corresponding Signal K messages). If one more of the RMC and/or 
+GGA sentences are missing:
 
 . There will be no speed or distance count if NMEA 0183 sentence RMC is
 missing nor will the GPS Odometer start displaying data until NMEA 0183
 GGA is indicating a valid GPS signal (are using the 'Satellites in use'
-and 'HDOP' information). There is also a few seconds delay when powered
-up to allow for the system to be proiperly started. Many GPS units are
-somewhat inaccurate the first 10 seconds. Note that this is a power up
-start delay that has no effect later on.
-. It is essential to use a good quality and stable GPS receiver. Some
-GPS units are quite unstable when starting (although indicating a valid
-fix) and, as all distances are added, this will add to the trip and
-total distances or trigger false departure times.
+and 'HDOP' information). There is also a few seconds delay (default 15) 
+when powered up or when switching protocol to allow for the system to 
+be proiperly settled. Many GPS/GNSS units are also somewhat inaccurate 
+until the position is properly settled. Note that this is a power up / 
+protocol switch delay that has no effect later on.
+. It is essential to use a good quality and stable GPS/GNSS receiver. 
+Some GPS/GNSS units are quite unstable when starting (although they are
+indicating a valid fix) and, as all distances are added, this will add 
+to the trip and total distances or trigger false departure times.
 
 == Bugs and inconveniences
 
