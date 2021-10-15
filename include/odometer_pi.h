@@ -215,6 +215,7 @@ private:
     int useNMEA = 0;
     int StartDelay = 1;
     int mUTC_Watchdog;
+    int GNSSok = 0;
 
 	// Used to parse Signal K Sentences
     void ParseSignalK( wxString &msg);

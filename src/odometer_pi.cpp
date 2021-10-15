@@ -406,57 +406,62 @@ void odometer_pi::handleSKUpdate(wxJSONValue &update) {
 
 void odometer_pi::updateSKItem(wxJSONValue &item, wxString &sfixtime) {
 
-    if(item.HasMember("path")
-       && item.HasMember("value")) {
-        const wxString &update_path = item["path"].AsString();
-        wxJSONValue &value = item["value"];
+    if (g_iOdoProtocol == 1) {
 
-        SatsRequired = atoi(m_SatsRequired);
-        HDOPdefine = atoi(m_HDOPdefine);
+        if(item.HasMember("path") 
+            && item.HasMember("value")) {
+            const wxString &update_path = item["path"].AsString();
+            wxJSONValue &value = item["value"];
 
-        if (update_path == _T("navigation.speedOverGround")){
-            SKSpeed = 1.943844494 * GetJsonDouble(value);
-            if (std::isnan(SKSpeed)) SKSpeed = 0;
-        }
+            SatsRequired = atoi(m_SatsRequired);
+            HDOPdefine = atoi(m_HDOPdefine);
+            SKSpeed = 0;
 
-        else if (update_path == _T("navigation.datetime")) {
-            if (mPriDateTime >= 1) {
-                mPriDateTime = 1;
-                wxString s_dt = (value.AsString()); //"2019-12-28T09:26:58.000Z"
-                s_dt.Replace('-', wxEmptyString);
-                s_dt.Replace(':', wxEmptyString);
-                wxString utc_dt = s_dt.BeforeFirst('T'); //Date
-                utc_dt.Append(s_dt.AfterFirst('T').Left( 6 )); //time
-                mUTCDateTime.ParseFormat(utc_dt.c_str(), _T("%Y%m%d%H%M%S"));
-                mUTC_Watchdog = gps_watchdog_timeout_ticks;
+            if (update_path == _T("navigation.speedOverGround")){
+                SKSpeed = 1.943844494 * GetJsonDouble(value);
+                if (std::isnan(SKSpeed)) SKSpeed = 0;
             }
-        }
 
-        else if (update_path == _T("navigation.gnss.methodQuality")) {
-             wxString SKGNSS_quality = (value.AsString());
-             SKQuality = 0; 
-             // Should be one of 'GNSS Fix', 'DGNSS fix' or 'Precise GNSS'
-             if ((SKGNSS_quality == "GNSS Fix") || (SKGNSS_quality == "DGNSS fix") || (SKGNSS_quality == "Precise GNSS")) {
-                 SKQuality = 1;
-             }
-        }
-
-        else if (update_path == _T("navigation.gnss.satellites")) {
-            if (value.IsInt()) {
-                SKSatsUsed = (value.AsInt());
-                if (SatsRequired <= 4) SatsRequired == 4;  // at least 4 satellites required
+            else if (update_path == _T("navigation.datetime")) {
+                if (mPriDateTime >= 1) {
+                    mPriDateTime = 1;
+                    wxString s_dt = (value.AsString()); //"2019-12-28T09:26:58.000Z"
+                    s_dt.Replace('-', wxEmptyString);
+                    s_dt.Replace(':', wxEmptyString);
+                    wxString utc_dt = s_dt.BeforeFirst('T'); //Date
+                    utc_dt.Append(s_dt.AfterFirst('T').Left( 6 )); //time
+                    mUTCDateTime.ParseFormat(utc_dt.c_str(), _T("%Y%m%d%H%M%S"));
+                    mUTC_Watchdog = gps_watchdog_timeout_ticks;
+                }
             }
-        }
 
-        else if (update_path == _T("navigation.gnss.horizontalDilution")){
-            SKHDOPlevel = GetJsonDouble(value);
-            int HDOPdefine = atoi(m_HDOPdefine);
-            if (HDOPdefine <= 1) HDOPdefine == 1;  // HDOP limit between 1 and 10 
-            if (HDOPdefine >= 10) HDOPdefine == 10;
-        }
-        if ((SKQuality == 1) && (SKSatsUsed >= SatsRequired) && (SKHDOPlevel <= HDOPdefine)) {
-            CurrSpeed = SKSpeed;
-            if (g_iOdoProtocol == 1) Odometer(); 
+            else if (update_path == _T("navigation.gnss.methodQuality")) {
+                 wxString SKGNSS_quality = (value.AsString());
+                 SKQuality = 0; 
+                 // Must be one of 'GNSS Fix', 'DGNSS fix' or 'Precise GNSS'
+                 if ((SKGNSS_quality == "GNSS Fix") || (SKGNSS_quality == "DGNSS fix") || (SKGNSS_quality == "Precise GNSS")) {
+                     SKQuality = 1;
+                 }
+            }
+
+            else if (update_path == _T("navigation.gnss.satellites")) {
+                if (value.IsInt()) {
+                    SKSatsUsed = (value.AsInt());
+                    if (SatsRequired <= 4) SatsRequired == 4;  // at least 4 satellites required
+                }
+            }
+
+            else if (update_path == _T("navigation.gnss.horizontalDilution")){
+                SKHDOPlevel = GetJsonDouble(value);
+                int HDOPdefine = atoi(m_HDOPdefine);
+                if (HDOPdefine <= 1) HDOPdefine == 1;  // HDOP limit between 1 and 10 
+                if (HDOPdefine >= 10) HDOPdefine == 10;
+            }
+
+            GNSSok = 0;
+            if ((SKQuality == 1) && (SKSatsUsed >= SatsRequired) && (SKHDOPlevel <= HDOPdefine))  GNSSok = 1;
+            CurrSpeed = SKSpeed;   // Should be used if filter is off
+            Odometer(); 
         }
     }
 }
@@ -465,56 +470,56 @@ void odometer_pi::updateSKItem(wxJSONValue &item, wxString &sfixtime) {
 // This method is invoked by OpenCPN when we specify WANTS_NMEA_SENTENCES
 void odometer_pi::SetNMEASentence(wxString &sentence) {
 
-    SignalQuality = 0;
+    if (g_iOdoProtocol == 0) {
 
-    m_NMEA0183 << sentence;
-    if (m_NMEA0183.PreParse()) {
-        if( m_NMEA0183.LastSentenceIDReceived == _T("GGA") ) {
-            if( m_NMEA0183.Parse() ) {
+        m_NMEA0183 << sentence;
+        if (m_NMEA0183.PreParse()) {
+            if( m_NMEA0183.LastSentenceIDReceived == _T("GGA") ) {
+                if( m_NMEA0183.Parse() ) {
 
-                GPSQuality = m_NMEA0183.Gga.GPSQuality;
-                if ((GPSQuality >= 0 ) && (GPSQuality <=5)) {
-                    SignalQuality = 1;
-                } else {
-                    SignalQuality = 0;
-                }
-
-                SatsUsed = m_NMEA0183.Gga.NumberOfSatellitesInUse;
-                SatsRequired = atoi(m_SatsRequired);
-                if (SatsRequired <= 4) SatsRequired == 4;  // at least 4 satellites required
-
-                HDOPlevel = m_NMEA0183.Gga.HorizontalDilutionOfPrecision;
-                HDOPdefine = atoi(m_HDOPdefine);
-                if (HDOPdefine <= 1) HDOPdefine == 1;  // HDOP limit between 1 and 10 
-                if (HDOPdefine >= 10) HDOPdefine == 10;
-
-                // Ensure HDOP level is valid, will be 999 if field is empty
-                if ((HDOPlevel == 0.0) || (HDOPlevel >= 100)) HDOPlevel == 100;
-
-            }
-        }
-
-        else if (m_NMEA0183.LastSentenceIDReceived == _T("RMC")) {
-            if (m_NMEA0183.Parse() ) {
-                if (m_NMEA0183.Rmc.IsDataValid == NTrue) {
-
-                    if( mPriDateTime >= 3 ) {
-                        mPriDateTime = 3;
-                        wxString dt = m_NMEA0183.Rmc.Date + m_NMEA0183.Rmc.UTCTime;
-                        mUTCDateTime.ParseFormat( dt.c_str(), _T("%d%m%y%H%M%S") );
-                        mUTC_Watchdog = gps_watchdog_timeout_ticks;
+                    GPSQuality = m_NMEA0183.Gga.GPSQuality;
+                    if ((GPSQuality >= 0 ) && (GPSQuality <=5)) {
+                        SignalQuality = 1;
+                    } else {
+                        SignalQuality = 0;
                     }
 
-                    NMEASpeed = m_NMEA0183.Rmc.SpeedOverGroundKnots;
-                    if (std::isnan(NMEASpeed)) NMEASpeed = 0;
- 
+                    SatsUsed = m_NMEA0183.Gga.NumberOfSatellitesInUse;
+                    SatsRequired = atoi(m_SatsRequired);
+                    if (SatsRequired <= 4) SatsRequired == 4;  // at least 4 satellites required
+
+                    HDOPlevel = m_NMEA0183.Gga.HorizontalDilutionOfPrecision;
+                    HDOPdefine = atoi(m_HDOPdefine);
+                    if (HDOPdefine <= 1) HDOPdefine == 1;  // HDOP limit between 1 and 10 
+                    if (HDOPdefine >= 10) HDOPdefine == 10;
+
+                    // Ensure HDOP level is valid, will be 999 if field is empty
+                    if ((HDOPlevel == 0.0) || (HDOPlevel >= 100)) HDOPlevel == 100;
+
                 }
             }
-        } 
 
-        if ((SignalQuality == 1) && (SatsUsed >= SatsRequired) && (HDOPlevel <= HDOPdefine)) {
-            CurrSpeed = NMEASpeed;
-            if (g_iOdoProtocol == 0) Odometer(); 
+            else if (m_NMEA0183.LastSentenceIDReceived == _T("RMC")) {
+                if (m_NMEA0183.Parse() ) {
+                    if (m_NMEA0183.Rmc.IsDataValid == NTrue) {
+
+                        if( mPriDateTime >= 3 ) {
+                            mPriDateTime = 3;
+                            wxString dt = m_NMEA0183.Rmc.Date + m_NMEA0183.Rmc.UTCTime;
+                            mUTCDateTime.ParseFormat( dt.c_str(), _T("%d%m%y%H%M%S") );
+                            mUTC_Watchdog = gps_watchdog_timeout_ticks;
+                        }
+
+                        NMEASpeed = m_NMEA0183.Rmc.SpeedOverGroundKnots;
+                        if (std::isnan(NMEASpeed)) NMEASpeed = 0;
+ 
+                    }
+                }
+            } 
+            GNSSok = 0;
+           if ((SignalQuality == 1) && (SatsUsed >= SatsRequired) && (HDOPlevel <= HDOPdefine)) GNSSok = 1;
+            CurrSpeed = NMEASpeed;   // Should be used if filter is off 
+            Odometer(); 
         }
     }
 }
@@ -522,8 +527,40 @@ void odometer_pi::SetNMEASentence(wxString &sentence) {
 
 void odometer_pi::Odometer() {
 
-    if (std::isnan(CurrSpeed)) CurrSpeed = 0;
-    if (CurrSpeed <= 0.2) CurrSpeed = 0;
+    //  Adjust time to local time zone used by departure and arrival times
+    UTCTime = wxDateTime::Now();
+    double offset = ((g_iOdoUTCOffset-24)*30); 
+    wxTimeSpan TimeOffset(0, offset,0);
+    LocalTime = UTCTime.Add(TimeOffset);
+
+    // First time start
+    if (m_DepTime == "2020-01-01 00:00:00") {
+        m_DepTime = LocalTime.Format(wxT("%F %T"));
+        m_ArrTime = LocalTime.Format(wxT("%F %T"));
+    }
+
+    // Speedometer
+    FilterSOG = atoi(m_FilterSOG);
+    if (FilterSOG != 0 ) CurrSpeed = FilteredSpeed;  // Filtered speed from OpenCPN (always?)
+
+    // Cover a speed bug in Signal K when no sats are found
+    // Error when GNSSok goes from 0 to 1 as speeds remains over the onRoute limit triggering 
+    // false dep/arr times due to 'Filter NMEA Course and speed data'.
+    // The PwrOnDelaySecs is used to delay the GNSSok valid detection.
+
+    if (GNSSok == 0) {
+       CurrSpeed = 0;  
+       int PwrOnDelaySecs = atoi(m_PwrOnDelSecs);
+       if (PwrOnDelaySecs <= 14) PwrOnDelaySecs = 15;
+       wxTimeSpan PwrOnDelay(0,0,PwrOnDelaySecs);
+       EnabledTime = LocalTime.Add(PwrOnDelay);
+    }
+    if (EnabledTime >= LocalTime) CurrSpeed = 0;
+
+    SendSentenceToAllInstruments( OCPN_DBP_STC_SOG, 
+        toUsrSpeed_Plugin (mSOGFilter.filter(CurrSpeed),
+        g_iOdoSpeedUnit), getUsrSpeedUnit_Plugin(g_iOdoSpeedUnit));
+
 
 /*
     // Message log, prints to stdout
@@ -534,27 +571,6 @@ void odometer_pi::Odometer() {
     wxLogMessage(dmsg);
     printf("%s\n", dmsg.ToUTF8().data());
 */
-
-    // Speedometer
-    FilterSOG = atoi(m_FilterSOG);
-    if (FilterSOG != 0 ) CurrSpeed = FilteredSpeed;
-
-    SendSentenceToAllInstruments( OCPN_DBP_STC_SOG, 
-        toUsrSpeed_Plugin (mSOGFilter.filter(CurrSpeed),
-        g_iOdoSpeedUnit), getUsrSpeedUnit_Plugin(g_iOdoSpeedUnit));
-
-    //  Adjust time to local time zone used by departure and arrival times
-    UTCTime = wxDateTime::Now();
-    double offset = ((g_iOdoUTCOffset-24)*30); 
-    wxTimeSpan TimeOffset(0, offset,0);
-    LocalTime = UTCTime.Add(TimeOffset);
-
-
-    // First time start
-    if (m_DepTime == "2020-01-01 00:00:00") {
-        m_DepTime = LocalTime.Format(wxT("%F %T"));
-        m_ArrTime = LocalTime.Format(wxT("%F %T"));
-    }
 
     /* TODO: There must be a better way to receive the reset event from
              'OdometerInstrument_Button' but using a global variable for transfer.  */
@@ -722,9 +738,9 @@ void odometer_pi::GetDistance() {
         }
         StepDist = (SecDiff * (CurrSpeed/DistDiv));
 
-        /*  Are at start randomly getting extreme values for distance even if validGPS is ok.
-            Delay a minimum of 15 seconds at power up to allow everything to be properly set 
-            before measuring distances */ 
+        //  Are at start randomly getting extreme values for distance even if validGPS is ok.
+        //    Delay a minimum of 15 seconds at power up to allow everything to be properly set 
+        //    before measuring distances  
         if (StartDelay == 1) {
            int PwrOnDelaySecs = atoi(m_PwrOnDelSecs);
            if (PwrOnDelaySecs <= 14) PwrOnDelaySecs = 15;
@@ -732,6 +748,7 @@ void odometer_pi::GetDistance() {
            EnabledTime = LocalTime.Add(PwrOnDelay);
            StartDelay = 0;
         }
+
         if (LocalTime <= EnabledTime) StepDist = 0.0;
         if (std::isnan(StepDist)) StepDist = 0.0;
     }
