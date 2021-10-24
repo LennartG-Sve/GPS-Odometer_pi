@@ -551,7 +551,7 @@ void odometer_pi::Odometer() {
     if (GNSSok == 0) {
        CurrSpeed = 0;  
        int PwrOnDelaySecs = atoi(m_PwrOnDelSecs);
-       if (PwrOnDelaySecs <= 14) PwrOnDelaySecs = 15;
+       if (PwrOnDelaySecs <= 4) PwrOnDelaySecs = 5;
        wxTimeSpan PwrOnDelay(0,0,PwrOnDelaySecs);
        EnabledTime = LocalTime.Add(PwrOnDelay);
     }
@@ -560,17 +560,6 @@ void odometer_pi::Odometer() {
     SendSentenceToAllInstruments( OCPN_DBP_STC_SOG, 
         toUsrSpeed_Plugin (mSOGFilter.filter(CurrSpeed),
         g_iOdoSpeedUnit), getUsrSpeedUnit_Plugin(g_iOdoSpeedUnit));
-
-
-/*
-    // Message log, prints to stdout
-    wxString dmsg( _T("Log: ") );
-    wxString txtmsg;
-    txtmsg << CurrSpeed;
-    dmsg.append(txtmsg);
-    wxLogMessage(dmsg);
-    printf("%s\n", dmsg.ToUTF8().data());
-*/
 
     /* TODO: There must be a better way to receive the reset event from
              'OdometerInstrument_Button' but using a global variable for transfer.  */
@@ -670,7 +659,7 @@ void odometer_pi::Odometer() {
     m_TripDist.Trim(0);
     m_TripDist.Trim(1);
 
-    // Toggle leg counter
+    // Toggle leg counter and button text
     if (g_iStartStopLeg == 1) {
         if (CountLeg == 1) {
             CountLeg = 0;  // Counter paused
@@ -743,7 +732,7 @@ void odometer_pi::GetDistance() {
         //    before measuring distances  
         if (StartDelay == 1) {
            int PwrOnDelaySecs = atoi(m_PwrOnDelSecs);
-           if (PwrOnDelaySecs <= 14) PwrOnDelaySecs = 15;
+           if (PwrOnDelaySecs <= 4) PwrOnDelaySecs = 5;
            wxTimeSpan PwrOnDelay(0,0,PwrOnDelaySecs);
            EnabledTime = LocalTime.Add(PwrOnDelay);
            StartDelay = 0;

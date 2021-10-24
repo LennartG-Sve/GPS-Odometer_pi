@@ -78,9 +78,10 @@ OdometerInstrument_Button::OdometerInstrument_Button(wxWindow *pparent, wxWindow
 
 //--------------------------------------------------------------
 //
-//  Reset buttons
+//  Buttons
 //
 //--------------------------------------------------------------
+
 
     if (m_cap_flag == 32) {
         wxBoxSizer* instrument = new wxBoxSizer(wxVERTICAL);

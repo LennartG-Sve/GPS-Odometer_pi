@@ -671,21 +671,21 @@ workflows:
                     - tmp
                 tags:
                     only: /.*/
-#    build_18:
+    build_18:
+        when: <<pipeline.parameters.run_build_macos_wx315>>
+        jobs:
+        - build-macos-wx315:
+            filters:
+                branches:
+                    ignore:
+                    - devel
+                    - tmp
+                tags:
+                    only: /.*/
+#    build_19:
 #        when: <<pipeline.parameters.run_build_android_arm64>>
 #        jobs:
 #        - build-android-arm64:
-#            filters:
-#                branches:
-#                    ignore:
-#                    - devel
-#                    - tmp
-#                tags:
-#                    only: /.*/
-#    build_19:
-#        when: <<pipeline.parameters.run_build_android_armhf>>
-#        jobs:
-#        - build-android-armhf:
 #            filters:
 #                branches:
 #                    ignore:
