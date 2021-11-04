@@ -102,7 +102,46 @@ Some GPS/GNSS units are quite unstable when starting (although they are
 indicating a valid fix) and, as all distances are added, this will add 
 to the trip and total distances or trigger false departure times.
 
-== Troubleshooting
+== Multiple GPS/GNSS units
+
+The GPS Odometer does not respect the priority order used in OpenCPN, it 
+simply process sentences in the order received and the last received
+sentence of each type will be used. The order used is as shown in the 
+NMEA Debug Window (opened via 'Options -> Connections' and activating 
+'Show NMEA Debug Window'). 
+
+If you experience problems of any kind when using multiple GPS/GNSS units,  
+then verify by either generating a VDR file for examination (recommended)
+or by opening the NMEA debug window and and check the sentences, those 
+dropped will display in brown. You may close the settings main window 
+and display only the debug window, this will allow you to stop/resume and 
+copy the content if required.
+
+If genrating a VDR file, then use a standard text editor and remove 
+everything but the the lines starting with 'xxRMC' or 'xxGGA'. The letters
+'xx' may be 'GP', 'EC' or something else, se the document referenced below.
+Group the lines and then glance through them swiftly comparing them, you 
+will easily spot any irregularities. The trick is then to know which unit
+that is in error. 
+
+Now test having only one unit sending GPS/GNSS related data. All other 
+GPS/GNSS related data should be dropped. You may efficiently do that 
+following this procedure:
+
+. Go to 'Options -> Connections' and select the unit whose sentences 
+should be dropped.
+. In the 'Input filtering' select 'Ignore sentences'.
+. Add the sentences 'RMC' and 'GGA' to be dropped. 
+
+This should not affect the functionality of any units, just make OpenCPN 
+drop theese two GPS/GNSS generated sentences. If this fixes the problem, 
+then you have an error/discrepancy in the sentences received from your 
+GPS/GNSS units.
+
+A good reference page for NMEA 0183 is found at: 
+https://gpsd.gitlab.io/gpsd/NMEA.html
+
+== General troubleshooting
 
 The most common problem is the GPS/GNSS signal quality, often depending 
 on non-optimum GPS/GNSS unit placement. This can be easily verified 
@@ -112,6 +151,7 @@ If you are using NMEA 2000 you need to generate NMEA 0183 messages either
 by using the TwoCan pligin or using the signalk-to-nmea0183 app activating 
 GGA messages and reading the NMEA 0183 messages thru port 10110.
 Look for the GGA messages and these fields:
+
 . Field 6 (following the E/W) is the Quality indicator, Should be 1 thru 5
 . Field 7 indicates the number of satellites, should be a minimum of 4.
 The required number of satellites may be adjusted setting the 'SatsRequired' 
@@ -122,6 +162,7 @@ adjusted setting the 'HDOP' parameter in the OpenCPN configuration file.
 The allowed range is 1 thru 10. Increasing the 'HDOP' value is a last 
 resort if nothing else helps but also an indication that there is a 
 GPS/GNSS problem, placement or otherwise.
+
 If any of these values becomes 'invalid' then the speed indicator will go 
 to '0' and it will take a few seconds before the speedometer is showing 
 any speed. This delay is introduced as the speed may, at start or straight 
