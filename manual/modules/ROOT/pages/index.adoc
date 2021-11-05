@@ -2,7 +2,7 @@
 
 == Links
 
-* Cruiser Forum Thread:
+* Cruiser Forum Thread: https://www.cruisersforum.com/forums/f134/gps-based-odometer-241659.html
 * Github: https://github.com/LennartG-Sve/GPS-Odometer_pi
 
 == Purpose
