@@ -104,7 +104,7 @@ to the trip and total distances or trigger false departure times.
 
 == Multiple GPS/GNSS units
 
-The GPS Odometer does not respect the priority order used in OpenCPN, it 
+The GPS Odometer does not honor the priority order used in OpenCPN, it 
 simply process sentences in the order received and the last received
 sentence of each type will be used. The order used is as shown in the 
 NMEA Debug Window (opened via 'Options -> Connections' and activating 
