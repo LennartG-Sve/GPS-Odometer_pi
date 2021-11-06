@@ -104,13 +104,21 @@ to the trip and total distances or trigger false departure times.
 
 == Multiple GPS/GNSS units
 
-The GPS Odometer does not honor the priority order used in OpenCPN, it 
-simply process sentences in the order received and the last received
-sentence of each type will be used. The order used is as shown in the 
-NMEA Debug Window (opened via 'Options -> Connections' and activating 
-'Show NMEA Debug Window'). 
+A good and reliable GPS/GNSS unit is the single most important navigational
+tool you have onboard. It shold be on top of the list (priority 9). There 
+may also be other GPS/GNSS units, like AIS with built-in GPS/GNSS receiver,
+and this may sometimes cause multiple position and speed data.
+The OpenCPN priority system is message based and may, if a message is e.g.
+incomplete, cause a mix of message sources from to different GPS/GNSS units. 
+Messages are also processed in the order received and the last sentence of 
+each type will be used. The order used is as shown in the NMEA Debug Window 
+(opened via 'Options -> Connections' and activating 'Show NMEA Debug Window'). 
 
-If you experience problems of any kind when using multiple GPS/GNSS units,  
+A general recommendation is hence to have one, and only one, reliable good 
+quality GPS/GNSS receiver sending navigational data (e.g. RMC, GGA, GSV and 
+GSA) to OpenCPN. 
+
+If you experience problems of any kind when having multiple GPS/GNSS units,  
 then verify by either generating a VDR file for examination (recommended)
 or by opening the NMEA debug window and and check the sentences, those 
 dropped will display in brown. You may close the settings main window 
@@ -124,18 +132,18 @@ Group the lines and then glance through them swiftly comparing them, you
 will easily spot any irregularities. The trick is then to know which unit
 that is in error. 
 
-Now test having only one unit sending GPS/GNSS related data. All other 
-GPS/GNSS related data should be dropped. You may efficiently do that 
-following this procedure:
+Now test having only one unit sending GPS/GNSS related data, preferrably 
+your dedicated GPS/GNSS receiver. All other GPS/GNSS related data should 
+be dropped. You may efficiently do that following this procedure:
 
 . Go to 'Options -> Connections' and select the unit whose sentences 
 should be dropped.
 . In the 'Input filtering' select 'Ignore sentences'.
-. Add the sentences 'RMC' and 'GGA' to be dropped. 
+. Add the sentences RMC, GGA, GSV and GSA to be dropped. 
 
 This should not affect the functionality of any units, just make OpenCPN 
-drop theese two GPS/GNSS generated sentences. If this fixes the problem, 
-then you have an error/discrepancy in the sentences received from your 
+drop GPS/GNSS generated sentences. If this fixes the problem, then you 
+have an error/discrepancy in the sentences received from your 'extra' 
 GPS/GNSS units.
 
 A good reference page for NMEA 0183 is found at: 
