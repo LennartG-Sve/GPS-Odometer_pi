@@ -3,51 +3,51 @@ msgstr ""
 "Project-Id-Version: opencpn\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2021-01-07 09:12+0100\n"
-"PO-Revision-Date: 2021-06-05 00:42\n"
+"PO-Revision-Date: 2021-05-08 01:47\n"
 "Last-Translator: \n"
-"Language-Team: Norwegian Bokmal\n"
-"Language: nb_NO\n"
+"Language-Team: Hebrew\n"
+"Language: he_IL\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Plural-Forms: nplurals=4; plural=n%100==1 ? 0 : n%100==2 ? 1 : n%100==3 || n%100==4 ? 2 : 3;\n"
 "X-Crowdin-Project: opencpn\n"
 "X-Crowdin-Project-ID: 49843\n"
-"X-Crowdin-Language: nb\n"
+"X-Crowdin-Language: he\n"
 "X-Crowdin-File: /plugins/GPS-Odometer_pi/po/gpsodometer_pi.pot\n"
 "X-Crowdin-File-ID: 352\n"
 
 #: src/instrument.cpp:237
 msgid " true"
-msgstr " sann"
+msgstr ""
 
 #: src/instrument.cpp:239
 msgid " mag"
-msgstr " mag"
+msgstr ""
 
 #: src/odometer_pi.cpp:111
 msgid "Speedometer"
-msgstr "Hastighetsmåler"
+msgstr ""
 
 #: src/odometer_pi.cpp:113
 msgid "Sum Log Distance"
-msgstr "Sum Log Distanse"
+msgstr ""
 
 #: src/odometer_pi.cpp:115
 msgid "Trip Log Distance"
-msgstr "Trip Log Distanse"
+msgstr ""
 
 #: src/odometer_pi.cpp:117
 msgid "Reset Trip"
-msgstr "Nullstill tripteller"
+msgstr ""
 
 #: src/odometer_pi.cpp:119
 msgid "Departure & Arrival"
-msgstr "Avreise og ankomst"
+msgstr ""
 
 #: src/odometer_pi.cpp:123
 msgid "Leg Distance & Time"
-msgstr "Legg distanse og tid"
+msgstr ""
 
 #: src/odometer_pi.cpp:127
 msgid "Start/Stop Leg"
@@ -55,129 +55,129 @@ msgstr ""
 
 #: src/odometer_pi.cpp:129
 msgid "Reset Leg"
-msgstr "Reset Leg"
+msgstr ""
 
 #: src/odometer_pi.cpp:221 src/odometer_pi.cpp:916
 msgid "GPS Odometer"
-msgstr "GPS Odometer"
+msgstr ""
 
 #: src/odometer_pi.cpp:466
 msgid "On Route"
-msgstr "Underveis"
+msgstr ""
 
 #: src/odometer_pi.cpp:928
 msgid "Odometer"
-msgstr "Odometer"
+msgstr ""
 
 #: src/odometer_pi.cpp:1116
 msgid "Odometer Settings"
-msgstr "Innstillinger for odometer"
+msgstr ""
 
 #: src/odometer_pi.cpp:1135
 msgid "Display options"
-msgstr "Visningsalternativer"
+msgstr ""
 
 #: src/odometer_pi.cpp:1142
 msgid "Show this odometer"
-msgstr "Vis dette odometeret"
+msgstr ""
 
 #: src/odometer_pi.cpp:1146
 msgid "Show Speedometer instrument"
-msgstr "Vis hastighetsmåler"
+msgstr ""
 
 #: src/odometer_pi.cpp:1150
 msgid "Show Dep. and Arr. times"
-msgstr "Vis tidspunkt for avgang og ankomst"
+msgstr ""
 
 #: src/odometer_pi.cpp:1154
 msgid "Show/Reset Leg Distance and time"
-msgstr "Vis Nullstill tripteller"
+msgstr ""
 
 #: src/odometer_pi.cpp:1165
 msgid "Caption:"
-msgstr "Vindustittel:"
+msgstr ""
 
 #: src/odometer_pi.cpp:1172
 msgid "Fonts"
-msgstr "Fonter"
+msgstr ""
 
 #: src/odometer_pi.cpp:1180
 msgid "Title:"
-msgstr "Tittel:"
+msgstr ""
 
 #: src/odometer_pi.cpp:1187
 msgid "Data:"
-msgstr "Data:"
+msgstr ""
 
 #: src/odometer_pi.cpp:1194
 msgid "Label:"
-msgstr "Etikett:"
+msgstr ""
 
 #: src/odometer_pi.cpp:1201
 msgid "Small:"
-msgstr "Liten:"
+msgstr ""
 
 #: src/odometer_pi.cpp:1209
 msgid "Units, Ranges, Formats"
-msgstr "Enheter, Avstander, Formater"
+msgstr ""
 
 #: src/odometer_pi.cpp:1217
 msgid "Speedometer max value:"
-msgstr "Speedometer maks verdi:"
+msgstr ""
 
 #: src/odometer_pi.cpp:1224
 msgid "Minimum On-Route speed:"
-msgstr "Min. hastighet for å starte tripteller:"
+msgstr ""
 
 #: src/odometer_pi.cpp:1231
 msgid "Local Time Offset From UTC:"
-msgstr "Tidssone"
+msgstr ""
 
 #: src/odometer_pi.cpp:1251
 msgid "Boat speed units:"
-msgstr "Båtens fartenheter:"
+msgstr ""
 
 #: src/odometer_pi.cpp:1254
 msgid "Kts"
-msgstr "Knop"
+msgstr ""
 
 #: src/odometer_pi.cpp:1254
 msgid "km/h"
-msgstr "km/t"
+msgstr ""
 
 #: src/odometer_pi.cpp:1254
 msgid "m/s"
-msgstr "m/s"
+msgstr ""
 
 #: src/odometer_pi.cpp:1254
 msgid "mph"
-msgstr "mph"
+msgstr ""
 
 #: src/odometer_pi.cpp:1261
 msgid "Distance units:"
-msgstr "Distanseenheter:"
+msgstr ""
 
 #: src/odometer_pi.cpp:1264
 msgid "Kilometers"
-msgstr "Kilometer"
+msgstr ""
 
 #: src/odometer_pi.cpp:1264
 msgid "Nautical miles"
-msgstr "Nautiske mil"
+msgstr ""
 
 #: src/odometer_pi.cpp:1264
 msgid "Statute miles"
-msgstr "Miles"
+msgstr ""
 
 #: src/odometer_pi.cpp:1280
 msgid "Instruments"
-msgstr "Instrumenter"
+msgstr ""
 
 #: src/odometer_pi.cpp:1406
 msgid "Undock"
-msgstr "Løsne"
+msgstr ""
 
 #: src/odometer_pi.cpp:1408
 msgid "Preferences ..."
-msgstr "Innstillinger ..."
+msgstr ""
 
