@@ -3,7 +3,7 @@
 # Copyright:   2018
 # License:     GPL v3+
 # ---------------------------------------------------------------------------
-# Frontend2  v1.0.185.0   Author: Jon Gough 
+# Frontend2  v1.0.186.0   Author: Jon Gough 
 # ---------------------------------------------------------------------------
 ## ----- When changing this file do NOT change the order in which sections occur        ----- ##
 ## ----- Changes should only be made between the section blocks that identify where     ----- ##
@@ -38,8 +38,8 @@ set(LONG_DESCRIPTION "GPS controlled Dashboard based Odometer plugin for OpenCPN
 set(VERSION_MAJOR "0")
 set(VERSION_MINOR "6")
 set(VERSION_PATCH "6")
-set(VERSION_TWEAK "1")
-set(VERSION_DATE "09/12/2021")
+set(VERSION_TWEAK "2")
+set(VERSION_DATE "02/01/2022")
 set(OCPN_MIN_VERSION "ov50")
 set(OCPN_API_VERSION_MAJOR "1")
 set(OCPN_API_VERSION_MINOR "16")
@@ -60,8 +60,8 @@ set (CLOUDSMITH_BASE_REPOSITORY "gps-odometer")  #without the pi
 # Match the cloudsmith org name, not the user.
 set(CLOUDSMITH_USER "opencpn") 
 #set(CLOUDSMITH_USER "LennartG-Sve")
-
-set(XML_INFO_URL "https://opencpn.org/wiki/dokuwiki/doku.php?id=opencpn:opencpn_user_manual:plugins:other:odometer") 
+# set(XML_INFO_URL "https://opencpn.org/wiki/dokuwiki/doku.php?id=opencpn:opencpn_user_manual:plugins:other:odometer") 
+set(XML_INFO_URL "https://opencpn-manuals.github.io/plugins/gps-odometer/0.1/index.html")
 set(XML_SUMMARY ${SHORT_DESCRIPTION})
 set(XML_DESCRIPTION ${LONG_DESCRIPTION})
 
