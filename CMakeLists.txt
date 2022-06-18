@@ -3,7 +3,7 @@
 # Copyright:   2018
 # License:     GPL v3+
 # ---------------------------------------------------------------------------
-# Frontend2  v1.0.194.0   Author: Jon Gough 
+# Frontend2  v1.0.212   Author: Dave Register 
 # ---------------------------------------------------------------------------
 ## ----- When changing this file do NOT change the order in which sections occur        ----- ##
 ## ----- Changes should only be made between the section blocks that identify where     ----- ##
@@ -38,8 +38,8 @@ set(LONG_DESCRIPTION "GPS controlled Dashboard based Odometer plugin for OpenCPN
 set(VERSION_MAJOR "0")
 set(VERSION_MINOR "6")
 set(VERSION_PATCH "6")
-set(VERSION_TWEAK "4")
-set(VERSION_DATE "09/03/2022")  # DD/MM/YYYY format
+set(VERSION_TWEAK "5")
+set(VERSION_DATE "18/06/2022")  # DD/MM/YYYY format
 set(OCPN_MIN_VERSION "ov50")
 set(OCPN_API_VERSION_MAJOR "1")
 set(OCPN_API_VERSION_MINOR "16")
