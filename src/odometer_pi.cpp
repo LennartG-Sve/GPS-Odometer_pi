@@ -48,6 +48,7 @@
 #include "wx/jsonreader.h"
 #include "wx/jsonval.h"
 #include "wx/jsonwriter.h"
+#include "N2KParser/include/N2KParser.h"
 
 // Global variables for fonts
 wxFont *g_pFontTitle;
@@ -102,9 +103,9 @@ extern "C" DECL_EXP void destroy_pi(opencpn_plugin* p) {
 enum { ID_DBP_D_SOG, ID_DBP_I_SUMLOG, ID_DBP_I_TRIPLOG, ID_DBP_I_DEPART, ID_DBP_I_ARRIV,
        ID_DBP_B_TRIPRES, ID_DBP_I_LEGDIST, ID_DBP_I_LEGTIME, ID_DBP_B_STARTSTOP,
        ID_DBP_B_LEGRES,
-       ID_DBP_LAST_ENTRY /* this has a reference in one of the routines; defining a "LAST_ENTRY" and
-       setting the reference to it, is one codeline less to change (and find) when adding new
-       instruments :-)  */
+       ID_DBP_LAST_ENTRY /* this has a reference in one of the routines; defining a
+       "LAST_ENTRY" and setting the reference to it, is one codeline less to change (and 
+       find) when adding new instruments :-)  */
 };
 
 // Retrieve a caption for each instrument
@@ -169,7 +170,7 @@ wxString MakeName() {
 //
 //---------------------------------------------------------------------------------------------------------
 
-odometer_pi::odometer_pi(void *ppimgr) : opencpn_plugin_116(ppimgr), wxTimer(this) {
+odometer_pi::odometer_pi(void *ppimgr) : opencpn_plugin_117(ppimgr), wxTimer(this) {
     // Create the PlugIn icons
     initialize_images();
 }
@@ -188,7 +189,6 @@ int odometer_pi::Init(void) {
     mPriDateTime = 99;
     mUTC_Watchdog = 2;
 
-
     // Load the fonts
     g_pFontTitle = new wxFont(10, wxFONTFAMILY_SWISS, wxFONTSTYLE_ITALIC, wxFONTWEIGHT_NORMAL);
     g_pFontData = new wxFont(11, wxFONTFAMILY_SWISS, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL);
@@ -206,13 +206,17 @@ int odometer_pi::Init(void) {
     LoadConfig();
 
     // Scaleable Vector Graphics (SVG) icons are stored in the following path.
-    wxString iconFolder = GetPluginDataDir("gpsodometer_pi") + wxFileName::GetPathSeparator() + _T("data") + wxFileName::GetPathSeparator();
+    wxString iconFolder = GetPluginDataDir("gpsodometer_pi") + 
+                          wxFileName::GetPathSeparator() + _T("data") +
+                          wxFileName::GetPathSeparator();
 
     wxString normalIcon = iconFolder + _T("gpsodometer.svg");
     wxString toggledIcon = iconFolder + _T("gpsodometer_toggled.svg");
     wxString rolloverIcon = iconFolder + _T("gpsodometer_rollover.svg");
 
-    // For journeyman styles, we prefer the built-in raster icons which match the rest of the toolbar.
+    // For journeyman styles, we prefer the built-in raster icons which match the rest
+    // of the toolbar.
+
 /*
     if (GetActiveStyleName().Lower() != _T("traditional")) {
 	normalIcon = iconFolder + _T("odometer.svg");
@@ -221,8 +225,9 @@ int odometer_pi::Init(void) {
     }   */
 
     // Add toolbar icon (in SVG format)
-    m_toolbar_item_id = InsertPlugInToolSVG(_T(""), normalIcon, rolloverIcon, toggledIcon, wxITEM_CHECK,
-	    _("GPS Odometer"), _T(""), NULL, ODOMETER_TOOL_POSITION, 0, this);
+    m_toolbar_item_id = InsertPlugInToolSVG(_T(""), normalIcon, rolloverIcon, 
+                        toggledIcon, wxITEM_CHECK, ("GPS Odometer"), _T(""), NULL,
+                        ODOMETER_TOOL_POSITION, 0, this);
 
 
     // Having Loaded the config, then display each of the odometer
@@ -232,6 +237,22 @@ int odometer_pi::Init(void) {
     if(m_config_version == 1) {
         SaveConfig();
     }
+
+    // Position, Rapid update   PGN 129026
+    wxDEFINE_EVENT(EVT_N2K_129026, ObservedEvt);
+    NMEA2000Id id_129026 = NMEA2000Id(129026);
+    listener_129026 = std::move(GetListener(id_129026, EVT_N2K_129026, this));
+    Bind(EVT_N2K_129026, [&](ObservedEvt ev) {
+      HandleN2K_129026(ev);
+    });
+
+    // GNSS Position Data   PGN 129029
+    wxDEFINE_EVENT(EVT_N2K_129029, ObservedEvt);
+    NMEA2000Id id_129029 = NMEA2000Id(129029);
+    listener_129029 = std::move(GetListener(id_129029, EVT_N2K_129029, this));
+    Bind(EVT_N2K_129029, [&](ObservedEvt ev) {
+      HandleN2K_129029(ev);
+    });
 
     // Initialize the watchdog timer
     Start(1000, wxTIMER_CONTINUOUS);
@@ -283,14 +304,14 @@ double GetJsonDouble(wxJSONValue &value) {
 }
 
 // Called for each timer tick, refreshes each display
-void odometer_pi::Notify()
-{
+void odometer_pi::Notify() {
     // Force a repaint of each instrument panel
+    // TODO: Need UTCtime as well? 
+//    SendUtcTimeToAllInstruments(mUTCDateTime);
     OdometerWindow *odometer_window = m_ArrayOfOdometerWindow.Item(0)->m_pOdometerWindow;
 	if (odometer_window) {
 	    odometer_window->Refresh();
 	}
-
 
     //  Manage the watchdogs, watch messages used
     mUTC_Watchdog--;
@@ -351,36 +372,31 @@ void odometer_pi::SetPositionFix(PlugIn_Position_Fix &pfix)
 // This method is invoked by OpenCPN when reading Signal K sentences
 void odometer_pi::ParseSignalK( wxString &msg) {
 
-   wxJSONValue root;
-   wxJSONReader jsonReader;
-
-   int errors = jsonReader.Parse(msg, &root);
-
-/*
-    // Message log, prints to stdout
-    wxString dmsg( _T("GPS Odometer:SignalK Event received: ") );
-    dmsg.append(msg);
-    wxLogMessage(dmsg);
-    printf("%s\n", dmsg.ToUTF8().data());
-*/
+    wxJSONValue root;
+    wxJSONReader jsonReader;
+    int errors = jsonReader.Parse(msg, &root);
 
     if(root.HasMember("self")) {
         if(root["self"].AsString().StartsWith(_T("vessels.")))
-            m_self = (root["self"].AsString());                                 // for java server, and OpenPlotter node.js server 1.20
+            m_self = (root["self"].AsString());         // for java server, and OpenPlotter
+                                                        // node.js server 1.20
         else
-            m_self = _T("vessels.") + (root["self"].AsString());                // for Node.js server
+            m_self = _T("vessels.") + (root["self"].AsString());   // for Node.js server
     }
 
-    if(root.HasMember("context")
-       && root["context"].IsString()) {
-        auto context = root["context"].AsString();
-        if (context != m_self) {
-            return;
-        }
-    }
 
-    if(root.HasMember("updates")
-       && root["updates"].IsArray()) {
+    // TODO: Fix if possible
+    // This causes SignalK to fail if OpenCPN is started with Signal K enabled,
+    // requires SK to be reenabled to work properly.
+//    if(root.HasMember("context") && root["context"].IsString()) {
+//        auto context = root["context"].AsString();
+//        if (context != m_self) {
+//            return;
+//        }
+//    }
+
+
+    if(root.HasMember("updates") && root["updates"].IsArray()) {
         wxJSONValue &updates = root["updates"];
         for (int i = 0; i < updates.Size(); ++i) {
             handleSKUpdate(updates[i]);
@@ -394,31 +410,42 @@ void odometer_pi::handleSKUpdate(wxJSONValue &update) {
     if(update.HasMember("timestamp")) {
         sfixtime = update["timestamp"].AsString();
     }
-    if(update.HasMember("values")
-       && update["values"].IsArray())
-    {
+
+    if(update.HasMember("values") && update["values"].IsArray()) {
+        wxString talker = wxEmptyString;
+        if (update.HasMember("source")) {
+            if (update["source"].HasMember("talker")) {
+                if (update["source"]["talker"].IsString()) {
+                    talker = update["source"]["talker"].AsString();
+                }
+            }
+        }
+
         for (int j = 0; j < update["values"].Size(); ++j) {
             wxJSONValue &item = update["values"][j];
-            updateSKItem(item, sfixtime);
+              updateSKItem(item, talker, sfixtime);
         }
     }
 }
 
-void odometer_pi::updateSKItem(wxJSONValue &item, wxString &sfixtime) {
+void odometer_pi::updateSKItem(wxJSONValue &item, wxString &talker, wxString &sfixtime) {
 
-    if (g_iOdoProtocol == 1) {
+    if (g_iOdoProtocol == 1) {    // Signal K selected
 
-        if(item.HasMember("path")
-            && item.HasMember("value")) {
+        if(item.HasMember("path") && item.HasMember("value")) {
             const wxString &update_path = item["path"].AsString();
             wxJSONValue &value = item["value"];
+
+    // Container for last received sat-system info from SK-N2k
+    // TODO Watchdog?
+//    static wxString talkerID = wxEmptyString;  // Type of satellite (GPS, GLONASS...)
 
             SatsRequired = atoi(m_SatsRequired);
             HDOPdefine = atoi(m_HDOPdefine);
             SKSpeed = 0;
 
             if (update_path == _T("navigation.speedOverGround")){
-                SKSpeed = 1.943844494 * GetJsonDouble(value);
+                SKSpeed = 1.9438444924406 * GetJsonDouble(value);
                 if (std::isnan(SKSpeed)) SKSpeed = 0;
             }
 
@@ -435,15 +462,6 @@ void odometer_pi::updateSKItem(wxJSONValue &item, wxString &sfixtime) {
                 }
             }
 
-            else if (update_path == _T("navigation.gnss.methodQuality")) {
-                 wxString SKGNSS_quality = (value.AsString());
-                 SKQuality = 0;
-                 // Must be one of 'GNSS Fix', 'DGNSS fix' or 'Precise GNSS'
-                 if ((SKGNSS_quality == "GNSS Fix") || (SKGNSS_quality == "DGNSS fix") || (SKGNSS_quality == "Precise GNSS")) {
-                     SKQuality = 1;
-                 }
-            }
-
             else if (update_path == _T("navigation.gnss.satellites")) {
                 if (value.IsInt()) {
                     SKSatsUsed = (value.AsInt());
@@ -451,15 +469,27 @@ void odometer_pi::updateSKItem(wxJSONValue &item, wxString &sfixtime) {
                 }
             }
 
+
+            else if (update_path == _T("navigation.gnss.methodQuality")) {
+                 wxString SKGNSS_quality = (value.AsString());
+                 SKQuality = 0;
+                 // Must be one of 'GNSS Fix', 'DGNSS fix' or 'Precise GNSS'
+                 if ((SKGNSS_quality == "GNSS Fix") || (SKGNSS_quality == "DGNSS fix") ||
+                     (SKGNSS_quality == "Precise GNSS")) {
+                     SKQuality = 1;
+                 }
+            }
+
             else if (update_path == _T("navigation.gnss.horizontalDilution")){
                 SKHDOPlevel = GetJsonDouble(value);
                 int HDOPdefine = atoi(m_HDOPdefine);
                 if (HDOPdefine <= 1) HDOPdefine == 1;  // HDOP limit between 1 and 10
                 if (HDOPdefine >= 10) HDOPdefine == 10;
-            }
+              }
 
             GNSSok = 0;
-            if ((SKQuality == 1) && (SKSatsUsed >= SatsRequired) && (SKHDOPlevel <= HDOPdefine))  GNSSok = 1;
+            if ((SKQuality == 1) && (SKSatsUsed >= SatsRequired) && 
+               (SKHDOPlevel <= HDOPdefine))  GNSSok = 1;
             CurrSpeed = SKSpeed;   // Should be used if filter is off
             Odometer();
         }
@@ -470,7 +500,7 @@ void odometer_pi::updateSKItem(wxJSONValue &item, wxString &sfixtime) {
 // This method is invoked by OpenCPN when we specify WANTS_NMEA_SENTENCES
 void odometer_pi::SetNMEASentence(wxString &sentence) {
 
-    if (g_iOdoProtocol == 0) {
+    if (g_iOdoProtocol == 0) {            // NMEA 0183 selected
 
         m_NMEA0183 << sentence;
         if (m_NMEA0183.PreParse()) {
@@ -512,18 +542,100 @@ void odometer_pi::SetNMEASentence(wxString &sentence) {
 
                         NMEASpeed = m_NMEA0183.Rmc.SpeedOverGroundKnots;
                         if (std::isnan(NMEASpeed)) NMEASpeed = 0;
-
                     }
                 }
             }
             GNSSok = 0;
-           if ((SignalQuality == 1) && (SatsUsed >= SatsRequired) && (HDOPlevel <= HDOPdefine)) GNSSok = 1;
+           if ((SignalQuality == 1) && (SatsUsed >= SatsRequired) && 
+              (HDOPlevel <= HDOPdefine)) GNSSok = 1;
             CurrSpeed = NMEASpeed;   // Should be used if filter is off
             Odometer();
         }
     }
 }
 
+// NMEA2000, N2K
+//...............
+
+wxString talker_N2k = wxEmptyString;
+void odometer_pi::HandleN2K_129026(ObservedEvt ev) {
+  NMEA2000Id id_129026(129026);
+  std::vector<uint8_t>v = GetN2000Payload(id_129026, ev);
+
+    unsigned char SID;
+    tN2kHeadingReference ref;
+    double COG;
+    double SOG;
+
+    // Get current Speed Over Ground
+    if (ParseN2kPGN129026(v, SID, ref, COG, SOG)) {
+        if (g_iOdoProtocol == 2) {    // socketCAN (NMEA 2000) selected
+            CurrSpeed = SOG;
+        }
+    }
+}
+
+void odometer_pi::HandleN2K_129029(ObservedEvt ev) {
+  NMEA2000Id id_129029(129029);
+  std::vector<uint8_t>v = GetN2000Payload(id_129029, ev);
+
+  unsigned char SID;
+  uint16_t DaysSince1970;
+  double SecondsSinceMidnight;
+  double Latitude, Longitude, Altitude;
+  tN2kGNSStype GNSStype;
+  tN2kGNSSmethod GNSSmethod;
+  unsigned char nSatellites;
+  double HDOP, PDOP, GeoidalSeparation;
+  unsigned char nReferenceStations;
+  tN2kGNSStype ReferenceStationType;
+  uint16_t ReferenceSationID;
+  double AgeOfCorrection;
+
+  // Extract HDOP, nSatellites and GNSSmethod
+  if (ParseN2kPGN129029(v, SID, DaysSince1970, SecondsSinceMidnight,
+                        Latitude, Longitude, Altitude,
+                        GNSStype, GNSSmethod,
+                        nSatellites, HDOP, PDOP, GeoidalSeparation,
+                        nReferenceStations, ReferenceStationType, ReferenceSationID,
+                        AgeOfCorrection)) {
+
+      if (g_iOdoProtocol == 2) {    // socketCAN (NMEA 2000) selected
+
+          int HDOPdefine = atoi(m_HDOPdefine);
+          if (HDOPdefine <= 1) HDOPdefine == 1;  // HDOP limit between 1 and 10
+          if (HDOPdefine >= 10) HDOPdefine == 10;
+
+          SatsRequired = atoi(m_SatsRequired);
+          if (SatsRequired <= 4) SatsRequired == 4;  // at least 4 satellites required
+
+          switch (GNSSmethod) {
+              case 0: talker_N2k = "noGNSS"; break; 
+              case 1: talker_N2k = "GNSSfix"; break; 
+              case 2: talker_N2k = "DGNSS"; break;
+              case 3: talker_N2k = "PreciseGNSS"; break;
+              default: talker_N2k = wxEmptyString;
+          }
+          int Quality = 1;
+          if ((talker_N2k == "noGNSS" ) || (talker_N2k.empty())) Quality = 0;
+
+          GNSSok = 0;
+          if ((Quality == 1) && (nSatellites >= SatsRequired) && 
+               (HDOP <= HDOPdefine))  GNSSok = 1;
+          Odometer();
+      }
+/*
+      wxString dmsg( _T("HandleN2KSpeed: ") );
+//      std::string hdop = std::to_string(nSatellites); 
+      dmsg.append(talker_N2k);
+      wxLogMessage(dmsg);
+      printf("%s\n", dmsg.ToUTF8().data());
+*/
+  }
+}
+
+// Generating Odometer info
+//..........................
 
 void odometer_pi::Odometer() {
 
@@ -557,7 +669,7 @@ void odometer_pi::Odometer() {
     }
     if (EnabledTime >= LocalTime) CurrSpeed = 0;
 
-    SendSentenceToAllInstruments( OCPN_DBP_STC_SOG,
+    SendSentenceToAllInstruments(OCPN_DBP_STC_SOG,
         toUsrSpeed_Plugin (mSOGFilter.filter(CurrSpeed),
         g_iOdoSpeedUnit), getUsrSpeedUnit_Plugin(g_iOdoSpeedUnit));
 
@@ -746,9 +858,8 @@ void odometer_pi::GetDistance() {
 
 void odometer_pi::SetPluginMessage(wxString &message_id, wxString &message_body)
 {
-    if(message_id == _T("WMM_VARIATION_BOAT"))
-    {
 
+    if(message_id == _T("WMM_VARIATION_BOAT")) {
         // construct the JSON root object
         wxJSONValue  root;
         // construct a JSON parser
@@ -766,13 +877,9 @@ void odometer_pi::SetPluginMessage(wxString &message_id, wxString &message_body)
         wxString decl = root[_T("Decl")].AsString();
         double decl_val;
         decl.ToDouble(&decl_val);
-
-    }
-    else if(message_id == _T("OCPN_CORE_SIGNALK"))
-    {
+    } else if(message_id == _T("OCPN_CORE_SIGNALK")) {
         ParseSignalK( message_body);
     }
-
 }
 
 // Not sure what this does, I guess we only install one toolbar item?? It is however required.
@@ -1307,12 +1414,10 @@ OdometerPreferencesDialog::OdometerPreferencesDialog(wxWindow *parent, wxWindowI
             wxDefaultPosition, wxDefaultSize, 0);
     itemFlexGridSizer01->Add(m_pCheckBoxShowTripLeg, 0, wxEXPAND | wxALL, border_size);
 
-    /* There must be an even number of checkboxes/objects preceeding caption or alignment gets messed up,
-       enable the next section as required  */
-    /*
-    wxStaticText *itemDummy01 = new wxStaticText(m_pPanelPreferences, wxID_ANY, _T(""));
-       itemFlexGridSizer01->Add(itemDummy01, 0, wxEXPAND | wxALL, border_size);
-    */
+    /* There must be an even number of checkboxes/objects preceeding caption or alignment gets
+       messed up, enable the next section as required  */
+    /* wxStaticText *itemDummy01 = new wxStaticText(m_pPanelPreferences, wxID_ANY, _T(""));
+       itemFlexGridSizer01->Add(itemDummy01, 0, wxEXPAND | wxALL, border_size); */
 
     wxStaticText* itemStaticText01 = new wxStaticText(m_pPanelPreferences, wxID_ANY, _("Caption:"),
             wxDefaultPosition, wxDefaultSize, 0);
@@ -1369,7 +1474,7 @@ OdometerPreferencesDialog::OdometerPreferencesDialog(wxWindow *parent, wxWindowI
     wxStaticText* itemStaticText06 = new wxStaticText( m_pPanelPreferences, wxID_ANY, _("Protocol:"),
         wxDefaultPosition, wxDefaultSize, 0 );
     itemFlexGridSizer03->Add( itemStaticText06, 0, wxEXPAND | wxALL, border_size );
-    wxString m_ProtocolChoices[] = { _("NMEA 0183"), _("Signal K") };
+    wxString m_ProtocolChoices[] = { _("NMEA 0183"), _("Signal K"), _("NMEA 2000 (socketCAN)") };
     int m_ProtocolNChoices = sizeof( m_ProtocolChoices ) / sizeof( wxString );
     m_pChoiceProtocol = new wxChoice( m_pPanelPreferences, wxID_ANY, wxDefaultPosition, wxDefaultSize,
         m_ProtocolNChoices, m_ProtocolChoices, 0 );
@@ -1663,7 +1768,6 @@ void OdometerWindow::SetInstrumentList(wxArrayInt list) {
         OdometerInstrument *instrument = NULL;
 
         switch (id) {
-
             case ID_DBP_D_SOG:
                 if ( g_iShowSpeed == 1 ) {
                     instrument = new OdometerInstrument_Speedometer( this, wxID_ANY,
@@ -1752,3 +1856,4 @@ void OdometerWindow::SendSentenceToAllInstruments(int st, double value, wxString
 		}
     }
 }
+

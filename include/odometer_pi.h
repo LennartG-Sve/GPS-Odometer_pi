@@ -122,7 +122,7 @@ WX_DEFINE_ARRAY(OdometerInstrumentContainer *, wxArrayOfInstrument);
 // Odometer PlugIn Class Definition
 //
 
-class odometer_pi : public opencpn_plugin_116, wxTimer {
+class odometer_pi : public opencpn_plugin_117, wxTimer {
 public:
 	odometer_pi(void *ppimgr);
 	~odometer_pi(void);
@@ -161,23 +161,18 @@ public:
 
 	  
     int id;
-//    wxString dt;
 
     double TotDist = 0.0;
     wxString DistUnit;
-//	wxAuiManager *m_pauimgr;
     void SetPluginMessage(wxString &message_id, wxString &message_body);
 
-
-
-
 private:
-	// Load plugin configuraton
     wxArrayInt ar;
 	bool LoadConfig(void);
     void LoadFont(wxFont **target, wxString native_info);
 
 	void ApplyConfig(void);
+
 	// Send deconstructed NMEA 1083 sentence  values to each display
 	void SendSentenceToAllInstruments(int st, double value, wxString unit);
 	void GetDistance();
@@ -220,13 +215,20 @@ private:
 	// Used to parse Signal K Sentences
     void ParseSignalK( wxString &msg);
     void handleSKUpdate(wxJSONValue &update);
-    void updateSKItem(wxJSONValue &item, wxString &sfixtime);
+    void updateSKItem(wxJSONValue &item, wxString &talker, wxString &sfixtime);
     wxString m_self;
     double SKSpeed;
     int SKQuality;
     double SKHDOPlevel;
     int SKSatsUsed;
 
+    // Used to parse NMEA 2000 Sentences 
+    // Requires ocpn_plugin.h 117 or greater, updated using copy from OpenCPN master)
+    // N2KParser library added to include directory
+    std::shared_ptr<ObservedVarListener> listener_129026;
+    std::shared_ptr<ObservedVarListener> listener_129029;
+    void HandleN2K_129026(ObservedEvt ev);
+    void HandleN2K_129029(ObservedEvt ev);
 
     // Odometer time
     wxDateTime UTCTime;
@@ -332,8 +334,6 @@ enum {
 
 enum {
 	ID_ODO_PREFS = 999,
-//	ID_DASH_VERTICAL,
-//	ID_DASH_HORIZONTAL,
 	ID_ODO_UNDOCK
 };
 
