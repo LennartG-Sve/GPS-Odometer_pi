@@ -54,10 +54,10 @@ workflows:
 #            <<: *std-filters
 #        - build-bionic-gtk3:
 #            <<: *std-filters
-#        - build-focal-gtk3:
-#            <<: *std-filters
-        - build-jammy:
+        - build-focal-gtk3:
             <<: *std-filters
+#        - build-jammy:
+#            <<: *std-filters
 #        - build-buster:
 #            <<: *std-filters
 #        - build-bullseye:
@@ -406,7 +406,7 @@ jobs:
         - image: cimg/base:edge-22.04
         environment:
         - BUILD_GTK3: true
-        - WX_VER: 30
+        - WX_VER: 32
         - OCPN_TARGET: jammy
         - DEPLOY_USE_ORB: true
         - BUILD_ENV=ubuntu
