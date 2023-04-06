@@ -26,6 +26,7 @@ include/instrument.h
 include/odometer_pi.h
 include/speedometer.h
 include/nmea0183.h
+include/nmea0183.hpp
 include/SatInfo.h
 include/wx/json_defs.h
 include/wx/jsonreader.h
