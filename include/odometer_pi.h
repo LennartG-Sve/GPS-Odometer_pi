@@ -122,7 +122,7 @@ WX_DEFINE_ARRAY(OdometerInstrumentContainer *, wxArrayOfInstrument);
 // Odometer PlugIn Class Definition
 //
 
-class odometer_pi : public opencpn_plugin_117, wxTimer {
+class odometer_pi : public opencpn_plugin_118, wxTimer {
 public:
 	odometer_pi(void *ppimgr);
 	~odometer_pi(void);
@@ -223,10 +223,10 @@ private:
     int SKSatsUsed;
 
     // Used to parse NMEA 2000 Sentences 
-    // Requires ocpn_plugin.h 117 or greater, updated using copy from OpenCPN master)
+    // Requires ocpn_plugin.h 117 or greater)
     // N2KParser library added to include directory
-    std::shared_ptr<ObservedVarListener> listener_129026;
-    std::shared_ptr<ObservedVarListener> listener_129029;
+    std::shared_ptr<ObservableListener> listener_129026;
+    std::shared_ptr<ObservableListener> listener_129029;
     void HandleN2K_129026(ObservedEvt ev);
     void HandleN2K_129029(ObservedEvt ev);
 

@@ -8,19 +8,23 @@ if (TARGET ocpn::api)
   return ()
 endif ()
 
-set(API_VERSION "1.16" PARENT_SCOPE)
-set(API_OCPN_MIN_VERSION "5.0.0" PARENT_SCOPE)
+set(API_VERSION "1.18" PARENT_SCOPE)
+set(API_OCPN_MIN_VERSION "5.7.0" PARENT_SCOPE)
 
-add_library(OCPN_API INTERFACE)
-add_library(ocpn::api ALIAS OCPN_API)
-target_include_directories(OCPN_API INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}")
+add_library(OCPN_API_WX32 INTERFACE)
+add_library(ocpn::api_wx32 ALIAS OCPN_API_WX32)
+add_library(ocpn::api ALIAS OCPN_API_WX32)
+target_include_directories(
+  OCPN_API_WX32
+#    INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}"
+    INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}/libs/ocpn-api"
+)
 if (WIN32 AND MSVC)
   target_link_libraries(
-    OCPN_API INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}/msvc/opencpn.lib")
+    OCPN_API_WX32
+#      INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}/msvc-wx32/opencpn.lib"
+      INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}/libs/ocpn-api/msvc-wx32/opencpn.lib"
+  )
   # Assuming unicode build, required for mingw headers
-  target_compile_definitions(OCPN_API INTERFACE -DUNICODE)
-elseif(WIN32 AND MINGW) 
-  target_link_libraries(
-    OCPN_API INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}/mingw/libopencpn.dll.a")
+  target_compile_definitions(OCPN_API_WX32 INTERFACE -DUNICODE)
 endif ()
-

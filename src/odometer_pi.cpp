@@ -170,7 +170,7 @@ wxString MakeName() {
 //
 //---------------------------------------------------------------------------------------------------------
 
-odometer_pi::odometer_pi(void *ppimgr) : opencpn_plugin_117(ppimgr), wxTimer(this) {
+odometer_pi::odometer_pi(void *ppimgr) : opencpn_plugin_118(ppimgr), wxTimer(this) {
     // Create the PlugIn icons
     initialize_images();
 }
