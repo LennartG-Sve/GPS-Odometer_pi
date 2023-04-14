@@ -33,7 +33,7 @@ set(TITLE_NAME "GPSODOMETER")
 set(PACKAGE_CONTACT "LennartG")
 set(PACKAGE "gpsodometer")
 set(SHORT_DESCRIPTION "GPS Odometer plugin for OpenCPN")
-set(LONG_DESCRIPTION "GPS controlled Dashboard based Odometer plugin for OpenCPN, displays GPS calculated Log and Trip information")
+set(LONG_DESCRIPTION "GPS/GNSS controlled Dashboard based Odometer plugin for OpenCPN, displays GPS/GNSS calculated Log and Trip information")
 
 set(VERSION_MAJOR "0")
 set(VERSION_MINOR "7")
