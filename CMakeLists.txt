@@ -171,10 +171,10 @@ SET(HDRS
     include/nmea0183.h
     include/nmea0183.hpp
     include/SatInfo.h
-    include/wx/json_defs.h
-    include/wx/jsonreader.h
-    include/wx/jsonval.h
-    include/wx/jsonwriter.h
+#    include/wx/json_defs.h
+#    include/wx/jsonreader.h
+#    include/wx/jsonval.h
+#    include/wx/jsonwriter.h
 )	
 
 set(OCPNSRC
@@ -184,7 +184,6 @@ set(OCPNSRC
 
 set(OCPNHDRS
     ocpninclude/cutil.h
-    ocpninclude/ocpn_plugin.h
     ocpninclude/pluginmanager.h
     ocpninclude/shaders.h
     ocpninclude/TexFont.h
@@ -196,13 +195,6 @@ set(EXTINCLUDE
     extinclude/ODAPI.h
     extinclude/ODJSONSchemas.h
 )
-
-set(LIBSSRC
-   libs/wxJSON/src/jsonreader.cpp
-   libs/wxJSON/src/jsonval.cpp 
-   libs/wxJSON/src/jsonwriter.cpp
-)
-
 
 set(LIBHDRS
     libs/GL/gl.h
@@ -247,7 +239,6 @@ endif(QT_ANDROID)
 ## ----- Change above to match project requirements for android build ----- ##
 ##
 
-## target_sources(${PACKAGE_NAME} PUBLIC ${SRCS} ${HDRS} ${OCPNSRC} ${EXTSRC} ${LIBSSRC})
 target_sources(${PACKAGE_NAME} PUBLIC ${SRCS} ${HDRS} ${OCPNSRC} ${EXTSRC} ${LIBHDRS})
 
 if(NOT OCPN_FLATPAK_CONFIG)

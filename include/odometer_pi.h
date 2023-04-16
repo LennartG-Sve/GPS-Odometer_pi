@@ -45,10 +45,10 @@
 #include <wx/spinctrl.h>
 #include <wx/aui/aui.h>
 #include <wx/fontpicker.h>
-#include "wx/json_defs.h"
-#include "wx/jsonreader.h"
-#include "wx/jsonval.h"
-#include "wx/jsonwriter.h"
+#include "../libs/wxJSON/include/json_defs.h"
+#include "../libs/wxJSON/include/jsonreader.h"
+#include "../libs/wxJSON/include/jsonval.h"
+#include "../libs/wxJSON/include/jsonwriter.h"
 
 // Differs from the built-in plugins, so that we can build outside of OpenCPN source tree
 #include "ocpn_plugin.h"

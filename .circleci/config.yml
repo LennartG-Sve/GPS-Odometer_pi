@@ -18,8 +18,8 @@ std-filters: &std-filters
 workflows:
     build_all:
         jobs:
-        - build-armhf-stretch:
-            <<: *std-filters
+#        - build-armhf-stretch:
+#            <<: *std-filters
 ## Derecated in favour of ubuntu-armhf:18.04 build - 14/01/2022
 ##        - build-armhf-raspbian-buster:
 ##            <<: *std-filters

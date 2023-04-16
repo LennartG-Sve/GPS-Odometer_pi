@@ -44,10 +44,10 @@
 
 #include <typeinfo>
 #include "icons.h"
-#include "wx/json_defs.h"
-#include "wx/jsonreader.h"
-#include "wx/jsonval.h"
-#include "wx/jsonwriter.h"
+#include "../libs/wxJSON/include/json_defs.h"
+#include "../libs/wxJSON/include/jsonreader.h"
+#include "../libs/wxJSON/include/jsonval.h"
+#include "../libs/wxJSON/include/jsonwriter.h"
 #include "N2KParser/include/N2KParser.h"
 
 // Global variables for fonts
