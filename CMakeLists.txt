@@ -156,8 +156,8 @@ SET(SRCS
     src/long.cpp
     src/gga.cpp
     src/rmc.cpp
-    src/wxJSON/jsonval.cpp
-    src/wxJSON/jsonreader.cpp
+    libs/wxJSON/src/jsonval.cpp
+    libs/wxJSON/src/jsonreader.cpp
 )
 
 SET(HDRS

@@ -39,7 +39,7 @@
 #include "wx/wx.h"
 #endif
 
-#include "odometer_pi.h"
+#include "../include/odometer_pi.h"
 #include "version.h"
 
 #include <typeinfo>
@@ -48,7 +48,7 @@
 #include "../libs/wxJSON/include/jsonreader.h"
 #include "../libs/wxJSON/include/jsonval.h"
 #include "../libs/wxJSON/include/jsonwriter.h"
-#include "N2KParser/include/N2KParser.h"
+#include "../libs/N2KParser/include/N2KParser.h"
 
 // Global variables for fonts
 wxFont *g_pFontTitle;

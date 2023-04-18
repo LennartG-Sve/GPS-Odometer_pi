@@ -224,7 +224,7 @@ private:
 
     // Used to parse NMEA 2000 Sentences 
     // Requires ocpn_plugin.h 117 or greater)
-    // N2KParser library added to include directory
+    // N2KParser library added to libss directory
     std::shared_ptr<ObservableListener> listener_129026;
     std::shared_ptr<ObservableListener> listener_129029;
     void HandleN2K_129026(ObservedEvt ev);

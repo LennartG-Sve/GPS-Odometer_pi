@@ -16,8 +16,8 @@ src/latlong.cpp
 src/long.cpp
 src/gga.cpp
 src/rmc.cpp
-src/wxJSON/jsonval.cpp
-src/wxJSON/jsonreader.cpp
+libs/wxJSON/src/jsonval.cpp
+libs/wxJSON/src/jsonreader.cpp
 include/button.h
 include/dial.h
 include/icons.h
