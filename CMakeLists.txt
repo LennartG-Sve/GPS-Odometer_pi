@@ -178,23 +178,23 @@ SET(HDRS
 )	
 
 set(OCPNSRC
-    ocpnsrc/cutil.cpp
+#    ocpnsrc/cutil.cpp
 #    ocpnsrc/TexFont.cpp
 )
 
 set(OCPNHDRS
-    ocpninclude/cutil.h
+#    ocpninclude/cutil.h
     ocpninclude/pluginmanager.h
-    ocpninclude/shaders.h
+#    ocpninclude/shaders.h
 #    ocpninclude/TexFont.h
-    ocpninclude/vector2D.h
+#    ocpninclude/vector2D.h
     libs/ocpn-api/ocpn_plugin.h
 )
 
-set(EXTINCLUDE
-    extinclude/ODAPI.h
-    extinclude/ODJSONSchemas.h
-)
+#set(EXTINCLUDE
+#    extinclude/ODAPI.h
+#    extinclude/ODJSONSchemas.h
+#)
 
 set(LIBHDRS
     libs/GL/gl.h
@@ -210,7 +210,8 @@ set(LIBHDRS
 ## GPS Odometer plugin uses SVG for toolbar icons
 add_definitions(-DPLUGIN_USE_SVG)
 
-set(EXTINCLUDE_DIR ${EXTINCLUDE_DIR} extinclude libs/ocpn-api/)
+#set(EXTINCLUDE_DIR ${EXTINCLUDE_DIR} extinclude libs/ocpn-api/)
+set(EXTINCLUDE_DIR libs/ocpn-api/)
 
 ##
 ## ----- JSON validation is not used, section skipped ----- ##
@@ -239,7 +240,8 @@ endif(QT_ANDROID)
 ## ----- Change above to match project requirements for android build ----- ##
 ##
 
-target_sources(${PACKAGE_NAME} PUBLIC ${SRCS} ${HDRS} ${OCPNSRC} ${EXTSRC} ${LIBHDRS})
+#target_sources(${PACKAGE_NAME} PUBLIC ${SRCS} ${HDRS} ${OCPNSRC} ${EXTSRC} ${LIBHDRS})
+target_sources(${PACKAGE_NAME} PUBLIC ${SRCS} ${HDRS} ${EXTSRC} ${LIBHDRS})
 
 if(NOT OCPN_FLATPAK_CONFIG)
     # Build environment not available when flatpak is being configured so following statements will not work
