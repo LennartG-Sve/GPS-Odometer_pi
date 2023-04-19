@@ -39,7 +39,7 @@ set(VERSION_MAJOR "0")
 set(VERSION_MINOR "7")
 set(VERSION_PATCH "0")
 set(VERSION_TWEAK "0")
-set(VERSION_DATE "17/04/2023")  # DD/MM/YYYY format
+set(VERSION_DATE "19/04/2023")  # DD/MM/YYYY format
 set(OCPN_MIN_VERSION "ov50")
 set(OCPN_API_VERSION_MAJOR "1")
 set(OCPN_API_VERSION_MINOR "18")
@@ -179,14 +179,14 @@ SET(HDRS
 
 set(OCPNSRC
     ocpnsrc/cutil.cpp
-    ocpnsrc/TexFont.cpp
+#    ocpnsrc/TexFont.cpp
 )
 
 set(OCPNHDRS
     ocpninclude/cutil.h
     ocpninclude/pluginmanager.h
     ocpninclude/shaders.h
-    ocpninclude/TexFont.h
+#    ocpninclude/TexFont.h
     ocpninclude/vector2D.h
     libs/ocpn-api/ocpn_plugin.h
 )
