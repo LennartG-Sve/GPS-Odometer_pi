@@ -239,7 +239,7 @@ int odometer_pi::Init(void) {
         SaveConfig();
     }
 
-/*
+
     // Position, Rapid update   PGN 129026
     wxDEFINE_EVENT(EVT_N2K_129026, ObservedEvt);
     NMEA2000Id id_129026 = NMEA2000Id(129026);
@@ -255,7 +255,7 @@ int odometer_pi::Init(void) {
     Bind(EVT_N2K_129029, [&](ObservedEvt ev) {
       HandleN2K_129029(ev);
     });
-*/
+
 
     // Initialize the watchdog timer
     Start(1000, wxTIMER_CONTINUOUS);
@@ -560,7 +560,7 @@ void odometer_pi::SetNMEASentence(wxString &sentence) {
 // NMEA2000, N2K
 //...............
 
-/*
+
 wxString talker_N2k = wxEmptyString;
 void odometer_pi::HandleN2K_129026(ObservedEvt ev) {
   NMEA2000Id id_129026(129026);
@@ -578,9 +578,9 @@ void odometer_pi::HandleN2K_129026(ObservedEvt ev) {
         }
     }
 }
-*/
 
-/*
+
+
 void odometer_pi::HandleN2K_129029(ObservedEvt ev) {
   NMEA2000Id id_129029(129029);
   std::vector<uint8_t>v = GetN2000Payload(id_129029, ev);
@@ -638,7 +638,7 @@ void odometer_pi::HandleN2K_129029(ObservedEvt ev) {
       printf("%s\n", dmsg.ToUTF8().data());
   }
 }
-*/
+
 
 // Generating Odometer info
 //..........................

@@ -158,6 +158,7 @@ SET(SRCS
     src/rmc.cpp
     libs/wxJSON/src/jsonval.cpp
     libs/wxJSON/src/jsonreader.cpp
+    libs/wxJSON/src/jsonwriter.cpp
 )
 
 SET(HDRS
@@ -171,16 +172,7 @@ SET(HDRS
     include/nmea0183.h
     include/nmea0183.hpp
     include/SatInfo.h
-#    include/wx/json_defs.h
-#    include/wx/jsonreader.h
-#    include/wx/jsonval.h
-#    include/wx/jsonwriter.h
 )	
-
-set(OCPNSRC
-#    ocpnsrc/cutil.cpp
-#    ocpnsrc/TexFont.cpp
-)
 
 set(OCPNHDRS
 #    ocpninclude/cutil.h
@@ -240,8 +232,8 @@ endif(QT_ANDROID)
 ## ----- Change above to match project requirements for android build ----- ##
 ##
 
-#target_sources(${PACKAGE_NAME} PUBLIC ${SRCS} ${HDRS} ${OCPNSRC} ${EXTSRC} ${LIBHDRS})
-target_sources(${PACKAGE_NAME} PUBLIC ${SRCS} ${HDRS} ${EXTSRC} ${LIBHDRS})
+#target_sources(${PACKAGE_NAME} PUBLIC ${SRCS} ${HDRS} ${EXTSRC} ${LIBHDRS})
+target_sources(${PACKAGE_NAME} PUBLIC ${SRCS} ${HDRS} ${LIBHDRS})
 
 if(NOT OCPN_FLATPAK_CONFIG)
     # Build environment not available when flatpak is being configured so following statements will not work

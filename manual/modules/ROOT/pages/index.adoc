@@ -7,11 +7,13 @@
 
 == Purpose
 
-The GPS Odometer is a plugin for OpenCPN version 5.0 and higher. The
-keyword for this GPS Odometer is simplicity. Note that, as this is a 
+The GPS Odometer is a plugin for OpenCPN version 5.0 and higher and 
+supports NMEA2000 via socketCAN if used with OpenCPN version 5.7 and 
+higher. 
+The keyword for this GPS Odometer is simplicity. Note that, as this is a 
 GPS/GNSS based instrument, it requires GPS/GNSS data to display any 
-data at all. The MNEA 0183 sentences RMC and GGA messages (or the 
-corresponding messages from Signal K) is a must. See further information 
+data at all. The MNEA 0183 sentences RMC and GGA or the PGN's 129026 and
+ PGN 129029 for Signal K or NMEA2000 is a must. See further information 
 below.
 
 The GPS Odometer contain these basic functions:
@@ -67,11 +69,11 @@ counter does not use the 'Minimum Route Speed' setting.
 . Several parameters can be adjusted in the 'Settings' menu, just
 right-click somewhere on the instrument and select 'Settings'. 
 . The most important setting is the selection between NMEA 0183 
-(default) or Signal K as the source protocol. This selection is used to 
-avoid the same type of information from multiple sources but still 
+(default), Signal K or NMEA2000 as the source protocol. This selection is 
+used to avoid the same type of information from multiple sources but still 
 allowing e.g. NMEA 0183 to be generated from Signal K without affecting 
-the Odometer. This is a common situation when e.g. using a NMEA 2000 GPS 
-and a VHF with NMEA 0183 input.
+the GPS Odometer. This is a common situation when e.g. using a NMEA 2000 
+GPS/GNSS unit and a VHF with NMEA 0183 input.
 . Please do not set 'Min Route Speed' to low or you will get false trip 
 start/stop times due to position inaccuracies and/or when anchored.
 . The Odometer has a filtering that dashboard does not use, e.g. it 
@@ -82,16 +84,16 @@ OpenCPN configuration file, see the troubleshooting section below.
 these as 'GNSS Fix', 'DGNSS fix' and 'Precise GNSS'. One of these must 
 be present.
 
-A few notes about GPS/GNSS signal information, coming from NMEA 0183 
-(or the corresponding Signal K messages). If one or both of the RMC 
-and GGA sentences are missing:
+A few notes about GPS/GNSS signal information, coming from NMEA 0183, 
+Signal K or NMEA2000 as selected in the settings menu. If one or both of 
+the required sentences are missing:
 
-. There will be no speed or distance count if NMEA 0183 sentence RMC is
-missing nor will the GPS Odometer start displaying data until NMEA 0183
-GGA is indicating a valid GPS signal (using the 'Satellites in use'
-and 'HDOP' information). There is also a few seconds delay (default 15) 
-when powered up or when switching protocol, this to allow for the system 
-to be properly settled. Many GPS/GNSS units are also somewhat inaccurate 
+. There will be no speed or distance count nor will the GPS Odometer 
+start displaying data until NMEA 0183 GGA or NMEA2000 is indicating a 
+valid GPS/GNSS signal (using the 'Satellites in use' and 'HDOP' 
+information). There is also a few seconds delay (default 15) when powered 
+up or when switching protocol, this to allow the system to be properly 
+settled. Many GPS/GNSS units are also somewhat inaccurate 
 until the position is properly settled. Note that this is a power up / 
 protocol switch delay that has no effect later on. This setting, named 
 PowerOnDelaySecs, may be updated (from 5 and up) in the OpenCPN 
@@ -112,7 +114,10 @@ The OpenCPN priority system is message based and may, if a message is e.g.
 incomplete, cause a mix of messages from to different GPS/GNSS units. 
 Messages are also processed in the order received and the last sentence of 
 each type will be used. The order used is as shown in the NMEA Debug Window 
-(opened via 'Options -> Connections' and activating 'Show NMEA Debug Window'). 
+(opened via 'Options -> Connections' and activating 'Show NMEA Debug Window').
+Also note that the protocol /NMEA0183 / Signal K / NMEA2000) is selected
+in the GPS Odometer settings as all the required signals are currently not 
+available for external plugins like the GPS Odometer. 
 
 A general recommendation is hence to have one, and only one, reliable good 
 quality GPS/GNSS receiver sending navigational data (e.g. RMC, GGA, GSV and 
@@ -149,10 +154,10 @@ GPS/GNSS units.
 A good reference page for NMEA 0183 is found at: 
 https://gpsd.gitlab.io/gpsd/NMEA.html
 
-A note on NMEA 2000 GPS/GNSS units: OpenCPN has no option to prioritize units
-in a NMEA 2000 network so multiple GPS/GNSS units in the same NMEA 2000 
-network pose a large risk of getting conflicting messages unless they can be 
-individually controlled.
+A note on NMEA 2000 GPS/GNSS units: OpenCPN has currently no option to 
+prioritize units within in a NMEA 2000 network so multiple GPS/GNSS units in 
+the same NMEA 2000 network pose a large risk of getting conflicting messages 
+unless they can be individually controlled.
 
 == General troubleshooting
 
@@ -200,17 +205,15 @@ in the speedometer.
 
 == Installing
 
-The best and most convenient way to install is to use the package
-manager but if a suitable version is not available you may also build
-the application following the standard method compiling outside the
-OpenCPN source tree. +
+The GPS Odometer is installed using the package manager.
+
 There is (currently?) no version available for the Android environment
 as I don't have either the tools nor the knowledge to do that. Any help
 from the community would be appreciated.
 
 == A final comment
 
-I did this plugin as I wanted a simple GPS based Odometer. The Logbook
+I did this plugin as I wanted a simple GPS/GNSS based Odometer. The Logbook
 has that option but you may not need all the other stuff in there and
 also wants an on-screen solution.
 
