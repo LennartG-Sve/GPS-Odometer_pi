@@ -19,6 +19,8 @@ src/rmc.cpp
 libs/wxJSON/src/jsonval.cpp
 libs/wxJSON/src/jsonreader.cpp
 libs/wxJSON/src/jsonwriter.cpp
+libs/N2KParser/src/N2kMessages.cpp
+libs/N2KParser/src/N2KParser.cpp
 include/button.h
 include/dial.h
 include/icons.h

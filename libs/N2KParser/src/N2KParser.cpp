@@ -47,9 +47,9 @@ CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFT
 OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-#include "N2KParser.h"
-#include "N2kMsg.h"
-#include "N2kMessages.h"
+#include "../include/N2KParser.h"
+#include "../include/N2kMsg.h"
+#include "../include/N2kMessages.h"
 
 
 uint32_t millis() {
