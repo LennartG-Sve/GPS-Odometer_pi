@@ -160,6 +160,7 @@ SET(SRCS
     libs/wxJSON/src/jsonreader.cpp
     libs/wxJSON/src/jsonwriter.cpp
     libs/N2KParser/src/N2kMessages.cpp
+    libs/N2KParser/src/N2kMsg.cpp
     libs/N2KParser/src/N2KParser.cpp
 )
 
@@ -199,8 +200,12 @@ set(LIBHDRS
     libs/wxJSON/include/jsonreader.h
     libs/wxJSON/include/jsonval.h
     libs/wxJSON/include/jsonwriter.h
+    libs/N2KParser/include/N2kDef.h
     libs/N2KParser/include/N2kMessages.h
+    libs/N2KParser/include/N2kMsg.h
     libs/N2KParser/include/N2KParser.h
+    libs/N2KParser/include/N2kTypes.h
+    libs/N2KParser/include/NMEA2000StdTypes.h
 )
 
 ## GPS Odometer plugin uses SVG for toolbar icons
