@@ -3,7 +3,7 @@
 # Copyright:   2018 - 2023
 # License:     GPL v3+
 # ---------------------------------------------------------------------------
-# Frontend2  v1.0.230   Author: Dave Register 
+# Frontend2  v1.0.232   Author: Dave Register 
 # ---------------------------------------------------------------------------
 ## ----- When changing this file do NOT change the order in which sections occur        ----- ##
 ## ----- Changes should only be made between the section blocks that identify where     ----- ##
@@ -32,14 +32,14 @@ set(COMMON_NAME "GPS Odometer")
 set(TITLE_NAME "GPSODOMETER")
 set(PACKAGE_CONTACT "LennartG")
 set(PACKAGE "gpsodometer")
-set(SHORT_DESCRIPTION "GPS Odometer plugin for OpenCPN")
-set(LONG_DESCRIPTION "GPS/GNSS controlled Dashboard based Odometer plugin for OpenCPN, displays GPS/GNSS calculated Log and Trip information")
+set(SHORT_DESCRIPTION "GPS/GNSS Odometer plugin for OpenCPN release 5.8 and above")
+set(LONG_DESCRIPTION "GPS/GNSS controlled Dashboard based Odometer plugin for OpenCPN release 5.8 and above, displays GPS/GNSS calculated Log and Trip information")
 
 set(VERSION_MAJOR "0")
 set(VERSION_MINOR "7")
 set(VERSION_PATCH "0")
-set(VERSION_TWEAK "1")
-set(VERSION_DATE "21/04/2023")  # DD/MM/YYYY format
+set(VERSION_TWEAK "2")
+set(VERSION_DATE "23/04/2023")  # DD/MM/YYYY format
 set(OCPN_MIN_VERSION "ov50")
 set(OCPN_API_VERSION_MAJOR "1")
 set(OCPN_API_VERSION_MINOR "18")
@@ -177,14 +177,14 @@ SET(HDRS
     include/SatInfo.h
 )	
 
-set(OCPNHDRS
+#set(OCPNHDRS
 #    ocpninclude/cutil.h
-    ocpninclude/pluginmanager.h
+#    ocpninclude/pluginmanager.h
 #    ocpninclude/shaders.h
 #    ocpninclude/TexFont.h
 #    ocpninclude/vector2D.h
-    libs/ocpn-api/ocpn_plugin.h
-)
+#    libs/ocpn-api/ocpn_plugin.h
+#)
 
 #set(EXTINCLUDE
 #    extinclude/ODAPI.h
@@ -219,7 +219,7 @@ set(EXTINCLUDE_DIR libs/ocpn-api/)
 ##
 
 INCLUDE_DIRECTORIES(BEFORE ${PROJECT_SOURCE_DIR}/include)
-INCLUDE_DIRECTORIES(BEFORE ${PROJECT_SOURCE_DIR}/ocpninclude)
+## INCLUDE_DIRECTORIES(BEFORE ${PROJECT_SOURCE_DIR}/ocpninclude)
 include_directories(BEFORE ${PROJECT_SOURCE_DIR}/${EXTINCLUDE_DIR})
 include_directories(BEFORE ${PROJECT_SOURCE_DIR}/libs/)
 include_directories(BEFORE ${PROJECT_SOURCE_DIR}/libs/GL)
@@ -233,9 +233,9 @@ INCLUDE_DIRECTORIES(BEFORE ${PROJECT_SOURCE_DIR}/src)
 # ----- Change below to match project requirements for android build ----- ##
 #
 
-if(QT_ANDROID)
-    include_directories( ${PROJECT_SOURCE_DIR}/extinclude/GLES2)
-endif(QT_ANDROID)
+# if(QT_ANDROID)
+#     include_directories( ${PROJECT_SOURCE_DIR}/extinclude/GLES2)
+# endif(QT_ANDROID)
 
 ##
 ## ----- Change above to match project requirements for android build ----- ##
