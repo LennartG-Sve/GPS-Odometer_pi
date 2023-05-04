@@ -38,7 +38,7 @@ set(LONG_DESCRIPTION "GPS/GNSS controlled Dashboard based Odometer plugin for Op
 set(VERSION_MAJOR "0")
 set(VERSION_MINOR "7")
 set(VERSION_PATCH "0")
-set(VERSION_TWEAK "4")
+set(VERSION_TWEAK "5")
 set(VERSION_DATE "04/05/2023")  # DD/MM/YYYY format
 set(OCPN_MIN_VERSION "ov50")
 set(OCPN_API_VERSION_MAJOR "1")
@@ -61,8 +61,7 @@ set (CLOUDSMITH_BASE_REPOSITORY "gps-odometer")  #without the pi
 set(CLOUDSMITH_USER "opencpn") 
 #set(CLOUDSMITH_USER "LennartG-Sve")
 
-# set(XML_INFO_URL "https://opencpn.org/wiki/dokuwiki/doku.php?id=opencpn:opencpn_user_manual:plugins:other:odometer") 
-set(XML_INFO_URL "https://opencpn-manuals.github.io/plugins/gps-odometer/0.1/index.html")
+set(XML_INFO_URL "https://opencpn-manuals.github.io/main/gps-odometer/index.html")
 set(XML_SUMMARY ${SHORT_DESCRIPTION})
 set(XML_DESCRIPTION ${LONG_DESCRIPTION})
 

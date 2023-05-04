@@ -52,8 +52,8 @@ remembered until the Trip reset button is clicked.
 . Departure and arrival times are displayed according to the ISO
 standard 8601 primary alternative ('YYYY-MM-DD HH:MM').
 . 'Total distance' is simply a counter of distance traveled and is not
-affected by the reset button. Note that you can edit the 'Total
-distance' value in the OpenCPN configuration file e.g. if the GPS
+affected by the reset button. Note that you can edit (increase only) the 
+'Totaldistance' value in the OpenCPN configuration file e.g. if the GPS
 Odometer is replacing another log instrument. The format is '12345.6'
 (one decimal only) and remember to do that when OpenCPN is shut down or
 your change will be lost.
