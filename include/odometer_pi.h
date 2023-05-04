@@ -171,24 +171,24 @@ private:
 	bool LoadConfig(void);
     void LoadFont(wxFont **target, wxString native_info);
 
-	void ApplyConfig(void);
+    void ApplyConfig(void);
 
-	// Send deconstructed NMEA 1083 sentence  values to each display
-	void SendSentenceToAllInstruments(int st, double value, wxString unit);
-	void GetDistance();
+    // Send deconstructed NMEA 1083 sentence  values to each display
+    void SendSentenceToAllInstruments(int st, double value, wxString unit);
+    void GetDistance();
 
-	// OpenCPN goodness, pointers to Configuration, AUI Manager and Toolbar
-	wxFileConfig *m_pconfig;
-	wxAuiManager *m_pauimgr;
-	int m_toolbar_item_id;
+    // OpenCPN goodness, pointers to Configuration, AUI Manager and Toolbar
+    wxFileConfig *m_pconfig;
+    wxAuiManager *m_pauimgr;
+    int m_toolbar_item_id;
 
-	// Hide/Show Odometer Windows
-	wxArrayOfOdometer m_ArrayOfOdometerWindow;
-	int m_show_id;
-	int m_hide_id;
+    // Hide/Show Odometer Windows
+    wxArrayOfOdometer m_ArrayOfOdometerWindow;
+    int m_show_id;
+    int m_hide_id;
 
-	// Used to parse NMEA Sentences
-	NMEA0183 m_NMEA0183;
+    // Used to parse NMEA Sentences
+    NMEA0183 m_NMEA0183;
     short mPriCOGSOG;
     short mPriDateTime;
     short mPriVar;
@@ -212,7 +212,7 @@ private:
     int mUTC_Watchdog;
     int GNSSok = 0;
 
-	// Used to parse Signal K Sentences
+    // Used to parse Signal K Sentences
     void ParseSignalK( wxString &msg);
     void handleSKUpdate(wxJSONValue &update);
     void updateSKItem(wxJSONValue &item, wxString &talker, wxString &sfixtime);
@@ -237,7 +237,7 @@ private:
 
     // Odometer trip time
     double NMEASpeed; 
-    double CurrSpeed; 
+    double CurrSpeed = 0.0; 
     double FilteredSpeed; 
     double m_OnRouteSpeed;
     wxDateTime EnabledTime;
@@ -273,8 +273,17 @@ private:
     wxDateTime LegStart;
     wxTimeSpan LegTime;
 
-	// Odometer uses version 2 configuration settings
-	int m_config_version;
+    // Save sumlog to data dir
+    wxString m_sumlogFile;
+    wxFile m_sumlogFileName;
+    wxTextFile m_sumlogInFile;
+    double sumLog = 0;
+    int readSumlog = 1;
+    wxString m_dataCurrDist;
+    double dataCurrDist = 0.0;
+
+    // Odometer uses version 2 configuration settings
+    int m_config_version;
 };
 
 class OdometerPreferencesDialog : public wxDialog {

@@ -70,6 +70,7 @@ int       g_iOdoDistanceUnit;
 int       g_iResetTrip = 0;
 int       g_iStartStopLeg = 0;
 int       g_iResetLeg = 0;
+wxString  g_dataDir;
 
 
 // Watchdog timer, performs two functions, firstly refresh the odometer every second,
@@ -213,6 +214,8 @@ int odometer_pi::Init(void) {
     wxString normalIcon = iconFolder + _T("gpsodometer.svg");
     wxString toggledIcon = iconFolder + _T("gpsodometer_toggled.svg");
     wxString rolloverIcon = iconFolder + _T("gpsodometer_rollover.svg");
+
+    g_dataDir = iconFolder;
 
     // For journeyman styles, we prefer the built-in raster icons which match the rest
     // of the toolbar.
@@ -667,13 +670,13 @@ void odometer_pi::Odometer() {
     // The PwrOnDelaySecs is used to delay the GNSSok valid detection.
 
     if (GNSSok == 0) {
-       CurrSpeed = 0;
+       CurrSpeed = 0.0;
        int PwrOnDelaySecs = atoi(m_PwrOnDelSecs);
        if (PwrOnDelaySecs <= 4) PwrOnDelaySecs = 5;
        wxTimeSpan PwrOnDelay(0,0,PwrOnDelaySecs);
        EnabledTime = LocalTime.Add(PwrOnDelay);
     }
-    if (EnabledTime >= LocalTime) CurrSpeed = 0;
+    if (EnabledTime >= LocalTime) CurrSpeed = 0.0;
 
     SendSentenceToAllInstruments(OCPN_DBP_STC_SOG,
         toUsrSpeed_Plugin (mSOGFilter.filter(CurrSpeed),
@@ -753,10 +756,28 @@ void odometer_pi::Odometer() {
     if (UseSavedArrTime == 1 ) strArr = m_ArrTime.Truncate(16);  // Cut seconds
     SendSentenceToAllInstruments(OCPN_DBP_STC_ARRIV, ' ' , strArr );
 
-    // Distances
+    // Sumlog distance
+    // Read sumlog distance from data direcrory
+
+    if (readSumlog == 1) {
+        m_sumlogFile.Clear();
+        m_sumlogFile = g_dataDir + _T("sumlog.log");
+
+        if (m_sumlogInFile.Open(m_sumlogFile)) {
+            m_dataCurrDist = m_sumlogInFile.GetFirstLine();
+            m_sumlogInFile.Close();
+            m_dataCurrDist.ToDouble ( &dataCurrDist);
+            readSumlog = 0;
+        } else {
+            dataCurrDist = 0.0;
+        }
+        // Read sumlog from conf file and fetch the highest
+        m_TotDist.ToDouble ( &TotDist);
+        if (dataCurrDist > TotDist) TotDist = dataCurrDist;
+    }
+
+    // Trip Distance
     if (UseSavedTrip == 1) {
-        TotDist = 0.0;
-        m_TotDist.ToDouble( &TotDist );
         TripDist = 0.0;
         m_TripDist.ToDouble( &TripDist );
         UseSavedTrip = 0;
@@ -809,11 +830,31 @@ void odometer_pi::Odometer() {
     wxString strLegTime;
     strLegTime = LegTime.Format("%H:%M:%S");
 
-
     SendSentenceToAllInstruments(OCPN_DBP_STC_SUMLOG, TotDist , DistUnit );
     SendSentenceToAllInstruments(OCPN_DBP_STC_TRIPLOG, TripDist , DistUnit );
     SendSentenceToAllInstruments(OCPN_DBP_STC_LEGDIST, LegDist , DistUnit );
     SendSentenceToAllInstruments(OCPN_DBP_STC_LEGTIME, ' ' , strLegTime );
+
+    // Write sumlog distance to data direcrory
+    m_sumlogFile = g_dataDir + _T("sumlog.log");
+    wxFileName fn(m_sumlogFile);
+    if ((TotDist == 0) || (TotDist > sumLog)) {
+        m_sumlogFileName.Open(m_sumlogFile, wxFile::write);
+        m_sumlogFileName.Write(m_TotDist +_T("\r\n"));
+        m_sumlogFileName.Close();
+        sumLog = TotDist;
+    }
+
+/*
+    // Message log, prints to stdout
+    wxString dmsg( _T("Log: ") );
+    wxString txtmsg;
+    txtmsg << m_sumlogFile;
+    dmsg.append(txtmsg);
+    wxLogMessage(dmsg);
+    printf("%s\n", dmsg.ToUTF8().data());
+*/
+
 }
 
 void odometer_pi::GetDistance() {
