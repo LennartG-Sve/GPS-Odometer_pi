@@ -38,7 +38,7 @@ set(LONG_DESCRIPTION "GPS/GNSS controlled Dashboard based Odometer plugin for Op
 set(VERSION_MAJOR "0")
 set(VERSION_MINOR "7")
 set(VERSION_PATCH "0")
-set(VERSION_TWEAK "3")
+set(VERSION_TWEAK "4")
 set(VERSION_DATE "04/05/2023")  # DD/MM/YYYY format
 set(OCPN_MIN_VERSION "ov50")
 set(OCPN_API_VERSION_MAJOR "1")
