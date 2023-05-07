@@ -676,11 +676,24 @@ void odometer_pi::Odometer() {
        wxTimeSpan PwrOnDelay(0,0,PwrOnDelaySecs);
        EnabledTime = LocalTime.Add(PwrOnDelay);
     }
-    if (EnabledTime >= LocalTime) CurrSpeed = 0.0;
+    if (EnabledTime >= LocalTime) {
+        SendSentenceToAllInstruments(OCPN_DBP_STC_SOG, toUsrSpeed_Plugin (0.0, g_iOdoSpeedUnit),
+            getUsrSpeedUnit_Plugin(g_iOdoSpeedUnit));
+        CurrSpeed=0.0;
+    } else {
+        SendSentenceToAllInstruments(OCPN_DBP_STC_SOG, toUsrSpeed_Plugin (mSOGFilter.filter(CurrSpeed),
+            g_iOdoSpeedUnit), getUsrSpeedUnit_Plugin(g_iOdoSpeedUnit));
+    }
 
-    SendSentenceToAllInstruments(OCPN_DBP_STC_SOG,
-        toUsrSpeed_Plugin (mSOGFilter.filter(CurrSpeed),
-        g_iOdoSpeedUnit), getUsrSpeedUnit_Plugin(g_iOdoSpeedUnit));
+/*
+    // Message log, prints to stdout
+    wxString dmsg( _T("Log: ") );
+    wxString txtmsg;
+    txtmsg << showSpeed;
+    dmsg.append(txtmsg);
+    wxLogMessage(dmsg);
+    printf("%s\n", dmsg.ToUTF8().data());
+*/
 
     /* TODO: There must be a better way to receive the reset event from
              'OdometerInstrument_Button' but using a global variable for transfer.  */
@@ -844,17 +857,6 @@ void odometer_pi::Odometer() {
         m_sumlogFileName.Close();
         sumLog = TotDist;
     }
-
-/*
-    // Message log, prints to stdout
-    wxString dmsg( _T("Log: ") );
-    wxString txtmsg;
-    txtmsg << m_sumlogFile;
-    dmsg.append(txtmsg);
-    wxLogMessage(dmsg);
-    printf("%s\n", dmsg.ToUTF8().data());
-*/
-
 }
 
 void odometer_pi::GetDistance() {
@@ -887,7 +889,7 @@ void odometer_pi::GetDistance() {
         StepDist = (SecDiff * (CurrSpeed/DistDiv));
 
         //  Are at start randomly getting extreme values for distance even if validGPS is ok.
-        //    Delay a minimum of 15 seconds at power up to allow everything to be properly set
+        //    Delay a minimum of 5 seconds at power up to allow everything to be properly set
         //    before measuring distances
         if (StartDelay == 1) {
            int PwrOnDelaySecs = atoi(m_PwrOnDelSecs);
