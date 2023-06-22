@@ -3,7 +3,7 @@
 # Copyright:   2018 - 2023
 # License:     GPL v3+
 # ---------------------------------------------------------------------------
-# Frontend2  v1.0.237   Author: Dave Register 
+# Frontend2  v1.0.238   Author: Dave Register 
 # ---------------------------------------------------------------------------
 ## ----- When changing this file do NOT change the order in which sections occur        ----- ##
 ## ----- Changes should only be made between the section blocks that identify where     ----- ##
@@ -32,14 +32,14 @@ set(COMMON_NAME "GPS Odometer")
 set(TITLE_NAME "GPSODOMETER")
 set(PACKAGE_CONTACT "LennartG")
 set(PACKAGE "gpsodometer")
-set(SHORT_DESCRIPTION "GPS/GNSS Odometer plugin for OpenCPN release 5.8 and above")
-set(LONG_DESCRIPTION "GPS/GNSS controlled Dashboard based Odometer plugin for OpenCPN release 5.8 and above, displays GPS/GNSS calculated Log and Trip information")
+set(SHORT_DESCRIPTION "GPS/GNSS based for release 5.8 and above")
+set(LONG_DESCRIPTION "Using GPS/GNSS satellite data to calculate log and trip information as well as deparure and arrival times")
 
 set(VERSION_MAJOR "0")
 set(VERSION_MINOR "7")
-set(VERSION_PATCH "1")
+set(VERSION_PATCH "3")
 set(VERSION_TWEAK "0")
-set(VERSION_DATE "08/05/2023")  # DD/MM/YYYY format
+set(VERSION_DATE "22/06/2023")  # DD/MM/YYYY format
 set(OCPN_MIN_VERSION "ov50")
 set(OCPN_API_VERSION_MAJOR "1")
 set(OCPN_API_VERSION_MINOR "18")
