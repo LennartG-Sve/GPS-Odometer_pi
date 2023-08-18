@@ -3,7 +3,7 @@
 # Copyright:   2018 - 2023
 # License:     GPL v3+
 # ---------------------------------------------------------------------------
-# Frontend2  v1.0.238   Author: Dave Register 
+# Frontend2  v1.0.253.0   Author: Dave Register
 # ---------------------------------------------------------------------------
 ## ----- When changing this file do NOT change the order in which sections occur        ----- ##
 ## ----- Changes should only be made between the section blocks that identify where     ----- ##
@@ -36,10 +36,10 @@ set(SHORT_DESCRIPTION "GPS/GNSS based for release 5.8 and above")
 set(LONG_DESCRIPTION "Using GPS/GNSS satellite data to calculate log and trip information as well as deparure and arrival times")
 
 set(VERSION_MAJOR "0")
-set(VERSION_MINOR "7")
-set(VERSION_PATCH "4")
+set(VERSION_MINOR "8")
+set(VERSION_PATCH "0")
 set(VERSION_TWEAK "0")
-set(VERSION_DATE "05/07/2023")  # DD/MM/YYYY format
+set(VERSION_DATE "18/08/2023")  # DD/MM/YYYY format
 set(OCPN_MIN_VERSION "ov50")
 set(OCPN_API_VERSION_MAJOR "1")
 set(OCPN_API_VERSION_MINOR "18")

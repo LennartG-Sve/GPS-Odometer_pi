@@ -39,6 +39,8 @@
 #include "instrument.h"
 //#include "wx28compat.h"
 
+int   g_iPanelWidth = 0;
+
 //----------------------------------------------------------------
 //
 //    Generic OdometerInstrument Implementation
@@ -105,6 +107,18 @@ void OdometerInstrument::OnPaint(wxPaintEvent& WXUNUSED(event)) {
         wxLogMessage(_T("OdometerInstrument::OnPaint() fatal: Zero size DC."));
         return;
     }
+
+    g_iPanelWidth = size.x;
+
+/*
+    // Message log, prints to stdout
+    wxString dmsg( _T("Log: ") );
+    wxString txtmsg;
+    txtmsg << g_iPanelWidth;
+    dmsg.append(txtmsg);
+    wxLogMessage(dmsg);
+    printf("%s\n", dmsg.ToUTF8().data());
+*/
 
 #if wxUSE_GRAPHICS_CONTEXT
     wxGCDC dc(pdc);

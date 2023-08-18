@@ -53,7 +53,14 @@
 extern int g_iResetTrip;
 extern int g_iStartStopLeg;
 extern int g_iResetLeg;
+extern int g_iPanelWidth;
 
+
+//--------------------------------------------------------------
+//
+//  Buttons
+//
+//--------------------------------------------------------------
 
 OdometerInstrument_Button::OdometerInstrument_Button(wxWindow *pparent, wxWindowID id, wxString title,
       int cap_flag ) : OdometerInstrument(pparent, id, title, cap_flag )
@@ -76,19 +83,17 @@ OdometerInstrument_Button::OdometerInstrument_Button(wxWindow *pparent, wxWindow
     Connect(wxEVT_RIGHT_DOWN, wxMouseEventHandler(OdometerInstrument::MouseEvent), NULL, this);
 #endif
 
-//--------------------------------------------------------------
-//
-//  Buttons
-//
-//--------------------------------------------------------------
-
+//    b_width = width + 24;        // If not using default common width
+    b_height = m_TitleHeight + 12;
 
     if (m_cap_flag == 32) {
+
         wxBoxSizer* instrument = new wxBoxSizer(wxVERTICAL);
         wxButton* m_pTripResetButton = new wxButton(this, m_id, _( m_title ), wxDefaultPosition, wxSize(b_width,b_height) );
-        m_pTripResetButton->SetForegroundColour(wxColor(0,0,0));        
-        instrument->Add(m_pTripResetButton, 0, wxEXPAND | wxALL, 5 );
+        m_pTripResetButton->SetForegroundColour(wxColor(0,0,0));
+        m_pTripResetButton->SetFont(*g_pFontTitle);
 
+        instrument->Add(m_pTripResetButton, 0, wxEXPAND | wxALL, 5 );
         m_pTripResetButton->Connect( wxEVT_COMMAND_BUTTON_CLICKED, 
             wxCommandEventHandler(OdometerInstrument_Button::OnButtonClickTripReset), NULL, this );
     }
@@ -97,8 +102,9 @@ OdometerInstrument_Button::OdometerInstrument_Button(wxWindow *pparent, wxWindow
         wxBoxSizer* instrument = new wxBoxSizer(wxVERTICAL);
         wxButton* m_pLegStartStopButton = new wxButton(this, m_id, _( m_title ), wxDefaultPosition, wxSize(b_width,b_height) );
         m_pLegStartStopButton->SetForegroundColour(wxColor(0,0,0));        
-        instrument->Add(m_pLegStartStopButton, 0, wxEXPAND | wxALL, 5 );
+        m_pLegStartStopButton->SetFont(*g_pFontTitle);
 
+        instrument->Add(m_pLegStartStopButton, 0, wxEXPAND | wxALL, 5 );
         m_pLegStartStopButton->Connect( wxEVT_COMMAND_BUTTON_CLICKED, 
             wxCommandEventHandler(OdometerInstrument_Button::OnButtonClickStartStop), NULL, this );
     }
@@ -107,8 +113,9 @@ OdometerInstrument_Button::OdometerInstrument_Button(wxWindow *pparent, wxWindow
         wxBoxSizer* instrument = new wxBoxSizer(wxVERTICAL);
         wxButton* m_pLegResetButton = new wxButton(this, m_id, _( m_title ), wxDefaultPosition, wxSize(b_width,b_height) );
         m_pLegResetButton->SetForegroundColour(wxColor(0,0,0));        
-        instrument->Add(m_pLegResetButton, 0, wxEXPAND | wxALL, 5 );
+        m_pLegResetButton->SetFont(*g_pFontTitle);
 
+        instrument->Add(m_pLegResetButton, 0, wxEXPAND | wxALL, 5 );
         m_pLegResetButton->Connect( wxEVT_COMMAND_BUTTON_CLICKED, 
             wxCommandEventHandler(OdometerInstrument_Button::OnButtonClickLegReset), NULL, this );
     }
@@ -160,7 +167,8 @@ void OdometerInstrument_Button::Draw(wxGCDC* dc) {
       tdc.SetBackground(c2);
       tdc.Clear();
 
-      tdc.SetFont(*g_pFontData);
+      tdc.SetFont(*g_pFontTitle);
+//      tdc.SetFont(*g_pFontData);
       GetGlobalColor(_T("DASHF"), &cl);
       tdc.SetTextForeground(cl);
 
@@ -170,7 +178,8 @@ void OdometerInstrument_Button::Draw(wxGCDC* dc) {
 
       dc->DrawBitmap(tbm, 0, m_TitleHeight, false);
 #else
-      dc->SetFont(*g_pFontData);
+      dc->SetFont(*g_pFontTitle);
+//      dc->SetFont(*g_pFontData);
       GetGlobalColor(_T("DASHF"), &cl);
       dc->SetTextForeground(cl);
       dc->DrawText(m_data, 10, m_TitleHeight);

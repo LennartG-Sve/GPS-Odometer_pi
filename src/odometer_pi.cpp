@@ -49,6 +49,7 @@
 #include "../libs/wxJSON/include/jsonval.h"
 #include "../libs/wxJSON/include/jsonwriter.h"
 #include "../libs/N2KParser/include/N2KParser.h"
+#include <string>
 
 // Global variables for fonts
 wxFont *g_pFontTitle;
@@ -144,8 +145,8 @@ void GetListItemForInstrument(wxListItem &item, unsigned int id) {
 
 	switch(id) {
         case ID_DBP_D_SOG:
-			item.SetImage(1);
-			break;
+        item.SetImage(1);
+        break;
         case ID_DBP_I_SUMLOG:
         case ID_DBP_I_TRIPLOG:
         case ID_DBP_B_TRIPRES:
@@ -154,8 +155,8 @@ void GetListItemForInstrument(wxListItem &item, unsigned int id) {
         case ID_DBP_I_LEGDIST:
         case ID_DBP_I_LEGTIME:
         case ID_DBP_B_LEGRES:
-			item.SetImage(0);
-			break;
+        item.SetImage(0);
+        break;
     }
 }
 
@@ -311,6 +312,7 @@ double GetJsonDouble(wxJSONValue &value) {
 
 // Called for each timer tick, refreshes each display
 void odometer_pi::Notify() {
+
     // Force a repaint of each instrument panel
     // TODO: Need UTCtime as well? 
 //    SendUtcTimeToAllInstruments(mUTCDateTime);
@@ -677,23 +679,16 @@ void odometer_pi::Odometer() {
        EnabledTime = LocalTime.Add(PwrOnDelay);
     }
     if (EnabledTime >= LocalTime) {
-        SendSentenceToAllInstruments(OCPN_DBP_STC_SOG, toUsrSpeed_Plugin (0.0, g_iOdoSpeedUnit),
-            getUsrSpeedUnit_Plugin(g_iOdoSpeedUnit));
+        SendSentenceToAllInstruments(OCPN_DBP_STC_SOG, toUsrSpeed_Plugin (0.0,
+            g_iOdoSpeedUnit), getUsrSpeedUnit_Plugin(g_iOdoSpeedUnit));
         CurrSpeed=0.0;
     } else {
-        SendSentenceToAllInstruments(OCPN_DBP_STC_SOG, toUsrSpeed_Plugin (mSOGFilter.filter(CurrSpeed),
-            g_iOdoSpeedUnit), getUsrSpeedUnit_Plugin(g_iOdoSpeedUnit));
-    }
 
-/*
-    // Message log, prints to stdout
-    wxString dmsg( _T("Log: ") );
-    wxString txtmsg;
-    txtmsg << showSpeed;
-    dmsg.append(txtmsg);
-    wxLogMessage(dmsg);
-    printf("%s\n", dmsg.ToUTF8().data());
-*/
+        // Filter out not wanted decimals from iirfilter, need one decimal only
+        SendSentenceToAllInstruments(OCPN_DBP_STC_SOG, toUsrSpeed_Plugin
+            (round(mSOGFilter.filter(CurrSpeed) * 10) / 10,g_iOdoSpeedUnit),
+            getUsrSpeedUnit_Plugin(g_iOdoSpeedUnit));
+    }
 
     /* TODO: There must be a better way to receive the reset event from
              'OdometerInstrument_Button' but using a global variable for transfer.  */
@@ -703,6 +698,7 @@ void odometer_pi::Odometer() {
         UseSavedArrTime = 0;
         UseSavedTrip = 0;
         DepTimeShow = 0;
+        ArrTimeShow = 0;
         m_DepTime = "---";
         m_ArrTime = "---";
         TripDist = 0.0;
@@ -722,51 +718,96 @@ void odometer_pi::Odometer() {
     }
 
     // Set departure time to local time if CurrSpeed is greater than or equal to OnRouteSpeed
-    m_OnRouteSpeed = g_iOdoOnRoute;
+    OnRouteSpeed = g_iOdoOnRoute;
     // Reset after arrival, before system shutdown
-    if ((CurrSpeed >= m_OnRouteSpeed) && m_DepTime == "---" )  {
+    if ((CurrSpeed >= OnRouteSpeed) && m_DepTime == "---" )  {
         m_DepTime = LocalTime.Format(wxT("%F %T"));
     }
 
     // Reset after power up, before trip start
-    if ((CurrSpeed >= m_OnRouteSpeed) && SetDepTime == 1 )  {
+    if ((CurrSpeed >= OnRouteSpeed) && SetDepTime == 1 )  {
         m_DepTime = LocalTime.Format(wxT("%F %T"));
         SetDepTime = 0;
     }
 
-    // Select departure time to use and enable if speed is enough
-    if (CurrSpeed >= m_OnRouteSpeed && DepTimeShow == 0 )  {
-        if (UseSavedDepTime == 0) {
-            DepTime = LocalTime;
-        } else {
-            DepTime.ParseDateTime(m_DepTime);
-        }
-        DepTimeShow = 1;
-        strDep = DepTime.Format(wxT("%F %R"));
-    } else {
-        if (DepTimeShow == 0) strDep = " --- ";
-        if (UseSavedDepTime == 1) strDep = m_DepTime.Truncate(16);  // Cut seconds
+    // Departure time
+    // Reset trip button pressed
+//    if ((CurrSpeed >= OnRouteSpeed) && (UseSavedDepTime == 0)) {
+    if (UseSavedDepTime == 0) {
+        DepTime = LocalTime;
+        UseSavedDepTime = 1;
+        ReadDepFromData == 0;
+        DepTimeShow = 0;
+        if (CurrSpeed >= OnRouteSpeed) DepTimeShow = 1;
     }
+
+    // Read departure time once from data dir upon start
+    if ((UseSavedDepTime == 1) && (ReadDepFromData == 1)) {
+        ReadDepFromData = 0;
+        strDep = "---";          // If file/data is not found
+
+        m_depTimeFile.Clear();
+        m_depTimeFile = g_dataDir + _T("deptime.log");
+
+        if (m_depTimeInFile.Open(m_depTimeFile)) {
+            m_DepTime = m_depTimeInFile.GetFirstLine();
+            m_depTimeInFile.Close();
+            strDep = m_DepTime.Format(wxT("%F %R"));
+        }
+    }
+    strDep = m_DepTime.Truncate(16);  // Cut seconds
+    if (CurrSpeed >= OnRouteSpeed) DepTimeShow = 1;
+    if (DepTimeShow == 0) strDep = "---";    // Trip reset selected
     SendSentenceToAllInstruments(OCPN_DBP_STC_DEPART, ' ' , strDep );
 
-    // Set and display arrival time
-    if (DepTimeShow == 1 )  {
-        if (CurrSpeed >= m_OnRouteSpeed) {
-            strArr = _("On Route");
-            ArrTimeShow = 0;
-            UseSavedArrTime = 0;
-        } else {
-            if (ArrTimeShow == 0 ) {
-                m_ArrTime = LocalTime.Format(wxT("%F %T"));
-                ArrTime = LocalTime;
-                ArrTimeShow = 1;
-                strArr = ArrTime.Format(wxT("%F %R"));
-            }
-        }
-    } else {
-        strArr = " --- ";
+
+    // Arrival time
+    // Reset trip button pressed
+//    if ((CurrSpeed >= OnRouteSpeed) && (UseSavedArrTime == 0)) {
+    if (UseSavedArrTime == 0) {
+        ArrTime = LocalTime;
+        UseSavedArrTime = 1;
+        ReadArrFromData == 0;
+        ArrTimeShow = 0;
+        if (CurrSpeed >= OnRouteSpeed) ArrTimeShow = 1;
     }
-    if (UseSavedArrTime == 1 ) strArr = m_ArrTime.Truncate(16);  // Cut seconds
+
+    // Read arrival time once from data dir upon start
+    if ((UseSavedArrTime == 1) && (ReadArrFromData == 1)) {
+        ReadArrFromData = 0;
+        strArr = "---";          // If file/data is not found
+
+        m_arrTimeFile.Clear();
+        m_arrTimeFile = g_dataDir + _T("arrtime.log");
+
+        if (m_arrTimeInFile.Open(m_arrTimeFile)) {
+            m_ArrTime = m_arrTimeInFile.GetFirstLine();
+            m_arrTimeInFile.Close();
+            strArr = m_ArrTime.Format(wxT("%F %R"));
+        }
+        strArr = m_ArrTime.Truncate(16);  // Cut seconds
+
+        // Show dashes if no arrival time after shutdown
+        wxString Century = std::to_string(20);
+        if (m_ArrTime.Truncate(2) != Century) ArrTimeShow = 0;
+    }
+
+    // Tour started or restarted
+    if ((CurrSpeed > OnRouteSpeed + 0.1) && (ArrTimeSet == 1) && (PowerUpActive == 0) ) {
+          ArrTimeSet = 0;
+          ArrTimeShow = 1;
+    }
+
+    // Tour finished or interrupted
+    if ((CurrSpeed < OnRouteSpeed) && (ArrTimeSet == 0) && (PowerUpActive == 0)) {
+        ArrTime = LocalTime;
+        strArr = ArrTime.Format(wxT("%F %R"));
+        ArrTimeSet = 1;
+        ArrTimeShow = 1;
+    }
+
+    if (CurrSpeed > OnRouteSpeed) strArr = _("On Route");
+    if (ArrTimeShow == 0) strArr = "---";    // Trip reset selected
     SendSentenceToAllInstruments(OCPN_DBP_STC_ARRIV, ' ' , strArr );
 
     // Sumlog distance
@@ -780,21 +821,38 @@ void odometer_pi::Odometer() {
             m_dataCurrDist = m_sumlogInFile.GetFirstLine();
             m_sumlogInFile.Close();
             m_dataCurrDist.ToDouble ( &dataCurrDist);
-            readSumlog = 0;
         } else {
             dataCurrDist = 0.0;
         }
-        // Read sumlog from conf file and fetch the highest
+        // Read sumlog from conf file and use the highest
         m_TotDist.ToDouble ( &TotDist);
         if (dataCurrDist > TotDist) TotDist = dataCurrDist;
+        readSumlog = 0;
     }
 
     // Trip Distance
-    if (UseSavedTrip == 1) {
+
+    if (UseSavedTrip == 0) {      // Reset trip button pressed
         TripDist = 0.0;
-        m_TripDist.ToDouble( &TripDist );
-        UseSavedTrip = 0;
+        UseSavedTrip = 1;
+        ReadTripFromData == 0;
     }
+
+    // Read trip data once from data dir upon start
+    if ((UseSavedTrip == 1) && (ReadTripFromData == 1)) {
+        ReadTripFromData = 0;
+        TripDist = 0.0;          // If file/data is not found
+        m_triplogFile.Clear();
+        m_triplogFile = g_dataDir + _T("triplog.log");
+
+        if (m_triplogInFile.Open(m_triplogFile)) {
+            m_dataCurrDist = m_triplogInFile.GetFirstLine();
+            m_triplogInFile.Close();
+            m_dataCurrDist.ToDouble ( &dataCurrDist);
+        }
+        TripDist = dataCurrDist;
+    }
+
 
     GetDistance();
 
@@ -850,12 +908,39 @@ void odometer_pi::Odometer() {
 
     // Write sumlog distance to data direcrory
     m_sumlogFile = g_dataDir + _T("sumlog.log");
-    wxFileName fn(m_sumlogFile);
-    if ((TotDist == 0) || (TotDist > sumLog)) {
+    wxFileName sl(m_sumlogFile);
+    if (TotDist != sumLog) {
         m_sumlogFileName.Open(m_sumlogFile, wxFile::write);
         m_sumlogFileName.Write(m_TotDist +_T("\r\n"));
         m_sumlogFileName.Close();
         sumLog = TotDist;
+    }
+    // Write trip distance to data direcrory
+    m_triplogFile = g_dataDir + _T("triplog.log");
+    wxFileName tl(m_triplogFile);
+    if (TripDist != tripLog) {
+        m_triplogFileName.Open(m_triplogFile, wxFile::write);
+        m_triplogFileName.Write(m_TripDist +_T("\r\n"));
+        m_triplogFileName.Close();
+        tripLog = TripDist;
+    }
+    // Write departure time to data direcrory
+    m_depTimeFile = g_dataDir + _T("deptime.log");
+    wxFileName dt(m_depTimeFile);
+    if (strDep != departure) {
+        m_depTimeFileName.Open(m_depTimeFile, wxFile::write);
+        m_depTimeFileName.Write(strDep +_T("\r\n"));
+        m_depTimeFileName.Close();
+        departure = strDep;
+    }
+    // Write arrival time to data direcrory
+    m_arrTimeFile = g_dataDir + _T("arrtime.log");
+    wxFileName at(m_arrTimeFile);
+    if (strArr != arrival) {
+        m_arrTimeFileName.Open(m_arrTimeFile, wxFile::write);
+        m_arrTimeFileName.Write(strArr +_T("\r\n"));
+        m_arrTimeFileName.Close();
+        arrival = strArr;
     }
 }
 
@@ -889,17 +974,24 @@ void odometer_pi::GetDistance() {
         StepDist = (SecDiff * (CurrSpeed/DistDiv));
 
         //  Are at start randomly getting extreme values for distance even if validGPS is ok.
-        //    Delay a minimum of 5 seconds at power up to allow everything to be properly set
-        //    before measuring distances
-        if (StartDelay == 1) {
-           int PwrOnDelaySecs = atoi(m_PwrOnDelSecs);
-           if (PwrOnDelaySecs <= 4) PwrOnDelaySecs = 5;
-           wxTimeSpan PwrOnDelay(0,0,PwrOnDelaySecs);
-           EnabledTime = LocalTime.Add(PwrOnDelay);
-           StartDelay = 0;
+        //  Delay a minimum of 5 seconds at power up to allow everything to be properly set
+        //  before measuring distances
+        PowerUpActive = 1;
+        if (PowerUp == 1) {
+            int PwrOnDelaySecs = atoi(m_PwrOnDelSecs);
+            if (PwrOnDelaySecs <= 4) PwrOnDelaySecs = 5;
+            wxTimeSpan PwrOnDelay(0,0,PwrOnDelaySecs);
+            EnabledTime = LocalTime.Add(PwrOnDelay);
+            PowerUp = 0;
         }
 
-        if (LocalTime <= EnabledTime) StepDist = 0.0;
+        if (LocalTime <= EnabledTime) {
+            StepDist = 0.0;
+            PowerUpActive = 1;
+        } else {
+            PowerUpActive = 0;
+        }
+
         if (std::isnan(StepDist)) StepDist = 0.0;
     }
     PrevSec = CurrSec;
@@ -1404,6 +1496,7 @@ void odometer_pi::PopulateContextMenu(wxMenu* menu) {
 }
 
 void odometer_pi::ShowOdometer(size_t id, bool visible) {
+
     if (id < m_ArrayOfOdometerWindow.GetCount()) {
         OdometerWindowContainer *cont = m_ArrayOfOdometerWindow.Item(id);
         m_pauimgr->GetPane(cont->m_pOdometerWindow).Show(visible);

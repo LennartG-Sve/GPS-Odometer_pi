@@ -208,7 +208,8 @@ private:
     double HDOPlevel;
     int validGPS = 0;
     int useNMEA = 0;
-    int StartDelay = 1;
+    int PowerUp = 1;
+    int PowerUpActive = 1;
     int mUTC_Watchdog;
     int GNSSok = 0;
 
@@ -239,7 +240,7 @@ private:
     double NMEASpeed; 
     double CurrSpeed = 0.0; 
     double FilteredSpeed; 
-    double m_OnRouteSpeed;
+    double OnRouteSpeed;
     wxDateTime EnabledTime;
     wxDateTime DepTime;
     wxDateTime ArrTime;
@@ -273,7 +274,7 @@ private:
     wxDateTime LegStart;
     wxTimeSpan LegTime;
 
-    // Save sumlog to data dir
+    // Save log data to data dir
     wxString m_sumlogFile;
     wxFile m_sumlogFileName;
     wxTextFile m_sumlogInFile;
@@ -281,6 +282,27 @@ private:
     int readSumlog = 1;
     wxString m_dataCurrDist;
     double dataCurrDist = 0.0;
+
+    wxString m_triplogFile;
+    wxFile m_triplogFileName;
+    wxTextFile m_triplogInFile;
+    double tripLog = 0.0;
+    int ReadTripFromData = 1;
+
+    wxString m_depTimeFile;
+    wxFile m_depTimeFileName;
+    wxTextFile m_depTimeInFile;
+    wxString departure = " - - - ";
+    wxString dataCurrTime;
+    int ReadDepFromData = 1;
+
+    wxString m_arrTimeFile;
+    wxFile m_arrTimeFileName;
+    wxTextFile m_arrTimeInFile;
+    wxString arrival = " - - - ";
+    int ReadArrFromData = 1;
+    int ArrTimeSet = 1;
+
 
     // Odometer uses version 2 configuration settings
     int m_config_version;

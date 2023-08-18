@@ -7,14 +7,8 @@
 
 == Purpose
 
-The GPS Odometer is a plugin for OpenCPN version 5.0 and higher and 
-supports NMEA2000 via socketCAN if used with OpenCPN version 5.7 and 
-higher. 
-The keyword for this GPS Odometer is simplicity. Note that, as this is a 
-GPS/GNSS based instrument, it requires GPS/GNSS data to display any 
-data at all. The MNEA 0183 sentences RMC and GGA or the PGN's 129026 and
- PGN 129029 for Signal K or NMEA2000 is a must. See further information 
-below.
+The GPS Odometer is a plugin for OpenCPN version 5.0 and higher and supports NMEA2000 via socketCAN if used with OpenCPN version 5.7 and higher.
+The keyword for this GPS Odometer is simplicity. Note that, as this is a GPS/GNSS based instrument, it requires GPS/GNSS data to display any data at all. The MNEA 0183 sentences RMC and GGA or the PGN's 129026 and PGN 129029 for Signal K or NMEA2000 is a must. See further information below.
 
 The GPS Odometer contain these basic functions:
 
@@ -23,202 +17,95 @@ The GPS Odometer contain these basic functions:
 * A Trip Distance log, always displayed.
 * An optional Departure / Arrival timer with digital readout
 * A Trip reset button that resets Trip, Departure Time and Arrival Time
-* An optional Leg Trip time and Distance including Start/Stop Leg and
-Leg reset buttons
+* An optional Leg Trip time and Distance including Start/Stop Leg and Leg reset buttons
 
 == Instruments
 
-The instruments are shown in the above listed order and it is not
-possible to change this order. It is however possible to toggle the
-optional instruments on or off right-clicking on the instrument panel
-and select 'Settings'.
+The instruments are shown in the above listed order and it is not possible to change this order. It is however possible to toggle the optional instruments on or off right-clicking on the instrument panel and select 'Settings'.
 
-. Total distance, Trip distance plus the Trip reset button can not be
-toggled off. Just leave the GPS Odometer on screen and reset the trip
-counter once the trip is ended (and log book written?) or before the
-next trip starts.
-. The trip will be considered started as soon as the speed increases
-above 'Minimum Route Speed', preset at 2 knots (selectable in the
-settings menu). The departure date and time will be displayed on the
-instrument as the upper value for 'Departure & Arrival'.
-. The trip will be considered stopped as soon as the speed decreases
-below 'Minimum Route Speed' and the date and time will be displayed on
-the instrument as the lower value for 'Departure & Arrival'.
-. If the speed then again increases above 'Minimum Route Speed' the trip
-be either continued or restarted depending on if the 'Trip reset' button
-has been clicked or not. You may even shut down OpenCPN for e.g. a lunch
-break, the 'Trip distance' as well as 'Departure & Arrival' times are
-remembered until the Trip reset button is clicked.
-. Departure and arrival times are displayed according to the ISO
-standard 8601 primary alternative ('YYYY-MM-DD HH:MM').
-. 'Total distance' is simply a counter of distance traveled and is not
-affected by the reset button. Note that you can edit (increase only) the 
-'Totaldistance' value in the OpenCPN configuration file e.g. if the GPS
-Odometer is replacing another log instrument. The format is '12345.6'
-(one decimal only) and remember to do that when OpenCPN is shut down or
-your change will be lost.
-. The Leg Trip functionality is a bit different as it has higher time
-and distance resolution, intended for e.g. tight navigation time and
-distance measurements. Like “How far is it between X and Y?” or “How
-long time does it take between Y and Z”. Start or resume the distance
-and time counters clicking the Start/Stop Leg button, it will count
-distance and time until the button is clicked again. Click the Leg Reset
-button to zero distance and time and begin a new count session. This
-counter does not use the 'Minimum Route Speed' setting.
+. Total distance, Trip distance plus the Trip reset button can not be toggled off. Just leave the GPS Odometer on screen and reset the trip counter once the trip is ended (and log book written?) or before the next trip starts.
+. The trip will be considered started as soon as the speed increases above 'Minimum Route Speed', preset at 2 knots (selectable in the settings menu). The departure date and time will be displayed on the instrument as the upper value for 'Departure & Arrival'.
+. The trip will be considered stopped as soon as the speed decreases below 'Minimum Route Speed' and the date and time will be displayed on the instrument as the lower value for 'Departure & Arrival'.
+. If the speed then again increases above 'Minimum Route Speed' the trip be either continued or restarted depending on if the 'Trip reset' button has been clicked or not. You may even shut down OpenCPN for e.g. a lunch break, the 'Trip distance' as well as 'Departure & Arrival' times are remembered until the Trip reset button is clicked.
+. Departure and arrival times are displayed according to the ISO standard 8601 primary alternative ('YYYY-MM-DD HH:MM').
+. 'Total distance' is simply a counter of distance traveled and is not affected by the reset button. Note that you can edit (increase only) the 'Totaldistance' value in the OpenCPN configuration file e.g. if the GPS Odometer is replacing another log instrument. The format is '12345.6' (one decimal only) and remember to do that while OpenCPN is shut down or your change will be lost.
+. The Leg Trip functionality is a bit different as it has higher time and distance resolution, intended for e.g. tight navigation time and distance measurements. Like “How far is it between X and Y?” or “How long time does it take between Y and Z”. Start or resume the distance and time counters clicking the Start/Stop Leg button, it will count distance and time until the button is clicked again. Click the Leg Reset button to zero distance and time and begin a new count session. This counter does not use the 'Minimum Route Speed' setting.
 
-. Several parameters can be adjusted in the 'Settings' menu, just
-right-click somewhere on the instrument and select 'Settings'. 
-. The most important setting is the selection between NMEA 0183 
-(default), Signal K or NMEA2000 as the source protocol. This selection is 
-used to avoid the same type of information from multiple sources but still 
-allowing e.g. NMEA 0183 to be generated from Signal K without affecting 
-the GPS Odometer. This is a common situation when e.g. using a NMEA 2000 
-GPS/GNSS unit and a VHF with NMEA 0183 input.
-. Please do not set 'Min Route Speed' to low or you will get false trip 
-start/stop times due to position inaccuracies and/or when anchored.
-. The Odometer has a filtering that dashboard does not use, e.g. it 
-requires a certain number of satellites (default 4) and a HDOP level of 
-4 (not required by dashboard). These settings can be changed in the 
-OpenCPN configuration file, see the troubleshooting section below.
-.Please note that HDOP and Satellites are used with SIGNAL K that names
-these as 'GNSS Fix', 'DGNSS fix' and 'Precise GNSS'. One of these must 
-be present.
+. Several parameters can be adjusted in the 'Settings' menu, just right-click somewhere on the instrument and select 'Settings'.
+. The most important setting is the selection between NMEA 0183 (default), Signal K or NMEA2000 as the source protocol. This selection is used to avoid the same type of information from multiple sources but still allowing e.g. NMEA 0183 to be generated from Signal K without affecting the GPS Odometer. This is a common situation when e.g. using a NMEA 2000 GPS/GNSS unit and a VHF with NMEA 0183 input.
+. The character settings are:
+'Title': Title rows and button texts
+'Data': Distance and time data
+'Description: Digital speed notation in speedometer
+'Small': Speedometer numbering
+. Please do not set 'Min Route Speed' to low or you will get false trip start/stop times due to position inaccuracies when anchored.
+. The Odometer has a filtering that dashboard does not use, e.g. it requires a certain number of satellites (default 4) and a HDOP level of 4 (not required by dashboard). These settings can be changed in the OpenCPN configuration file, see the troubleshooting section below. Please note that HDOP and Satellites are used with SIGNAL K that names these as 'GNSS Fix', 'DGNSS fix' and 'Precise GNSS'. One of these must be present.
 
-A few notes about GPS/GNSS signal information, coming from NMEA 0183, 
-Signal K or NMEA2000 as selected in the settings menu. If one or both of 
-the required sentences are missing:
+A few notes about GPS/GNSS signal information, coming from NMEA 0183, Signal K or NMEA2000 as selected in the settings menu. If one or both of the required sentences are missing:
 
-. There will be no speed or distance count nor will the GPS Odometer 
-start displaying data until NMEA 0183 GGA or NMEA2000 is indicating a 
-valid GPS/GNSS signal (using the 'Satellites in use' and 'HDOP' 
-information). There is also a few seconds delay (default 15) when powered 
-up or when switching protocol, this to allow the system to be properly 
-settled. Many GPS/GNSS units are also somewhat inaccurate 
-until the position is properly settled. Note that this is a power up / 
-protocol switch delay that has no effect later on. This setting, named 
-PowerOnDelaySecs, may be updated (from 5 and up) in the OpenCPN 
-configuration file.
-. It is essential to use a good quality and stable GPS/GNSS receiver. 
-Some GPS/GNSS units are quite unstable when starting (although they are
-indicating a valid fix) and, as all distances are added, this will add 
-to the trip and total distances or trigger false departure times.
+. There will be no speed or distance count nor will the GPS Odometer start displaying data until NMEA 0183 GGA or NMEA2000 is indicating a valid GPS/GNSS signal (using the 'Satellites in use' and 'HDOP' information). There is also a few seconds delay (default 15) when powered up or when switching protocol, this to allow the system to be properly settled. Many GPS/GNSS units are also somewhat inaccurate until the position is properly settled. Note that this is a power up delay that has no effect later on. This setting, named PowerOnDelaySecs, may be updated (from 5 and up) in the OpenCPN configuration file.
+. It is essential to use a good quality and stable GPS/GNSS receiver. Some GPS/GNSS units are quite unstable when starting (although they are indicating a valid fix) and, as all distances are added, this will add to the trip and total distances or trigger false departure times.
 
 == Multiple GPS/GNSS units
 
-A good and reliable GPS/GNSS unit is the single most important navigational
-tool you have onboard. It should be on top of the list (priority 9). There 
-may also be other GPS/GNSS units, like e.g. AIS or VHF radio with built-in 
-GPS/GNSS receivers, and this may then generate multiple position and speed 
-data. 
-The OpenCPN priority system is message based and may, if a message is e.g.
-incomplete, cause a mix of messages from to different GPS/GNSS units. 
-Messages are also processed in the order received and the last sentence of 
-each type will be used. The order used is as shown in the NMEA Debug Window 
-(opened via 'Options -> Connections' and activating 'Show NMEA Debug Window').
-Also note that the protocol /NMEA0183 / Signal K / NMEA2000) is selected
-in the GPS Odometer settings as all the required signals are currently not 
-available for external plugins like the GPS Odometer. 
+A good and reliable GPS/GNSS unit is the single most important navigational tool you have onboard. It should be on top of the list (priority 9). There may also be other GPS/GNSS units, like e.g. AIS or VHF radio with built-in GPS/GNSS receivers, and this may then generate multiple position and speed data.
+The OpenCPN priority system is message based and may, if a message is e.g. incomplete, cause a mix of messages from to different GPS/GNSS units. Messages are also processed in the order received and the last sentence of each type will be used. The order used is as shown in the NMEA Debug Window (opened via 'Options -> Connections' and activating 'Show NMEA Debug Window').
+Also note that the protocol /NMEA0183 / Signal K / NMEA2000) is selected in the GPS Odometer settings as all the required signals are currently not available for external plugins like the GPS Odometer.
 
-A general recommendation is hence to have one, and only one, reliable good 
-quality GPS/GNSS receiver sending navigational data (e.g. RMC, GGA, GSV and 
-GSA) to OpenCPN. 
+A general recommendation is hence to have one, and only one, reliable good quality GPS/GNSS receiver sending navigational data (e.g. RMC, GGA, GSV and GSA) to OpenCPN.
 
-If you experience problems of any kind when having multiple GPS/GNSS units,  
-then verify by either generating a VDR file for examination (recommended)
-or by opening the NMEA debug window and and check the sentences, those 
-dropped will display in brown. You may close the settings main window 
-and display only the debug window, this will allow you to stop/resume and 
-copy the content if required.
+If you experience problems of any kind when having multiple GPS/GNSS units, then verify by either generating a VDR file for examination (recommended) or by opening the NMEA debug window and and check the sentences, those dropped will display in brown. You may close the settings main window and display only the debug window, this will allow you to stop/resume and copy the content if required.
 
-If generating a VDR file, then use a standard text editor and remove 
-everything but the lines starting with 'xxRMC' or 'xxGGA'. The letters
-'xx' may be 'GP', 'EC' or something else, see the document referenced below.
-Group the lines and then glance through them swiftly comparing them, you 
-will easily spot any irregularities. The trick is then to know which unit
-that is in error. 
+If generating a VDR file, then use a standard text editor and remove everything but the lines starting with 'xxRMC' or 'xxGGA'. The letters 'xx' may be 'GP', 'EC' or something else, see the document referenced below.
+Group the lines and then glance through them swiftly comparing them, you will easily spot any irregularities. The trick is then to know which unit that is in error.
 
-Now test having only one unit sending GPS/GNSS related data, preferably 
-your dedicated GPS/GNSS receiver. All other GPS/GNSS related data should 
-be dropped. You may efficiently do that following this procedure:
+Now test having only one unit sending GPS/GNSS related data, preferably your dedicated GPS/GNSS receiver. All other GPS/GNSS related data should be dropped. You may efficiently do that following this procedure:
 
-. Go to 'Options -> Connections' and select the unit whose sentences 
-should be dropped.
+. Go to 'Options -> Connections' and select the unit whose sentences should be dropped.
 . In the 'Input filtering' select 'Ignore sentences'.
 . Add the sentences RMC, GGA, GSV and GSA to be dropped. 
 
-This should not affect the functionality of any units, just make OpenCPN 
-drop GPS/GNSS generated sentences. If this fixes the problem, then you 
-have an error/discrepancy in the sentences received from your 'extra' 
-GPS/GNSS units.
+This should not affect the functionality of any units, just make OpenCPN drop GPS/GNSS generated sentences. If this fixes the problem, then you have an error/discrepancy in the sentences received from your 'extra' GPS/GNSS units.
 
-A good reference page for NMEA 0183 is found at: 
-https://gpsd.gitlab.io/gpsd/NMEA.html
+A good reference page for NMEA 0183 is found at: https://gpsd.gitlab.io/gpsd/NMEA.html
 
-A note on NMEA 2000 GPS/GNSS units: OpenCPN has currently no option to 
-prioritize units within in a NMEA 2000 network so multiple GPS/GNSS units in 
-the same NMEA 2000 network pose a large risk of getting conflicting messages 
-unless they can be individually controlled.
+A note on NMEA 2000 GPS/GNSS units: OpenCPN has currently no option to prioritize units within a NMEA 2000 network so multiple GPS/GNSS units in the same NMEA 2000 network pose a large risk of getting conflicting messages unless they can be individually controlled.
 
 == General troubleshooting
 
-The most common problem is the GPS/GNSS signal quality, often depending 
-on non-optimum GPS/GNSS unit placement. This can be easily verified 
-examining the NMEA 0183 GGA message using OpenCPN 'Options -> Connections'
-and activating 'Show NMEA Debug Window'. 
-If you are using NMEA 2000 you need to generate NMEA 0183 messages either
-by using the TwoCan plugin or using the signalk-to-nmea0183 app activating 
-GGA messages and reading the NMEA 0183 messages thru port 10110.
+The most common problem is the GPS/GNSS signal quality, often depending on non-optimum GPS/GNSS unit placement. This can be easily verified examining the NMEA 0183 GGA message using OpenCPN 'Options -> Connections' and activating 'Show NMEA Debug Window'.
+If you are using NMEA 2000 you need to generate NMEA 0183 messages either by using the TwoCan plugin or using the signalk-to-nmea0183 app activating GGA messages and reading the NMEA 0183 messages thru port 10110.
 Look for the GGA messages and these fields:
 
-. Field 6 (following the E/W) is the Quality indicator, Should be 1 thru 5
-. Field 7 indicates the number of satellites, should be a minimum of 4.
-The required number of satellites may be adjusted setting the 'SatsRequired' 
-parameter in the OpenCPN configuration file. The allowed range is 4 and up.
-. Field 8 is the HDOP (Horizontal dilution of precision). This should be 
-as low as possible with a default maximum of 4. The HDOP limit may be 
-adjusted setting the 'HDOP' parameter in the OpenCPN configuration file. 
-The allowed range is 1 thru 10. Increasing the 'HDOP' value is a last 
-resort if nothing else helps but also an indication that there is a 
-GPS/GNSS problem, placement or otherwise.
+. Field 6 (following the E/W) is the Quality indicator, Should be 1 thru 5 . Field 7 indicates the number of satellites, should be a minimum of 4.
+The required number of satellites may be adjusted setting the 'SatsRequired' parameter in the OpenCPN configuration file. The allowed range is 4 and up.
+. Field 8 is the HDOP (Horizontal dilution of precision). This should be as low as possible with a default maximum of 4. The HDOP limit may be adjusted setting the 'HDOP' parameter in the OpenCPN configuration file.
+The allowed range is 1 thru 10. Increasing the 'HDOP' value is a last resort if nothing else helps but also an indication that there is a GPS/GNSS problem, placement or otherwise.
 
-If any of these values becomes 'invalid' then the speed indicator will go 
-to '0' and it will take a few seconds before the speedometer is showing 
-any speed. This delay is introduced as the speed may, at start or straight 
-after a valid fix, still show an erroneous value hence affecting the 
-distance calculations. The delay, named 'PowerOnDelaySecs' defaults to 15 
-but may be adjusted setting the parameter in the OpenCPN configuration 
-file. The allowed range is 5 and up. You should never see this effect 
-apart from when the system is started if all is working as it should.
+If any of these values becomes 'invalid' then the speed indicator will go to '0' and it will take a few seconds before the speedometer is showing any speed. This delay is introduced as the speed may, at start or straight after a valid fix, still show an erroneous value hence affecting the distance calculations. The delay, named 'PowerOnDelaySecs' defaults to 15 but may be adjusted setting the parameter in the OpenCPN configuration file. The allowed range is 5 and up. You should never see this effect apart from when the system is started if all is working as it should.
+
+Total distance, Trip distance, Departure time and Arrival time are saved in the OpenCPN configuration file at shutdown. They are also saved in the GPS Odometer data directory as values change. This is done to ensure the information will survive e.g. a power outage or a system crash where OpenCPN does not shut down properly. The information in the data directory overrides the distances and times in the OpenCPN configuration file.
+. 1/ There is one exception for the Total distance where the highest of the two walues is used, see the description for Total distance above.
+. 2/ If a sudden shutdown occurs while on route, no arrival time will be given upon restart as there is no Arrival time available, it will display three dashes instead.
 
 == Bugs and inconveniences
 
-There are a few bugs/inconveniences inherited from the original
-dashboard as the instrument window downsizing when e.g. removing the
-speedometer does not downsize properly. There are also other minor
-display size inconveniences but these are corrected just grabbing the
-lower right corner and adjust the panel size. Worst case solution is to
-restart OpenCPN.
+There are a few bugs/inconveniences inherited from the original dashboard as the instrument window downsizing when e.g. removing the speedometer does not downsize properly. There are also other minor display size inconveniences but these are corrected just grabbing the lower right corner and adjust the panel size. Worst case solution is to restart OpenCPN.
 
-Also, some of the parameters from the Settings menu does not update the
-instruments until OpenCPN is restarted, like the maximum speed setting
-in the speedometer.
+Also, some of the parameters from the Settings menu does not update the instruments until OpenCPN is restarted, like the maximum speed setting in the speedometer.
 
 == Installing
 
 The GPS Odometer is installed using the package manager.
 
-There is (currently?) no version available for the Android environment
-as I don't have either the tools nor the knowledge to do that. Any help
-from the community would be appreciated.
+There is (currently?) no version available for the Android environment as I don't have either the tools nor the knowledge to do that. Any help from the community would be appreciated.
 
-== A final comment
+== Final comments
 
-I did this plugin as I wanted a simple GPS/GNSS based Odometer. The Logbook
-has that option but you may not need all the other stuff in there and
-also wants an on-screen solution.
+The name is 'GPS Odometer' as I started this before any GNSS units was available for regular boaters and changing the name is never a winning concept.
 
-For 'dry-runs' I recommend either trips recorded using OpenCPN VDR
-plugin or gpsfeed+ in a square pattern (getting various speeds).
+I did this plugin as I wanted a simple GPS/GNSS based Odometer. The Logbook has that option but you may not need all the other stuff in there and also wants an on-screen solution.
 
-Contact: You can PM me through OpenCPN in Cruisers Forum, look for
-LennartG or use Search → Advanced search → Search by user name.
+For 'dry-runs' I recommend gpsfeed+ in a square pattern (getting various speeds). This as a regular VDR file does not contain any GPS/GNSS data.
+
+Contact: You can PM me through OpenCPN in Cruisers Forum, look for LennartG or use Search → Advanced search → Search by user name.
