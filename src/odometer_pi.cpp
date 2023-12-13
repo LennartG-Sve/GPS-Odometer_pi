@@ -1203,7 +1203,7 @@ void odometer_pi::WriteTripData() {
 
                 // Get the departure time only and remove the first line if to old
                 while (OldDepartRemove == 1)  {
-                    DepLogAge = m_DataFileTextReader.GetLine(7);
+                    DepLogAge = m_DataFileTextReader.GetLine(8);
                     DepLogAge = DepLogAge.Mid(3,16);
 
                     if (DepLogAge < m_AgeTime) {
@@ -2613,7 +2613,7 @@ void odometer_pi::GenerateLogOutput() {
 
         // Set string positions on first row
         departPos = strLog.find("D:", 0);
-        arrivalPos = strLog.find("A:", 0;
+        arrivalPos = strLog.find("A:", 0);
         restartPos = strLog.find("R:", 0);
         tripPos = strLog.find("T:", arrivalPos);  // Always after arrival
 

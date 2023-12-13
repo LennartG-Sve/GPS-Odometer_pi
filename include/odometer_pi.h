@@ -166,7 +166,6 @@ public:
     void ShowViewLogDialog(wxWindow *parent);
     void GenerateLogOutput();
     void rmOldLogFiles();
-	
 
 	  
     int id;
@@ -283,7 +282,7 @@ private:
     wxString m_TripDist;
     wxString m_confTripDist;
     wxString m_DepTime; 
-    wxString logDepTime; 
+    wxString logDepTime;
     wxString m_ArrTime;
     wxString logArrTime;
     wxString m_ResTime;
