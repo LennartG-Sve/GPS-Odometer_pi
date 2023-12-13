@@ -62,6 +62,7 @@ wxString toSDMM(int NEflag, double a);
 class OdometerInstrument;
 class OdometerInstrument_Single;
 class OdometerInstrument_String;
+class OdometerInstrument_Checkbox;
 
 enum {
 	OCPN_DBP_STC_SOG        = 1 << 0,
@@ -70,10 +71,12 @@ enum {
     OCPN_DBP_STC_DEPART     = 1 << 3,
     OCPN_DBP_STC_ARRIV      = 1 << 4,
     OCPN_DBP_STC_TRIPRES    = 1 << 5,  // Number referenced in button module, do not change!
-    OCPN_DBP_STC_LEGDIST    = 1 << 6,
-    OCPN_DBP_STC_LEGTIME    = 1 << 7,
-    OCPN_DBP_STC_STARTSTOP  = 1 << 8,  // Number referenced in button module, do not change!
-    OCPN_DBP_STC_LEGRES     = 1 << 9,  // Number referenced in button module, do not change!
+    OCPN_DBP_STC_AUTORESET  = 1 << 6,
+    OCPN_DBP_STC_LEGDIST    = 1 << 7,
+    OCPN_DBP_STC_LEGTIME    = 1 << 8,
+    OCPN_DBP_STC_STARTSTOP  = 1 << 9,  // Number referenced in button module, do not change!
+    OCPN_DBP_STC_LEGRES     = 1 << 10, // Number referenced in button module, do not change!
+    OCPN_DBP_STC_SHOWLOG    = 1 << 11, // Number referenced in button module, do not change!
 };
 
 
@@ -134,5 +137,27 @@ protected:
 	
 	void Draw(wxGCDC *dc);
 };
+
+class OdometerInstrument_Checkbox : public OdometerInstrument {
+public:
+	OdometerInstrument_Checkbox(wxWindow *pparent, wxWindowID id, wxString title, int autoReset);
+	~OdometerInstrument_Checkbox(){}
+
+    void autoreset(wxCommandEvent &event);
+	wxSize GetSize(int orient, wxSize hint);
+	void SetData(int st, double data, wxString unit);
+
+ private:
+
+    wxCheckBox *m_AutoTripReset;
+
+protected:
+	wxString m_data;
+	wxString m_format;
+	int m_DataHeight;
+	
+	void Draw(wxGCDC *dc);
+};
+
 
 #endif // _INSTRUMENT_H_

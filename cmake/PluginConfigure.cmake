@@ -437,8 +437,6 @@ IF(DEFINED _wx_selected_config)
         MESSAGE (STATUS "${CMLOC}Using GLESv2 for Android")
         ADD_DEFINITIONS(-DUSE_ANDROID_GLES2)
         ADD_DEFINITIONS(-DUSE_GLSL)
-        include_directories( ${PROJECT_SOURCE_DIR}/libs/glshim/include/GLES )
-        set(EXTINCLUDE_DIR ${EXTINCLUDE_DIR} ${PROJECT_SOURCE_DIR}/libs/glshim/include/GLES)
 
     ENDIF(_wx_selected_config MATCHES "androideabi-qt")
 ENDIF(DEFINED _wx_selected_config)
@@ -454,7 +452,7 @@ IF(QT_ANDROID)
     set(CMAKE_SHARED_LINKER_FLAGS "-Wl,-soname,libgorp.so ")
 
     #set(CMAKE_POSITION_INDEPENDENT_CODE ON)
-    SET(CMAKE_CXX_FLAGS "-pthread -fPIC")
+    SET(CMAKE_CXX_FLAGS "-pthread -fPIC ")
 
     ## Compiler flags
     add_compile_options("-Wno-inconsistent-missing-override"
@@ -491,15 +489,7 @@ if((NOT OPENGLES_FOUND) AND (NOT QT_ANDROID))
         message(STATUS "${CMLOC}OpenGL disabled by option...")
     endif(USE_GL MATCHES "ON")
 
-    if(USE_LOCAL_GLU)
-        message(STATUS "${CMLOC}    Adding local GLU")
-        add_subdirectory(libs/glu)
-        message(STATUS "${CMLOC}PACKAGE_NAME: ${PACKAGE_NAME}")
-        target_link_libraries(${PACKAGE_NAME} "GLU_static")
-        #set(OPENGL_LIBRARIES "GLU_static" ${OPENGL_LIBRARIES})
-        add_definitions(-DocpnUSE_GL)
-        message(STATUS "${CMLOC}    Revised GL Lib (with local): " ${OPENGL_LIBRARIES})
-    elseif(OPENGL_FOUND)
+    if(OPENGL_FOUND)
 
         set(wxWidgets_USE_LIBS ${wxWidgets_USE_LIBS} gl)
         include_directories(${OPENGL_INCLUDE_DIR})
@@ -642,7 +632,7 @@ else(NOT QT_ANDROID)
 
     # Needed for android builds
     include_directories(BEFORE ${qt_android_include})
-
+	
 endif(NOT QT_ANDROID)
 
 find_package(Gettext REQUIRED)

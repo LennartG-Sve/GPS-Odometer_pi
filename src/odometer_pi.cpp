@@ -34,9 +34,11 @@
 // wxWidgets Precompiled Headers
 #include "wx/wxprec.h"
 #include "stdlib.h"
+// #include <cstdlib>
 
 #ifndef  WX_PRECOMP
 #include "wx/wx.h"
+#include "wx/radiobox.h"
 #endif
 
 #include "../include/odometer_pi.h"
@@ -50,6 +52,10 @@
 #include "../libs/wxJSON/include/jsonwriter.h"
 #include "../libs/N2KParser/include/N2KParser.h"
 #include <string>
+#include <wx/textfile.h>
+#include <wx/stdpaths.h>
+#include <wx/utils.h>
+#include <wx/mimetype.h>
 
 // Global variables for fonts
 wxFont *g_pFontTitle;
@@ -59,19 +65,46 @@ wxFont *g_pFontSmall;
 
 
 // Preferences, Units and Values
-int       g_iShowSpeed = 1;
-int       g_iShowDepArrTimes = 1;
-int       g_iShowTripLeg = 1;
-int       g_iOdoProtocol;
-int       g_iOdoSpeedMax;
-int       g_iOdoOnRoute;
-int       g_iOdoUTCOffset;
-int       g_iOdoSpeedUnit;
-int       g_iOdoDistanceUnit;
-int       g_iResetTrip = 0;
-int       g_iStartStopLeg = 0;
-int       g_iResetLeg = 0;
-wxString  g_dataDir;
+int         g_iShowSpeed = 1;
+int         g_iShowDepArrTimes = 1;
+int         g_iShowTripLeg = 1;
+int         g_iGenerateLogFile = 1;
+int         g_iLogFileAge = 0;
+int         g_iIncludeTripStops = 0;
+int         g_iTripStopMinutes = 5;
+int         g_iSelectLogTrips;
+int         g_iSelectLogFormat;
+int         g_iSelectLogOutput;
+int         g_iOdoProtocol;
+int         g_iOdoSpeedMax;
+int         g_iOdoOnRoute;
+int         g_iOdoUTCOffset;
+int         g_iOdoSpeedUnit;
+int         g_iOdoDistanceUnit;
+int         g_iResetTrip = 0;
+int         g_iStartStopLeg = 0;
+int         g_iResetLeg = 0;
+int         g_iAutoResetTrip = 0;
+int         g_iAutoResetTripTime = 6;
+wxString    g_sDataDir;
+
+/*
+TripMode = 0;    // Trip reset, speed below OnRoute
+TripMode = 1;    // Departed, speed above OnRoute
+TripMode = 2;    // Speed below OnRoute, arrived after departure
+TripMode = 3;    // Resuming trip, speed above OnRoute
+TripMode = 4;    // Speed below OnRoute, arrived after resumed trip
+TripMode = 5;    // Checking and eventually removing trip stops
+TripMode = 6;    // Remove last arrival and skip this resume
+
+Default log settings:
+   Generate log file:    Yes
+   Include Trip Stops:   No
+   Trip Stop Minutes:    120 minutes
+   Number of Log Trips;  Last three trips
+   Log Format:           HTML
+   Log Output:           Open output in viewer
+*/
 
 
 // Watchdog timer, performs two functions, firstly refresh the odometer every second,
@@ -103,8 +136,8 @@ extern "C" DECL_EXP void destroy_pi(opencpn_plugin* p) {
 // do not change the order, add new instruments at the end, before ID_DBP_LAST_ENTRY!
 // otherwise, for users with an existing opencpn configuration file, their instruments are changing !
 enum { ID_DBP_D_SOG, ID_DBP_I_SUMLOG, ID_DBP_I_TRIPLOG, ID_DBP_I_DEPART, ID_DBP_I_ARRIV,
-       ID_DBP_B_TRIPRES, ID_DBP_I_LEGDIST, ID_DBP_I_LEGTIME, ID_DBP_B_STARTSTOP,
-       ID_DBP_B_LEGRES,
+       ID_DBP_B_TRIPRES, ID_DBP_C_AUTORESET, ID_DBP_I_LEGDIST, ID_DBP_I_LEGTIME,
+       ID_DBP_B_STARTSTOP, ID_DBP_B_LEGRES,
        ID_DBP_LAST_ENTRY /* this has a reference in one of the routines; defining a
        "LAST_ENTRY" and setting the reference to it, is one codeline less to change (and 
        find) when adding new instruments :-)  */
@@ -119,12 +152,14 @@ wxString GetInstrumentCaption(unsigned int id) {
             return _("Sum Log Distance");
         case ID_DBP_I_TRIPLOG:
             return _("Trip Log Distance");
-        case ID_DBP_B_TRIPRES:
-            return _("Reset Trip");
         case ID_DBP_I_DEPART:
             return _("Departure & Arrival");
         case ID_DBP_I_ARRIV:
             return wxEmptyString;
+        case ID_DBP_B_TRIPRES:
+            return _("Reset Trip");
+        case ID_DBP_C_AUTORESET:
+            return _("Autoreset Trip");
         case ID_DBP_I_LEGDIST:
             return _("Leg Distance & Time");
         case ID_DBP_I_LEGTIME:
@@ -149,9 +184,10 @@ void GetListItemForInstrument(wxListItem &item, unsigned int id) {
         break;
         case ID_DBP_I_SUMLOG:
         case ID_DBP_I_TRIPLOG:
-        case ID_DBP_B_TRIPRES:
         case ID_DBP_I_DEPART:
         case ID_DBP_I_ARRIV:
+        case ID_DBP_B_TRIPRES:
+        case ID_DBP_C_AUTORESET:
         case ID_DBP_I_LEGDIST:
         case ID_DBP_I_LEGTIME:
         case ID_DBP_B_LEGRES:
@@ -216,18 +252,7 @@ int odometer_pi::Init(void) {
     wxString toggledIcon = iconFolder + _T("gpsodometer_toggled.svg");
     wxString rolloverIcon = iconFolder + _T("gpsodometer_rollover.svg");
 
-    g_dataDir = iconFolder;
-
-    // For journeyman styles, we prefer the built-in raster icons which match the rest
-    // of the toolbar.
-
-/*
-    if (GetActiveStyleName().Lower() != _T("traditional")) {
-	normalIcon = iconFolder + _T("odometer.svg");
-	toggledIcon = iconFolder + _T("odometer_toggled.svg");
-	rolloverIcon = iconFolder + _T("odometer_rollover.svg");
-    }   
-*/
+    g_sDataDir = iconFolder;
 
     // Add toolbar icon (in SVG format)
     m_toolbar_item_id = InsertPlugInToolSVG(_T(""), normalIcon, rolloverIcon, 
@@ -267,11 +292,17 @@ int odometer_pi::Init(void) {
     return ( WANTS_CURSOR_LATLON | WANTS_TOOLBAR_CALLBACK | INSTALLS_TOOLBAR_TOOL
             | WANTS_PREFERENCES | WANTS_CONFIG | WANTS_NMEA_SENTENCES | WANTS_NMEA_EVENTS
             | USES_AUI_MANAGER | WANTS_PLUGIN_MESSAGING );
+
 }
 
 bool odometer_pi::DeInit(void) {
     // Save the current configuration
     SaveConfig();
+
+    // Save current distances
+    saveTripDist = 1;
+    saveTotDist = 1;
+    WriteTripData();
 
     // Is watchdog timer started?
     if (IsRunning()) {
@@ -392,18 +423,6 @@ void odometer_pi::ParseSignalK( wxString &msg) {
             m_self = _T("vessels.") + (root["self"].AsString());   // for Node.js server
     }
 
-
-    // TODO: Fix if possible
-    // This causes SignalK to fail if OpenCPN is started with Signal K enabled,
-    // requires SK to be reenabled to work properly.
-//    if(root.HasMember("context") && root["context"].IsString()) {
-//        auto context = root["context"].AsString();
-//        if (context != m_self) {
-//            return;
-//        }
-//    }
-
-
     if(root.HasMember("updates") && root["updates"].IsArray()) {
         wxJSONValue &updates = root["updates"];
         for (int i = 0; i < updates.Size(); ++i) {
@@ -473,10 +492,10 @@ void odometer_pi::updateSKItem(wxJSONValue &item, wxString &talker, wxString &sf
             else if (update_path == _T("navigation.gnss.satellites")) {
                 if (value.IsInt()) {
                     SKSatsUsed = (value.AsInt());
-                    if (SatsRequired <= 4) SatsRequired == 4;  // at least 4 satellites required
+                      // at least 4 satellites required
+                    if (SatsRequired <= 4) SatsRequired == 4;
                 }
             }
-
 
             else if (update_path == _T("navigation.gnss.methodQuality")) {
                  wxString SKGNSS_quality = (value.AsString());
@@ -524,7 +543,8 @@ void odometer_pi::SetNMEASentence(wxString &sentence) {
 
                     SatsUsed = m_NMEA0183.Gga.NumberOfSatellitesInUse;
                     SatsRequired = atoi(m_SatsRequired);
-                    if (SatsRequired <= 4) SatsRequired == 4;  // at least 4 satellites required
+                    // at least 4 satellites required
+                    if (SatsRequired <= 4) SatsRequired == 4;
 
                     HDOPlevel = m_NMEA0183.Gga.HorizontalDilutionOfPrecision;
                     HDOPdefine = atoi(m_HDOPdefine);
@@ -637,7 +657,6 @@ void odometer_pi::HandleN2K_129029(ObservedEvt ev) {
       }
 
       wxString dmsg( _T("HandleN2KSpeed: ") );
-//      std::string hdop = std::to_string(nSatellites); 
       dmsg.append(talker_N2k);
       wxLogMessage(dmsg);
       printf("%s\n", dmsg.ToUTF8().data());
@@ -650,40 +669,39 @@ void odometer_pi::HandleN2K_129029(ObservedEvt ev) {
 
 void odometer_pi::Odometer() {
 
-    //  Adjust time to local time zone used by departure and arrival times
+     //  Adjust time to local time zone used by departure and arrival times
     UTCTime = wxDateTime::Now();
     double offset = ((g_iOdoUTCOffset-24)*30);
     wxTimeSpan TimeOffset(0, offset,0);
     LocalTime = UTCTime.Add(TimeOffset);
-
-    // First time start
-    if (m_DepTime == "2020-01-01 00:00:00") {
-        m_DepTime = LocalTime.Format(wxT("%F %T"));
-        m_ArrTime = LocalTime.Format(wxT("%F %T"));
-    }
+    m_LocalTime = LocalTime.FormatISOCombined(' ');
 
     // Speedometer
     FilterSOG = atoi(m_FilterSOG);
-    if (FilterSOG != 0 ) CurrSpeed = FilteredSpeed;  // Filtered speed from OpenCPN (always?)
+    // Filtered speed from OpenCPN (always?)
+    if (FilterSOG != 0 ) CurrSpeed = FilteredSpeed;
 
     // Cover a speed bug in Signal K when no sats are found
-    // Error when GNSSok goes from 0 to 1 as speeds remains over the onRoute limit triggering
-    // false dep/arr times due to 'Filter NMEA Course and speed data'.
-    // The PwrOnDelaySecs is used to delay the GNSSok valid detection.
+    // Error when GNSSok goes from 0 to 1 as speeds remains over the onRoute limit
+    // triggering false dep/arr times due to 'Filter NMEA Course and speed data'.
+    // PwrOnDelaySecs is used to delay the GNSSok valid detection.
 
-    if (GNSSok == 0) {
+    wxDateTime GPSTime;    // Dummy for proper CurrTime function
+
+    if (GNSSok == 0) {     // Give GPS time to stabilize once saying it's ok
        CurrSpeed = 0.0;
+       CurrTime = LocalTime;
        int PwrOnDelaySecs = atoi(m_PwrOnDelSecs);
        if (PwrOnDelaySecs <= 4) PwrOnDelaySecs = 5;
        wxTimeSpan PwrOnDelay(0,0,PwrOnDelaySecs);
-       EnabledTime = LocalTime.Add(PwrOnDelay);
+       wxDateTime GPSTime = CurrTime.Add(PwrOnDelay);
     }
-    if (EnabledTime >= LocalTime) {
+
+    if ((CurrTime > LocalTime) || (PowerUpActive == 1)) {
         SendSentenceToAllInstruments(OCPN_DBP_STC_SOG, toUsrSpeed_Plugin (0.0,
             g_iOdoSpeedUnit), getUsrSpeedUnit_Plugin(g_iOdoSpeedUnit));
         CurrSpeed=0.0;
     } else {
-
         // Filter out not wanted decimals from iirfilter, need one decimal only
         SendSentenceToAllInstruments(OCPN_DBP_STC_SOG, toUsrSpeed_Plugin
             (round(mSOGFilter.filter(CurrSpeed) * 10) / 10,g_iOdoSpeedUnit),
@@ -693,17 +711,26 @@ void odometer_pi::Odometer() {
     /* TODO: There must be a better way to receive the reset event from
              'OdometerInstrument_Button' but using a global variable for transfer.  */
     if (g_iResetTrip == 1) {
-        SetDepTime = 1;
+
+//        printf("\nReset trip detected:      %s",m_LocalTime.mb_str().data());
+//        printf("\n");
+
         UseSavedDepTime = 0;
         UseSavedArrTime = 0;
         UseSavedTrip = 0;
         DepTimeShow = 0;
         ArrTimeShow = 0;
-        m_DepTime = "---";
-        m_ArrTime = "---";
+        strDep = "---";
+        strArr = "---";
         TripDist = 0.0;
         m_TripDist << TripDist;
         // SaveConfig();              // TODO BUG: Does not save config file
+        TripMode = 0;
+        saveTripMode = 1;
+        saveTripDist = 1;
+        WriteTripData();
+        readDataFile = 1;
+        g_iLogFileAge = 1;
         g_iResetTrip = 0;
     }
 
@@ -717,158 +744,310 @@ void odometer_pi::Odometer() {
         g_iResetLeg = 0;
     }
 
-    // Set departure time to local time if CurrSpeed is greater than or equal to OnRouteSpeed
+    // Set departure time to local time if CurrSpeed is greater than or equal to
     OnRouteSpeed = g_iOdoOnRoute;
-    // Reset after arrival, before system shutdown
-    if ((CurrSpeed >= OnRouteSpeed) && m_DepTime == "---" )  {
-        m_DepTime = LocalTime.Format(wxT("%F %T"));
+    // Reset after arrival
+    if ((CurrSpeed >= OnRouteSpeed) && strDep == "---" )  {
+        DepTime = LocalTime;
+        m_DepTime = LocalTime.FormatISOCombined(' ');
     }
 
     // Reset after power up, before trip start
     if ((CurrSpeed >= OnRouteSpeed) && SetDepTime == 1 )  {
-        m_DepTime = LocalTime.Format(wxT("%F %T"));
+        DepTime = LocalTime;
+        m_DepTime = LocalTime.FormatISOCombined(' ');
         SetDepTime = 0;
     }
 
     // Departure time
     // Reset trip button pressed
-//    if ((CurrSpeed >= OnRouteSpeed) && (UseSavedDepTime == 0)) {
     if (UseSavedDepTime == 0) {
         DepTime = LocalTime;
         UseSavedDepTime = 1;
-        ReadDepFromData == 0;
-        DepTimeShow = 0;
-        if (CurrSpeed >= OnRouteSpeed) DepTimeShow = 1;
-    }
-
-    // Read departure time once from data dir upon start
-    if ((UseSavedDepTime == 1) && (ReadDepFromData == 1)) {
         ReadDepFromData = 0;
-        strDep = "---";          // If file/data is not found
-
-        m_depTimeFile.Clear();
-        m_depTimeFile = g_dataDir + _T("deptime.log");
-
-        if (m_depTimeInFile.Open(m_depTimeFile)) {
-            m_DepTime = m_depTimeInFile.GetFirstLine();
-            m_depTimeInFile.Close();
-            strDep = m_DepTime.Format(wxT("%F %R"));
-        }
+        DepTimeShow = 0;
+        if (CurrSpeed >= OnRouteSpeed)  DepTimeShow = 1;
     }
-    strDep = m_DepTime.Truncate(16);  // Cut seconds
-    if (CurrSpeed >= OnRouteSpeed) DepTimeShow = 1;
-    if (DepTimeShow == 0) strDep = "---";    // Trip reset selected
-    SendSentenceToAllInstruments(OCPN_DBP_STC_DEPART, ' ' , strDep );
+
+    if ((CurrSpeed > OnRouteSpeed) && (PowerUpActive == 0)) {
+        DepTimeShow = 1;
+        if ((g_iGenerateLogFile == 1) && (TripMode == 0))  {
+
+            // Save logDepTime to trip data log file
+            TripMode = 1;
+            saveTripDist = 1;
+            saveTotDist = 1;
+            saveDepTime = 1;
+            saveTripMode = 1;
+            WriteTripData();
+        }
+
+        // Log restarted trip after departure or resumed trip
+        if ((g_iGenerateLogFile == 1) && (PowerUpActive == 0) &&
+            ((TripMode == 2) || (TripMode == 4)))  {
+
+//            printf("\nRestarted trip at:        %s",m_LocalTime.mb_str().data());
+//            printf("\nTrip mode:                %d",TripMode);
+//            printf("\n");
+
+            // Fetch trip stop times, setup in setup dialogue
+            switch (g_iTripStopMinutes) {
+                case 0:
+                    StopMinutes = 0;
+                    break;
+                case 1:
+                    StopMinutes = 5;
+                    break;
+                case 2:
+                    StopMinutes = 15;
+                    break;
+                case 3:
+                    StopMinutes = 30;
+                    break;
+                case 4:
+                    StopMinutes = 60;
+                    break;
+                case 5:
+                    StopMinutes = 120;
+                    break;
+                case 6:
+                    StopMinutes = 240;
+                    break;
+                case 7:
+                    StopMinutes = 480;
+                    break;
+                case 8:
+                    StopMinutes = 9999;
+                    break;
+            }
+
+            // Define required time between arrival and resumed trip
+            g_iIncludeTripStops = 1;
+            if (StopMinutes == 9999) g_iIncludeTripStops = 0;
+            wxDateTime TripStopTime;
+            TripStopTime = ArrTime;
+            wxTimeSpan TripStopDelay(0,StopMinutes,0);
+            TripStopTime = TripStopTime.Add(TripStopDelay);
+            wxString m_ResumeAfter = TripStopTime.FormatISOCombined(' ');
+
+            // Trip resumed, set new TripMode and write data to disk
+            TripMode = 5;
+            saveTripDist = 1;
+            saveTotDist = 1;
+            saveResTime = 1;
+            saveTripMode = 1;
+            WriteTripData();
+        }
+   }
+
+    strDep = m_DepTime;
+    strDep = strDep.Truncate(16);  // Cut seconds for instrument
+
+    if (DepTimeShow == 0) {
+        strDep = "---";    // Trip reset selected
+    }
+    SendSentenceToAllInstruments(OCPN_DBP_STC_DEPART, ' ' , strDep);
 
 
-    // Arrival time
+    // Arrival and Resume times
     // Reset trip button pressed
-//    if ((CurrSpeed >= OnRouteSpeed) && (UseSavedArrTime == 0)) {
     if (UseSavedArrTime == 0) {
         ArrTime = LocalTime;
+        ResTime = LocalTime;
         UseSavedArrTime = 1;
-        ReadArrFromData == 0;
-        ArrTimeShow = 0;
-        if (CurrSpeed >= OnRouteSpeed) ArrTimeShow = 1;
-    }
-
-    // Read arrival time once from data dir upon start
-    if ((UseSavedArrTime == 1) && (ReadArrFromData == 1)) {
         ReadArrFromData = 0;
-        strArr = "---";          // If file/data is not found
+        ArrTimeShow = 0;
+    }
 
-        m_arrTimeFile.Clear();
-        m_arrTimeFile = g_dataDir + _T("arrtime.log");
+    // Arrival detected and logged
+    if ((CurrSpeed < OnRouteSpeed) && (PowerUpActive == 0))  {
 
-        if (m_arrTimeInFile.Open(m_arrTimeFile)) {
-            m_ArrTime = m_arrTimeInFile.GetFirstLine();
-            m_arrTimeInFile.Close();
-            strArr = m_ArrTime.Format(wxT("%F %R"));
+        // Write trip mode and arrival info to log file
+        if ((TripMode == 1) || (TripMode == 3))  {
+
+            if (TripMode == 1)  TripMode = 2;   // Arrived after departure
+            if (TripMode == 3)  TripMode = 4;   // Arrived after resumed trip
+
+            // Save to data log file
+            saveTripDist = 1;
+            saveTotDist = 1;
+            saveArrTime = 1;
+            saveTripMode = 1;
+            WriteTripData();
         }
-        strArr = m_ArrTime.Truncate(16);  // Cut seconds
-
-        // Show dashes if no arrival time after shutdown
-        wxString Century = std::to_string(20);
-        if (m_ArrTime.Truncate(2) != Century) ArrTimeShow = 0;
     }
 
-    // Tour started or restarted
-    if ((CurrSpeed > OnRouteSpeed + 0.1) && (ArrTimeSet == 1) && (PowerUpActive == 0) ) {
-          ArrTimeSet = 0;
-          ArrTimeShow = 1;
-    }
-
-    // Tour finished or interrupted
-    if ((CurrSpeed < OnRouteSpeed) && (ArrTimeSet == 0) && (PowerUpActive == 0)) {
-        ArrTime = LocalTime;
-        strArr = ArrTime.Format(wxT("%F %R"));
-        ArrTimeSet = 1;
+    strArr = m_ArrTime;
+    strArr = strArr.Truncate(16);  // Cut seconds
+    if (CurrSpeed > OnRouteSpeed) {
         ArrTimeShow = 1;
+        strArr = _("On Route");
     }
-
-    if (CurrSpeed > OnRouteSpeed) strArr = _("On Route");
     if (ArrTimeShow == 0) strArr = "---";    // Trip reset selected
+
     SendSentenceToAllInstruments(OCPN_DBP_STC_ARRIV, ' ' , strArr );
 
-    // Sumlog distance
-    // Read sumlog distance from data direcrory
+    // Read updated distances and times from data direcrory
+    if ((ReadSavedData == 1) && (m_DataFileTextReader.Open(m_DataFile))) {
+//        printf("\n\nTrip data file opened at: %s",m_LocalTime.mb_str().data());
 
-    if (readSumlog == 1) {
-        m_sumlogFile.Clear();
-        m_sumlogFile = g_dataDir + _T("sumlog.log");
-
-        if (m_sumlogInFile.Open(m_sumlogFile)) {
-            m_dataCurrDist = m_sumlogInFile.GetFirstLine();
-            m_sumlogInFile.Close();
-            m_dataCurrDist.ToDouble ( &dataCurrDist);
-        } else {
-            dataCurrDist = 0.0;
+        if (ReadTripFromData == 1)  {
+            m_dataTripDist = m_DataFileTextReader.GetLine(0);
+            m_dataTripDist.ToDouble(&dataTripDist);   // From data save
+            m_confTripDist.ToDouble(&TripDist);       // From conf file
+            // Use TripDist from conf file if higher (user updated value)
+            if (dataTripDist >= TripDist) {
+                TripDist = dataTripDist;
+                saveTripDist = 1;
+            }
+//            printf("\nTrip Distance:            %s",m_dataTripDist.mb_str().data());
+            ReadTripFromData = 0;
         }
-        // Read sumlog from conf file and use the highest
-        m_TotDist.ToDouble ( &TotDist);
-        if (dataCurrDist > TotDist) TotDist = dataCurrDist;
-        readSumlog = 0;
+
+        if (ReadSumlogFromData == 1)  {
+            m_dataTotDist = m_DataFileTextReader.GetLine(1);
+            m_dataTotDist.ToDouble(&dataTotDist);  // From data save
+            m_confTotDist.ToDouble(&TotDist);      // From conf file
+            // Use TotDist from conf file if higher (user updated value)
+            if (dataTotDist >= TotDist) {
+                TotDist = dataTotDist;
+                saveTotDist = 1;
+            }
+//            printf("\nTotal Distance:           %s",m_dataTotDist.mb_str().data());
+            ReadSumlogFromData = 0;
+        }
+
+        if (ReadDepFromData == 1)  {
+            m_DepTime = m_DataFileTextReader.GetLine(2);
+//            printf("\nDeparture time:           %s",m_DepTime.mb_str().data());
+            ReadDepFromData = 0;
+        }
+
+        if (ReadArrFromData == 1)  {
+            m_ArrTime = m_DataFileTextReader.GetLine(3);
+//            printf("\nArrival time:             %s",m_ArrTime.mb_str().data());
+            ReadArrFromData = 0;
+        }
+
+        if (ReadResFromData == 1)  {
+            m_ResTime = m_DataFileTextReader.GetLine(4);
+            if (m_ResTime < m_DepTime) m_ResTime = m_DepTime;
+//            printf("\nResumed trip at:          %s",m_ResTime.mb_str().data());
+            ReadResFromData = 0;
+        }
+
+        if (ReadTripModeFromData == 1)  {
+            strTripMode = m_DataFileTextReader.GetLine(5);
+            TripMode = wxAtoi(strTripMode);
+//            printf("\nTrip Mode:                %d",TripMode);
+            ReadTripModeFromData = 0;
+        }
+
+        if (ReadTripAutoResetFromData == 1)  {
+            strTripAutoReset = m_DataFileTextReader.GetLine(6);
+            AutoReset = wxAtoi(strTripAutoReset);
+//            printf("\nAuto reset trip:          %d",AutoReset);
+            ReadTripAutoResetFromData = 0;
+        }
+
+        m_DataFileTextReader.Close();
+        ReadSavedData = 0;
+//        printf("\nAll trip data read\n");
     }
 
-    // Trip Distance
 
-    if (UseSavedTrip == 0) {      // Reset trip button pressed
+    // Trip Distance, reset trip button pressed
+    if (UseSavedTrip == 0) {
         TripDist = 0.0;
         UseSavedTrip = 1;
-        ReadTripFromData == 0;
-    }
-
-    // Read trip data once from data dir upon start
-    if ((UseSavedTrip == 1) && (ReadTripFromData == 1)) {
         ReadTripFromData = 0;
-        TripDist = 0.0;          // If file/data is not found
-        m_triplogFile.Clear();
-        m_triplogFile = g_dataDir + _T("triplog.log");
-
-        if (m_triplogInFile.Open(m_triplogFile)) {
-            m_dataCurrDist = m_triplogInFile.GetFirstLine();
-            m_triplogInFile.Close();
-            m_dataCurrDist.ToDouble ( &dataCurrDist);
-        }
-        TripDist = dataCurrDist;
     }
-
 
     GetDistance();
 
-    // Need not save full double or spaces
+    //  Are at start randomly getting extreme values for distance even if validGPS
+    //  is ok.
+    //  Delay a minimum of 5 seconds at power up to allow everything to be properly
+    //  set before measuring distances
+
+    wxDateTime PwrTime;    // Dummy for proper EnabledTime function
+
+    if (Initializing == 1) {
+        EnabledTime = LocalTime;
+        int PwrOnDelaySecs = atoi(m_PwrOnDelSecs);
+        if (PwrOnDelaySecs <= 4) PwrOnDelaySecs = 5;
+        wxTimeSpan PwrOnDelay(0,0,PwrOnDelaySecs);
+        wxDateTime PwrTime = EnabledTime.Add(PwrOnDelay);
+        DefineTripData();
+        Initializing = 0;
+        ReadSavedData = 1;
+        ReadSumlogFromData = 1;
+        ReadTripFromData = 1;
+        ReadDepFromData = 1;
+        ReadArrFromData = 1;
+        ReadResFromData = 1;
+        ReadTripModeFromData = 1;
+        AutoReset = 1;
+        ReadTripAutoResetFromData = 1;
+    }
+
+    PowerUpActive = 1;
+    if (EnabledTime > LocalTime) {  // Poer up time delay elapsed
+        StepDist = 0.0;
+        PowerUpActive = 1;
+    } else {
+        PowerUpActive = 0;
+    }
+
+
+    // Total distance (sumlog)
+    oldTotDist = TotDist;
     TotDist = (TotDist + StepDist);
+    // First decimal changed? Then save the current value
+    if (trunc(TotDist * 10) > trunc(oldTotDist * 10)) {
+        saveTripDist = 1;
+        saveTotDist = 1;
+        WriteTripData();
+    }
+
+    // Generate string info, only one decimal,
+    // and remove eventual whitespace before and after
+    // Need to go this way to avoid rounding error and trailing zeroes
     m_TotDist = " ";
-    m_TotDist.Printf("%.1f",TotDist);
+    m_TotDist.Printf("%f",trunc(TotDist*10)/10); // Cut to one decimal
+    m_TotDist.ToDouble(&dispTotDist);
+    m_TotDist.Printf("%.1f", dispTotDist); // Cut trailing zeroes
     m_TotDist.Trim(0);
     m_TotDist.Trim(1);
 
+    // Display uses double, need the one with one decimal
+    m_TotDist.ToDouble(&dispTotDist);
+
+
+    // Trip distance
+    oldTripDist = TripDist;
     TripDist = (TripDist + StepDist);
+    // First decimal changed? Then save the current value
+    if (trunc(TripDist * 10) > trunc(oldTripDist * 10)) {
+        saveTripDist = 1;
+        saveTotDist = 1;
+        WriteTripData();
+    }
+
+    // Generate string info, only one decimal,
+    // and remove eventual whitespace before and after
+    // Need to go this way to avoid rounding error and trailing zeroes
     m_TripDist = " ";
-    m_TripDist.Printf("%.1f",TripDist);
+    m_TripDist.Printf("%f",trunc(TripDist*10)/10); // Zero all but first decimal
+    m_TripDist.ToDouble(&dispTripDist);
+    m_TripDist.Printf("%.1f", dispTripDist);  // Cut trailing zeroes
     m_TripDist.Trim(0);
     m_TripDist.Trim(1);
 
+    // Display uses double, need the one with one decimal
+    m_TripDist.ToDouble(&dispTripDist);
+
+    // Leg Trip
     // Toggle leg counter and button text
     if (g_iStartStopLeg == 1) {
         if (CountLeg == 1) {
@@ -892,59 +1071,261 @@ void odometer_pi::Odometer() {
         LegStart = LocalTime.Subtract(LegTime);
     }
 
+    // Generate string info, use two decimals,
+    // and remove eventual whitespace before and after
+    // Need to go this way to avoid rounding error and trailing zeroes
     m_LegDist = " ";
-    m_LegDist.Printf("%.2f",LegDist);
+    m_LegDist.Printf("%f",trunc(LegDist*100)/100); // Zero all but two first decimals
+    m_LegDist.ToDouble(&dispLegDist);
+    m_LegDist.Printf("%.2f", dispLegDist);  // Cut trailing zeroes
     m_LegDist.Trim(0);
     m_LegDist.Trim(1);
+
+    // Display uses double, need the one with two decimals
+    m_LegDist.ToDouble(&dispLegDist);
+
 
     m_LegTime = LegTime.Format("%H:%M:%S");
     wxString strLegTime;
     strLegTime = LegTime.Format("%H:%M:%S");
 
-    SendSentenceToAllInstruments(OCPN_DBP_STC_SUMLOG, TotDist , DistUnit );
-    SendSentenceToAllInstruments(OCPN_DBP_STC_TRIPLOG, TripDist , DistUnit );
-    SendSentenceToAllInstruments(OCPN_DBP_STC_LEGDIST, LegDist , DistUnit );
+    SendSentenceToAllInstruments(OCPN_DBP_STC_SUMLOG, dispTotDist , DistUnit );
+    SendSentenceToAllInstruments(OCPN_DBP_STC_TRIPLOG, dispTripDist , DistUnit );
+    SendSentenceToAllInstruments(OCPN_DBP_STC_LEGDIST, dispLegDist , DistUnit );
     SendSentenceToAllInstruments(OCPN_DBP_STC_LEGTIME, ' ' , strLegTime );
 
-    // Write sumlog distance to data direcrory
-    m_sumlogFile = g_dataDir + _T("sumlog.log");
-    wxFileName sl(m_sumlogFile);
-    if (TotDist != sumLog) {
-        m_sumlogFileName.Open(m_sumlogFile, wxFile::write);
-        m_sumlogFileName.Write(m_TotDist +_T("\r\n"));
-        m_sumlogFileName.Close();
-        sumLog = TotDist;
+    TripAutoReset(strArr, LocalTime);
+}
+
+
+void odometer_pi::DefineTripData() {
+
+    // Enable saving trip data
+    // Define data file location, ensure it exists or add with default info
+    m_DataFile.Clear();
+    m_DataFile = g_sDataDir + _T("datalog.log");
+
+    if (m_DataFileTextReader.Open(m_DataFile)) { // File exists
+        m_DataFileTextReader.Close();
+    } else {    // File does not exist yet, create it with default information
+        m_DataFileTextReader.Create();
+        m_DataFileTextReader.Open(m_DataFile);
+        m_DataFileTextReader.AddLine("0.0");
+        m_DataFileTextReader.AddLine("0.0");
+        m_DataFileTextReader.AddLine(m_LocalTime);
+        m_DataFileTextReader.AddLine(m_LocalTime);
+        m_DataFileTextReader.AddLine(m_LocalTime);
+        m_DataFileTextReader.AddLine("0");
+        m_DataFileTextReader.AddLine("0");
+        m_DataFileTextReader.AddLine("##### Trip log below this line #####");
+        m_DataFileTextReader.Write();
+        m_DataFileTextReader.Close();
+
+        // If this is an update then remove no longer relevant files, one by one
+        // Total distance is fetched from opencpn configuration upon start
+        oldLogFile.Clear();
+        oldLogFile = g_sDataDir + _T("arrival.log");
+        rmOldLogFiles();
+        oldLogFile = g_sDataDir + _T("arrtime.log");
+        rmOldLogFiles();
+        oldLogFile = g_sDataDir + _T("departure.log");
+        rmOldLogFiles();
+        oldLogFile = g_sDataDir + _T("deptime.log");
+        rmOldLogFiles();
+        oldLogFile = g_sDataDir + _T("resume.log");
+        rmOldLogFiles();
+        oldLogFile = g_sDataDir + _T("sumlog.log");
+        rmOldLogFiles();
+        oldLogFile = g_sDataDir + _T("totaldist.log");
+        rmOldLogFiles();
+        oldLogFile = g_sDataDir + _T("tripdist.log");
+        rmOldLogFiles();
+        oldLogFile = g_sDataDir + _T("triplog.log");
+        rmOldLogFiles();
+        oldLogFile = g_sDataDir + _T("tripmode.log");
+        rmOldLogFiles();
     }
-    // Write trip distance to data direcrory
-    m_triplogFile = g_dataDir + _T("triplog.log");
-    wxFileName tl(m_triplogFile);
-    if (TripDist != tripLog) {
-        m_triplogFileName.Open(m_triplogFile, wxFile::write);
-        m_triplogFileName.Write(m_TripDist +_T("\r\n"));
-        m_triplogFileName.Close();
-        tripLog = TripDist;
+}
+
+
+void odometer_pi::rmOldLogFiles() {
+
+    // Added delays for slow CPU's using SSD disks
+    wxFileName logfile(oldLogFile);
+    if (m_oldLogFileName.Open(oldLogFile)) {
+        m_oldLogFileName.Close();
+        wxMilliSleep(50);
+        wxRemoveFile(oldLogFile);
+        wxMilliSleep(100);
     }
-    // Write departure time to data direcrory
-    m_depTimeFile = g_dataDir + _T("deptime.log");
-    wxFileName dt(m_depTimeFile);
-    if (strDep != departure) {
-        m_depTimeFileName.Open(m_depTimeFile, wxFile::write);
-        m_depTimeFileName.Write(strDep +_T("\r\n"));
-        m_depTimeFileName.Close();
-        departure = strDep;
-    }
-    // Write arrival time to data direcrory
-    m_arrTimeFile = g_dataDir + _T("arrtime.log");
-    wxFileName at(m_arrTimeFile);
-    if (strArr != arrival) {
-        m_arrTimeFileName.Open(m_arrTimeFile, wxFile::write);
-        m_arrTimeFileName.Write(strArr +_T("\r\n"));
-        m_arrTimeFileName.Close();
-        arrival = strArr;
+    wxMilliSleep(50);
+}
+
+
+void odometer_pi::WriteTripData() {
+
+    // Write updated trip data to data direcrory,
+    if (m_DataFileTextReader.Open(m_DataFile)) {
+//        printf("\nTrip data log opened at:  %s",m_LocalTime.mb_str().data());
+
+        if (saveTripDist == 1)  {
+            wxString writeTripDist;
+            writeTripDist.Printf("%f", TripDist);
+            m_DataFileTextReader.GetLine(0) = writeTripDist;
+//            printf("\nTrip Distance:            %s",writeTripDist.mb_str().data());
+            saveTripDist = 0;
+        }
+
+        if (saveTotDist == 1)  {
+            wxString writeTotDist;
+            writeTotDist.Printf("%f", TotDist);
+            m_DataFileTextReader.GetLine(1) = writeTotDist;
+//            printf("\nTotal Distance:           %s",writeTotDist.mb_str().data());
+            saveTotDist = 0;
+        }
+
+        if (saveDepTime == 1)  {  // Called at trip reset
+            m_DataFileTextReader.GetLine(2) = m_DepTime;
+
+            // Check if any departures in log file are older than one month,
+            // then remove those lines
+            if ((g_iGenerateLogFile == 1) && (g_iLogFileAge == 1)) {
+
+                // Set reference time 1 month back
+                wxDateTime AgeTime = LocalTime;
+                wxDateSpan AgeTimeLimit(0,1,0);
+                AgeTime = AgeTime.Subtract(AgeTimeLimit);
+                wxString m_AgeTime = AgeTime.FormatISOCombined(' ');
+                m_AgeTime = m_AgeTime.Truncate(16);  // 16 characters in log file
+
+                wxString DepLogAge;
+                int OldDepartRemove = 1;
+
+                // Get the departure time only and remove the first line if to old
+                while (OldDepartRemove == 1)  {
+                    DepLogAge = m_DataFileTextReader.GetLine(7);
+                    DepLogAge = DepLogAge.Mid(3,16);
+
+                    if (DepLogAge < m_AgeTime) {
+                        m_DataFileTextReader.RemoveLine(7);
+//                        printf("\nOld log line removed:     %s",DepLogAge.mb_str().data());
+                    } else {
+                        OldDepartRemove = 0;
+                    }
+                }
+                g_iLogFileAge = 0;
+            }
+            // Add a new line for departure
+            DepTime = LocalTime;
+            m_DepTime = DepTime.FormatISOCombined(' ');
+            logDepTime = m_DepTime;
+            logDepTime = logDepTime.Truncate(16);
+
+            if (g_iGenerateLogFile == 1)  {
+                m_DataFileTextReader.AddLine("D: " + logDepTime);
+            }
+//            printf("\nLogged departure time:    %s",logDepTime.mb_str().data());
+            saveDepTime = 0;
+        }
+
+        if (saveArrTime == 1)  {
+            ArrTime = LocalTime;
+            m_ArrTime = ArrTime.FormatISOCombined(' ');
+            ArrTimeShow = 1;
+            m_DataFileTextReader.GetLine(3) = m_ArrTime;
+
+            if (g_iGenerateLogFile == 1)  {
+
+                // Add arrival and trip data
+                logArrTime = m_ArrTime;
+                logArrTime = logArrTime.Truncate(16);
+                wxString arrLog(", A: " + logArrTime);
+                wxString tripLog(", T: " + m_TripDist);
+                currLogLine.Clear();
+                currLogLine = m_DataFileTextReader.GetLastLine();
+                m_DataFileTextReader.GetLastLine() = (currLogLine + arrLog + tripLog);
+//                printf("\nLogged arrival time:      %s",logArrTime.mb_str().data());
+            }
+            saveArrTime = 0;
+        }
+
+        if (saveResTime == 1)  {
+
+            if ((g_iGenerateLogFile == 1) && (TripMode == 5))   {
+
+                // Include trip stops in logfile if 'g_iIncludeTripStops' = 1
+                // and local time is greater than current 'm_ResumeAfter', or
+                // do not include trip stops in logfile (g_iIncludeTripStops == 0)
+                if (((g_iIncludeTripStops == 1) && (m_LocalTime <= m_ResumeAfter))
+                    || (g_iIncludeTripStops == 0))  {
+                    TripMode = 6;
+
+                    // Arrival is 21 characters while trip distance is 3 to 7 characters
+                    // plus 5 charaters as trip tag, all at he end of the current log info.
+                    // Read line and find current length
+                    int lengthTripString = 0;
+                    lengthTripString = m_TripDist.Len();
+                    int CharsToRemove = (21 + lengthTripString + 5);
+                    currLogLine.Clear();
+                    currLogLine = m_DataFileTextReader.GetLastLine();
+
+//                    printf("\nTrip stop to short, removing last arrival");
+//                    printf("\nString length:            %ld",currLogLine.Len());
+//                    printf("\nCharacters to remove:     %d",CharsToRemove);
+//                    printf("\nRemaining characters:     %ld",(currLogLine.Len() - CharsToRemove));
+
+                    // Starting or stopping while on route could cause time errors
+                    // Also ensure there are enough characters in the file
+                    // Strip required characters from end  and write back
+                    if ((m_ArrTime < m_LocalTime) && (currLogLine.Len() > 40))  {
+                        m_DataFileTextReader.GetLastLine() = (currLogLine.Mid(0, (currLogLine.Len() - CharsToRemove)));
+                    }
+                } else {
+                    // Trip arrival shall not be removed, add resume time
+                    ResTime = LocalTime;
+                    m_ResTime = ResTime.FormatISOCombined(' ');
+                    logResTime = m_ResTime;
+                    logResTime = logResTime.Truncate(16);
+
+                    wxString resLog(", R: " + logResTime);
+                    currLogLine.Clear();
+                    currLogLine = m_DataFileTextReader.GetLastLine();
+                    m_DataFileTextReader.GetLastLine() = (currLogLine + resLog);
+//                    printf("\nTrip stop exceeding minimum stop time");
+                }
+                m_DataFileTextReader.GetLine(4) = m_ResTime;
+            }
+            TripMode = 3;
+            saveTripMode = 1;
+//            printf("\nLogged resume time:       %s",logResTime.mb_str().data());
+            saveResTime = 0;
+        }
+
+        if (saveTripMode == 1)  {
+            strTripMode = std::to_string(TripMode);
+            m_DataFileTextReader.GetLine(5) = strTripMode;
+//            printf("\nTripMode:                 %d",TripMode);
+            saveTripMode = 0;
+        }
+
+        if (saveTripAutoReset == 1)  {
+            strTripAutoReset = std::to_string(AutoReset);
+            m_DataFileTextReader.GetLine(6) = strTripAutoReset;
+//            printf("\nAuto reset trip:          %d",AutoReset);
+            saveTripAutoReset = 0;
+        }
+
+        m_DataFileTextReader.Write();
+        wxMilliSleep(50);     // Required by slow systems with SSD disks (?)
+        m_DataFileTextReader.Close();
+//        printf("\nTrip data log closed at:  %s",m_LocalTime.mb_str().data());
+//        printf("\n");
     }
 }
 
 void odometer_pi::GetDistance() {
+
+    wxDateTime DistTime = LocalTime;
 
     switch (g_iOdoDistanceUnit) {
         case 0:
@@ -961,10 +1342,11 @@ void odometer_pi::GetDistance() {
             break;
     }
 
-    CurrSec = wxAtoi(LocalTime.Format(wxT("%S")));
+    CurrSec = wxAtoi(DistTime.Format(wxT("%S")));
 
     // Calculate distance travelled during the elapsed time
     StepDist = 0.0;
+
     if (CurrSec != PrevSec) {
         if (CurrSec > PrevSec) {
             SecDiff = (CurrSec - PrevSec);
@@ -973,29 +1355,69 @@ void odometer_pi::GetDistance() {
         }
         StepDist = (SecDiff * (CurrSpeed/DistDiv));
 
-        //  Are at start randomly getting extreme values for distance even if validGPS is ok.
-        //  Delay a minimum of 5 seconds at power up to allow everything to be properly set
-        //  before measuring distances
-        PowerUpActive = 1;
-        if (PowerUp == 1) {
-            int PwrOnDelaySecs = atoi(m_PwrOnDelSecs);
-            if (PwrOnDelaySecs <= 4) PwrOnDelaySecs = 5;
-            wxTimeSpan PwrOnDelay(0,0,PwrOnDelaySecs);
-            EnabledTime = LocalTime.Add(PwrOnDelay);
-            PowerUp = 0;
-        }
-
-        if (LocalTime <= EnabledTime) {
-            StepDist = 0.0;
-            PowerUpActive = 1;
-        } else {
-            PowerUpActive = 0;
-        }
-
         if (std::isnan(StepDist)) StepDist = 0.0;
     }
     PrevSec = CurrSec;
 }
+
+
+void odometer_pi::TripAutoReset(wxString strArr, wxDateTime LocalTime) {
+
+// TODO: Denna startar om om inte deaktiverad
+
+// Automatic Trip Reset
+    if ((g_iAutoResetTrip == 1) && (AutoReset == 1)) {
+
+        switch (g_iAutoResetTripTime) {  // Calculate time selected
+            case 0: 
+                ResetDelay = 15;
+                break;
+            case 1:
+                ResetDelay = 30;
+                break;
+            case 2:
+                ResetDelay = 60;
+                break;
+            case 3:
+                ResetDelay = 120;
+                break;
+            case 4:
+                ResetDelay = 180;
+                break;
+            case 5:
+                ResetDelay = 240;
+                break;
+            case 6:
+                ResetDelay = 300;
+                break;
+            case 7:
+                ResetDelay = 360;
+                break;
+            case 8:
+                ResetDelay = 540;
+                break;
+            case 9:
+                ResetDelay = 720;
+                break;
+        }
+        wxTimeSpan m_ResetDelay(0,ResetDelay,0);
+
+        wxDateTime ArrRefTime;
+        ArrRefTime.ParseDateTime(m_ArrTime.Truncate(16));
+
+        wxDateTime ArrResetTime = ArrRefTime.Add(m_ResetDelay);
+        strReset = ArrResetTime.FormatISOCombined(' ');
+        strReset = strReset.Truncate(16);  // Cut seconds
+
+        wxDateTime ResetTime = LocalTime;
+        strLocal = ResetTime.Format(wxT("%F %R"));
+        if (strLocal >= strReset) g_iResetTrip = 1;
+        AutoReset = 0;
+        saveTripAutoReset = 1;
+        WriteTripData();
+    }
+}
+
 
 void odometer_pi::SetPluginMessage(wxString &message_id, wxString &message_body)
 {
@@ -1030,7 +1452,7 @@ int odometer_pi::GetToolbarToolCount(void) {
 
 //---------------------------------------------------------------------------------------------------------
 //
-// Odometer Setings Dialog
+// Odometer Settings Dialog
 //
 //---------------------------------------------------------------------------------------------------------
 
@@ -1053,26 +1475,20 @@ void odometer_pi::ShowPreferencesDialog(wxWindow* parent) {
            reordered or deleted. Globals are not checked at all by ApplyConfig.  */
 
         bool showSpeedDial = dialog->m_pCheckBoxShowSpeed->GetValue();
+        g_iShowSpeed = 0;
+        if (showSpeedDial == true) g_iShowSpeed = 1;
+
         bool showDepArrTimes = dialog->m_pCheckBoxShowDepArrTimes->GetValue();
+        g_iShowDepArrTimes = 0;
+        if (showDepArrTimes == true) g_iShowDepArrTimes = 1;
+
         bool showTripLeg = dialog->m_pCheckBoxShowTripLeg->GetValue();
+        g_iShowTripLeg = 0;
+        if (showTripLeg == true) g_iShowTripLeg = 1;
 
-        if (showSpeedDial == true) {
-            g_iShowSpeed = 1;
-        } else {
-            g_iShowSpeed = 0;
-        }
-
-        if (showDepArrTimes == true) {
-            g_iShowDepArrTimes = 1;
-        } else {
-            g_iShowDepArrTimes = 0;
-        }
-
-        if (showTripLeg == true) {
-            g_iShowTripLeg = 1;
-        } else {
-            g_iShowTripLeg = 0;
-        }
+        bool GenerateLogFile = dialog->m_pCheckBoxGenerateLogFile->GetValue();
+        g_iGenerateLogFile = 0;
+        if (GenerateLogFile == true) g_iGenerateLogFile = 1;
 
         // Reload instruments and select panel
         OdometerWindowContainer *cont = m_ArrayOfOdometerWindow.Item(0);
@@ -1084,12 +1500,14 @@ void odometer_pi::ShowPreferencesDialog(wxWindow* parent) {
         wxSize sz = cont->m_pOdometerWindow->GetMinSize();
 
         /* TODO: These sizes are forced as dialog size and instruments messes up totally
-                 otherwise, probably due to the use of checkboxes instead of general selection.
+                 otherwise, probably due to the use of checkboxes instead of
+                 general selection.
                  It is not perfect and should eventually be fixed somehow.
-                 The height does not always compute properly. Sometimes need to restart plugin
-                 or OpenCPN to resize. Button width = 150, then add dialog frame = 10 incl slight
-                 margin.
-                 This is not perfect but better than the line above, should maybe be reworked! */
+                 The height does not always compute properly. Sometimes need to restart
+                 plugin or OpenCPN to resize. Button width = 150, then add dialog
+                 frame = 10 incl slight margin.
+                 This is not perfect but better than the line above, should maybe be
+                 reworked! */
 
         sz.Set(160,125);  // Minimum size with Total distance, Trip distance and Trip reset.
         if (g_iShowSpeed == 1) sz.IncBy(0,170);       // Add for Speed instrument
@@ -1097,7 +1515,6 @@ void odometer_pi::ShowPreferencesDialog(wxWindow* parent) {
         if (g_iShowTripLeg == 1) sz.IncBy(0,120);      // Add for trip dist, time and reset
 
         pane.MinSize(sz).BestSize(sz).FloatingSize(sz);
-//        m_pauimgr->Update();
 
 		// OnClose should handle that for us normally but it doesn't seems to do so
 		// We must save changes first
@@ -1182,7 +1599,7 @@ void odometer_pi::OnToolbarToolCallback(int id) {
         if (pane.IsOk()) {
             bool b_reset_pos = false;
 
-#ifdef __WXMSW__
+        #ifdef __WXMSW__
             //  Support MultiMonitor setups which an allow negative window positions.
             //  If the requested window title bar does not intersect any installed monitor,
             //  then default to simple primary monitor positioning.
@@ -1195,10 +1612,10 @@ void odometer_pi::OnToolbarToolCallback(int id) {
 			if (NULL == MonitorFromRect(&frame_title_rect, MONITOR_DEFAULTTONULL)) {
 				b_reset_pos = true;
 			}
-#else
+        #else
 
-            //    Make sure drag bar (title bar) of window intersects wxClient Area of screen, with a
-            //    little slop...
+            //    Make sure drag bar (title bar) of window intersects wxClient Area of
+            //    screen, with a little slop...
             wxRect window_title_rect;// conservative estimate
             window_title_rect.x = pane.floating_pos.x;
             window_title_rect.y = pane.floating_pos.y;
@@ -1206,12 +1623,13 @@ void odometer_pi::OnToolbarToolCallback(int id) {
             window_title_rect.height = 30;
 
             wxRect ClientRect = wxGetClientDisplayRect();
-            ClientRect.Deflate(60, 60);// Prevent the new window from being too close to the edge
+            // Prevent the new window from being too close to the edge
+            // ClientRect.Deflate(60, 60);
  			if (!ClientRect.Intersects(window_title_rect)) {
 				b_reset_pos = true;
 			}
 
-#endif
+        #endif
 
 			if (b_reset_pos) {
 				pane.FloatingPosition(50, 50);
@@ -1230,8 +1648,9 @@ void odometer_pi::OnToolbarToolCallback(int id) {
 
         //  This patch fixes a bug in wxAUIManager
         //  FS#548
-        // Dropping a Odometer Window right on top on the (supposedly fixed) chart bar window
-        // causes a resize of the chart bar, and the Odometer window assumes some of its properties
+        // Dropping a Odometer Window right on top on the (supposedly fixed) chart bar
+        //  window causes a resize of the chart bar, and the Odometer window assumes some
+        //  of its properties
         // The Odometer window is no longer grabbable...
         // Workaround:  detect this case, and force the pane to be on a different Row.
         // so that the display is corrected by toggling the odometer off and back on.
@@ -1245,9 +1664,10 @@ void odometer_pi::OnToolbarToolCallback(int id) {
 
 void odometer_pi::UpdateAuiStatus(void) {
     // This method is called after the PlugIn is initialized
-    // and the frame has done its initial layout, possibly from a saved wxAuiManager "Perspective"
-    // It is a chance for the PlugIn to syncronize itself internally with the state of any Panes that
-    //  were added to the frame in the PlugIn ctor.
+    // and the frame has done its initial layout, possibly from a saved wxAuiManager
+    // "Perspective"
+    // It is a chance for the PlugIn to syncronize itself internally with the state of
+    // any Panes that were added to the frame in the PlugIn ctor.
 
     OdometerWindowContainer *cont = m_ArrayOfOdometerWindow.Item(0);
     wxAuiPaneInfo &pane = m_pauimgr->GetPane(cont->m_pOdometerWindow);
@@ -1255,7 +1675,8 @@ void odometer_pi::UpdateAuiStatus(void) {
     cont->m_bIsVisible = (pane.IsOk() && pane.IsShown());
     m_pauimgr->Update();
 
-    // We use this callback here to keep the context menu selection in sync with the window state
+    // We use this callback here to keep the context menu selection in sync with the
+    // window state
     SetToolbarItemState(m_toolbar_item_id, GetOdometerWindowShownCount() != 0);
 }
 
@@ -1290,8 +1711,10 @@ bool odometer_pi::LoadConfig(void) {
 		LoadFont(&g_pFontSmall, config);
 
 		// Load the dedicated odometer settings plus set default values
-        pConf->Read( _T("TotalDistance"), &m_TotDist, "0.0");
-        pConf->Read( _T("TripDistance"), &m_TripDist, "0.0");
+        pConf->Read( _T("TotalDistance"), &m_confTotDist, "0.0");
+        pConf->Read( _T("TripDistance"), &m_confTripDist, "0.0");
+        pConf->Read( _T("AutoResetTrip"), &g_iAutoResetTrip, 0);
+        pConf->Read( _T("AutoResetTripTime"), &g_iAutoResetTripTime, 7);
         pConf->Read( _T("PowerOnDelaySecs"), &m_PwrOnDelSecs, "15");
         pConf->Read( _T("SatsRequired"), &m_SatsRequired, "4");
         pConf->Read( _T("HDOP"), &m_HDOPdefine, "4");
@@ -1305,6 +1728,11 @@ bool odometer_pi::LoadConfig(void) {
         pConf->Read(_T("UTCOffset"), &g_iOdoUTCOffset, 24 );
         pConf->Read(_T("SpeedUnit"), &g_iOdoSpeedUnit, SPEED_KNOTS);
         pConf->Read(_T("DistanceUnit"), &g_iOdoDistanceUnit, DISTANCE_NAUTICAL_MILES);
+        pConf->Read(_T("TripStopMinutes"), &g_iTripStopMinutes, 5);
+        pConf->Read(_T("NumLogTrips"), &g_iSelectLogTrips, 1);
+        pConf->Read(_T("LogFormat"), &g_iSelectLogFormat, 2);
+        pConf->Read(_T("LogOutput"), &g_iSelectLogOutput, 1);
+
 
         // Set the total number of available instruments
         int d_cnt = 10;
@@ -1321,6 +1749,7 @@ bool odometer_pi::LoadConfig(void) {
             ar.Add( ID_DBP_I_DEPART );
             ar.Add( ID_DBP_I_ARRIV );
             ar.Add( ID_DBP_B_TRIPRES );
+            ar.Add( ID_DBP_C_AUTORESET);
             ar.Add( ID_DBP_I_LEGDIST );
             ar.Add( ID_DBP_I_LEGTIME );
             ar.Add( ID_DBP_B_STARTSTOP );
@@ -1349,10 +1778,22 @@ bool odometer_pi::LoadConfig(void) {
             pConf->Read( _T("ShowDepArrTimes"), &b_deparr, 1);
             bool b_tripleg;
             pConf->Read( _T("ShowTripLeg"), &b_tripleg, 1);
+            bool b_genlogfile;
+            pConf->Read( _T("GenLogFile"), &b_genlogfile, 1);
+            bool b_incltripstops;
+            pConf->Read( _T("InclTripStops"), &b_incltripstops, 0);
+            bool b_tripstopminutes;
+            pConf->Read( _T("TripStopMinutes"), &b_tripstopminutes, 5);
+            bool b_selectlogtrips;
+            pConf->Read(_T("NumLogTrips"), &b_selectlogtrips, 0);
+            bool b_logtripformat;
+            pConf->Read(_T("LogFormat"), &b_logtripformat, 1);
+            bool b_logoutput;
+            pConf->Read(_T("LogOutput"), &b_logoutput, 1);
 
-            // Always 10 numerically ordered instruments in the array
+            // Always 11 numerically ordered instruments in the array
             wxArrayInt ar;
-            for (int i = 0; i < 10; i++) {
+            for (int i = 0; i < 12; i++) {
                 ar.Add(i);
             }
 
@@ -1362,11 +1803,13 @@ bool odometer_pi::LoadConfig(void) {
             cont->m_bShowSpeed = b_speedo;
             cont->m_bShowDepArrTimes = b_deparr;
             cont->m_bShowTripLeg = b_tripleg;
+            cont->m_bGenerateLogFile = b_genlogfile;
 
             // TODO: Using globals to pass these variables, works but is bad coding
             g_iShowSpeed = b_speedo;
             g_iShowDepArrTimes = b_deparr;
             g_iShowTripLeg = b_tripleg;
+            g_iGenerateLogFile = b_genlogfile;
 
     		if (b_persist) {
 	    	    b_onePersisted = true;
@@ -1412,6 +1855,8 @@ bool odometer_pi::SaveConfig(void) {
 
         pConf->Write( _T("TotalDistance"), m_TotDist);
         pConf->Write( _T("TripDistance"), m_TripDist);
+        pConf->Write( _T("AutoResetTrip"), g_iAutoResetTrip);
+        pConf->Write( _T("AutoResetTripTime"), g_iAutoResetTripTime);
         pConf->Write( _T("PowerOnDelaySecs"), m_PwrOnDelSecs);
         pConf->Write( _T("SatsRequired"), m_SatsRequired);
         pConf->Write( _T("HDOP"), m_HDOPdefine);
@@ -1434,6 +1879,11 @@ bool odometer_pi::SaveConfig(void) {
         pConf->Write(_T("ShowSpeedometer"), cont->m_bShowSpeed);
         pConf->Write(_T("ShowDepArrTimes"), cont->m_bShowDepArrTimes);
         pConf->Write(_T("ShowTripLeg"), cont->m_bShowTripLeg);
+        pConf->Write(_T("GenLogFile"), cont->m_bGenerateLogFile);
+        pConf->Write(_T("TripStopMinutes"), g_iTripStopMinutes);
+        pConf->Write(_T("NumLogTrips"), g_iSelectLogTrips);
+        pConf->Write(_T("LogFormat"), g_iSelectLogFormat);
+        pConf->Write(_T("LogOutput"), g_iSelectLogOutput);
 
         return true;
 	} else {
@@ -1509,7 +1959,7 @@ void odometer_pi::ShowOdometer(size_t id, bool visible) {
 
 //---------------------------------------------------------------------------------------------------------
 //
-// OdometerPreferencesDialog
+// Odometer Preferences Dialog
 //
 //---------------------------------------------------------------------------------------------------------
 
@@ -1527,8 +1977,10 @@ OdometerPreferencesDialog::OdometerPreferencesDialog(wxWindow *parent, wxWindowI
 
     wxFlexGridSizer *itemFlexGridSizer = new wxFlexGridSizer(2);
     itemFlexGridSizer->AddGrowableCol(1);
-    m_pPanelPreferences = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_SUNKEN);
-    itemBoxSizerMainPanel->Add(m_pPanelPreferences, 1, wxEXPAND | wxTOP | wxRIGHT, border_size);
+    m_pPanelPreferences = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize,
+        wxBORDER_SUNKEN);
+    itemBoxSizerMainPanel->Add(m_pPanelPreferences, 1, wxEXPAND | wxTOP | wxRIGHT,
+        border_size);
 
     wxBoxSizer* itemBoxSizerMainFrame = new wxBoxSizer(wxVERTICAL);
     m_pPanelPreferences->SetSizer(itemBoxSizerMainFrame);
@@ -1556,8 +2008,15 @@ OdometerPreferencesDialog::OdometerPreferencesDialog(wxWindow *parent, wxWindowI
             wxDefaultPosition, wxDefaultSize, 0);
     itemFlexGridSizer01->Add(m_pCheckBoxShowTripLeg, 0, wxEXPAND | wxALL, border_size);
 
-    /* There must be an even number of checkboxes/objects preceeding caption or alignment gets
-       messed up, enable the next section as required  */
+    m_pCheckBoxGenerateLogFile = new wxCheckBox(m_pPanelPreferences, wxID_ANY, _("Generate log file"),
+            wxDefaultPosition, wxDefaultSize, 0);
+    itemFlexGridSizer01->Add(m_pCheckBoxGenerateLogFile, 0, wxEXPAND | wxALL, border_size);
+
+    wxStaticText *itemDummy01 = new wxStaticText(m_pPanelPreferences, wxID_ANY, _T(""));
+       itemFlexGridSizer01->Add(itemDummy01, 0, wxEXPAND | wxALL, border_size);
+
+    /* There must be an even number of checkboxes/objects preceeding caption or alignment
+       gets  messed up, enable the next section as required  */
     /* wxStaticText *itemDummy01 = new wxStaticText(m_pPanelPreferences, wxID_ANY, _T(""));
        itemFlexGridSizer01->Add(itemDummy01, 0, wxEXPAND | wxALL, border_size); */
 
@@ -1677,6 +2136,26 @@ OdometerPreferencesDialog::OdometerPreferencesDialog(wxWindow *parent, wxWindowI
     m_pChoiceDistanceUnit->SetSelection( g_iOdoDistanceUnit );
     itemFlexGridSizer03->Add( m_pChoiceDistanceUnit, 0, wxALIGN_RIGHT | wxALL, 0 );
 
+    wxStaticText* itemStaticText12 = new wxStaticText( m_pPanelPreferences, wxID_ANY,
+         _("Automatic trip reset, time since last arrival:"), wxDefaultPosition, wxDefaultSize, 0 );
+    itemFlexGridSizer03->Add( itemStaticText12, 0, wxEXPAND | wxALL, border_size );
+    wxString m_TripDelayTime[] = { _("15 minutes"), _("30 minutes"), _("1 hour"), _("2 hours"), _("3 hours"), _("4 hours"), _("5 hours"), _("6 hours"), _("9 hours"), _("12 hours") };
+    int m_TripDelayTimeNChoices = sizeof( m_TripDelayTime ) / sizeof( wxString );
+    m_pChoiceTripDelayTime = new wxChoice( m_pPanelPreferences, wxID_ANY, wxDefaultPosition, wxDefaultSize,
+        m_TripDelayTimeNChoices, m_TripDelayTime, 0 );
+    m_pChoiceTripDelayTime->SetSelection( g_iAutoResetTripTime );
+    itemFlexGridSizer03->Add( m_pChoiceTripDelayTime, 0, wxALIGN_RIGHT | wxALL, 0 );
+
+    wxStaticText* itemStaticText13 = new wxStaticText( m_pPanelPreferences, wxID_ANY,
+         _("Shortest trip stop time to log:"), wxDefaultPosition, wxDefaultSize, 0 );
+    itemFlexGridSizer03->Add( itemStaticText13, 0, wxEXPAND | wxALL, border_size );
+    wxString m_MinTripStop[] = { _("All stops"), _("5 minutes"), _("15 minutes"), _("30 minutes"), _("1 hour"), _("2 hours"), _("4 hours"), _("8 hours"), _("No stops logged") };
+    int m_MinTripStopChoices = sizeof( m_MinTripStop ) / sizeof( wxString );
+    m_pChoiceMinTripStop = new wxChoice( m_pPanelPreferences, wxID_ANY, wxDefaultPosition, wxDefaultSize,
+        m_MinTripStopChoices, m_MinTripStop, 0 );
+    m_pChoiceMinTripStop->SetSelection( g_iTripStopMinutes );
+    itemFlexGridSizer03->Add( m_pChoiceMinTripStop, 0, wxALIGN_RIGHT | wxALL, 0 );
+
 	wxStdDialogButtonSizer* DialogButtonSizer = CreateStdDialogButtonSizer(wxOK | wxCANCEL);
     itemBoxSizerMainPanel->Add(DialogButtonSizer, 0, wxALIGN_RIGHT | wxALL, 5);
 
@@ -1708,12 +2187,16 @@ void OdometerPreferencesDialog::SaveOdometerConfig(void) {
     g_iOdoUTCOffset = m_pChoiceUTCOffset->GetSelection();
     g_iOdoSpeedUnit = m_pChoiceSpeedUnit->GetSelection();
     g_iOdoDistanceUnit = m_pChoiceDistanceUnit->GetSelection();
+    g_iAutoResetTripTime = m_pChoiceTripDelayTime->GetSelection();
+    g_iTripStopMinutes = m_pChoiceMinTripStop->GetSelection();
+
 
     OdometerWindowContainer *cont = m_Config.Item(0);
     cont->m_bIsVisible = m_pCheckBoxIsVisible->IsChecked();
     cont->m_bShowSpeed = m_pCheckBoxShowSpeed->IsChecked();
     cont->m_bShowDepArrTimes = m_pCheckBoxShowDepArrTimes->IsChecked();
     cont->m_bShowTripLeg = m_pCheckBoxShowTripLeg->IsChecked();
+    cont->m_bGenerateLogFile = m_pCheckBoxGenerateLogFile->IsChecked();
     cont->m_sCaption = m_pTextCtrlCaption->GetValue();
 }
 
@@ -1737,6 +2220,7 @@ void OdometerPreferencesDialog::UpdateOdometerButtonsState() {
     m_pCheckBoxShowSpeed->SetValue(cont->m_bShowSpeed);
     m_pCheckBoxShowDepArrTimes->SetValue(cont->m_bShowDepArrTimes);
     m_pCheckBoxShowTripLeg->SetValue(cont->m_bShowTripLeg);
+    m_pCheckBoxGenerateLogFile->SetValue(cont->m_bGenerateLogFile);
     m_pTextCtrlCaption->SetValue(cont->m_sCaption);
     m_pListCtrlInstruments->DeleteAllItems();
     for (size_t i = 0; i < cont->m_aInstrumentList.GetCount(); i++) {
@@ -1746,6 +2230,11 @@ void OdometerPreferencesDialog::UpdateOdometerButtonsState() {
         m_pListCtrlInstruments->InsertItem(item);
     }
     m_pListCtrlInstruments->SetColumnWidth(0, wxLIST_AUTOSIZE);
+}
+
+
+void OdometerPreferencesDialog::RefreshOdometerButtonsState() {
+
 }
 
 
@@ -1813,6 +2302,9 @@ void OdometerWindow::OnContextMenu(wxContextMenuEvent& event) {
         contextMenu->Append(ID_ODO_UNDOCK, _("Undock"));
     }
     contextMenu->Append(ID_ODO_PREFS, _("Preferences ..."));
+    if (g_iGenerateLogFile == 1) {
+        contextMenu->Append(ID_ODO_VIEWLOG, _("View trip log ..."));
+    }
     PopupMenu(contextMenu);
     delete contextMenu;
 }
@@ -1821,12 +2313,20 @@ void OdometerWindow::OnContextMenuSelect(wxCommandEvent& event) {
     if (event.GetId() < ID_ODO_PREFS) {
 	// Toggle odometer visibility
         m_plugin->ShowOdometer(event.GetId()-1, event.IsChecked());
-        SetToolbarItemState(m_plugin->GetToolbarItemId(), m_plugin->GetOdometerWindowShownCount() != 0);
+        SetToolbarItemState(m_plugin->GetToolbarItemId(),
+            m_plugin->GetOdometerWindowShownCount() != 0);
     }
+
 
     switch(event.GetId()) {
         case ID_ODO_PREFS: {
             m_plugin->ShowPreferencesDialog(this);
+            return; // Does it's own save.
+        }
+
+
+        case ID_ODO_VIEWLOG: {
+            m_plugin->ShowViewLogDialog(this);
             return; // Does it's own save.
         }
 
@@ -1937,6 +2437,7 @@ void OdometerWindow::SetInstrumentList(wxArrayInt list) {
                 }
                 break;
 
+
             case ID_DBP_I_ARRIV:
                 if ( g_iShowDepArrTimes == 1 ) {
                     instrument = new OdometerInstrument_String( this, wxID_ANY,
@@ -1944,9 +2445,16 @@ void OdometerWindow::SetInstrumentList(wxArrayInt list) {
                 }
                 break;
 
+
+
             case ID_DBP_B_TRIPRES:
                 instrument = new OdometerInstrument_Button( this, wxID_ANY,
                     GetInstrumentCaption( id ), OCPN_DBP_STC_TRIPRES );
+                break;
+
+            case ID_DBP_C_AUTORESET:
+                instrument = new OdometerInstrument_Checkbox( this, wxID_ANY,
+                    GetInstrumentCaption( id ), g_iAutoResetTrip );
                 break;
 
             case ID_DBP_I_LEGDIST:
@@ -1977,6 +2485,7 @@ void OdometerWindow::SetInstrumentList(wxArrayInt list) {
                 }
                 break;
 	    	}
+
         if (instrument) {
             instrument->instrumentTypeId = id;
             m_ArrayOfInstrument.Add(new OdometerInstrumentContainer(id, instrument,instrument->GetCapacity()));
@@ -1999,3 +2508,509 @@ void OdometerWindow::SendSentenceToAllInstruments(int st, double value, wxString
     }
 }
 
+
+//---------------------------------------------------------------------------------------------------------
+//
+// View Log Dialog
+//
+//---------------------------------------------------------------------------------------------------------
+
+void odometer_pi::ShowViewLogDialog(wxWindow* parent) {
+    OdometerViewLogDialog *dialog = new OdometerViewLogDialog(parent, wxID_ANY);
+
+    // Apply clicked, save current alternatives and execute view options
+    if (dialog->ShowModal() == wxID_OK) {
+
+        dialog->SaveLogConfig();
+        GenerateLogOutput();
+
+    }
+
+    // Invoke the dialog destructor
+    dialog->Destroy();
+}
+
+
+void odometer_pi::GenerateLogOutput() {
+
+    // Define log file location and read full content into a string
+    m_LogFile.Clear();
+    strLog.clear();
+    m_LogFile = g_sDataDir + _T("datalog.log");
+    wxFileName logfile(m_LogFile);
+
+    m_LogFileName.Open(m_LogFile, wxFile::read);
+    m_LogFileName.ReadAll(&strLog, wxConvAuto());
+    m_LogFileName.Close();
+
+    // strlog now contains the complete trip data file.
+    // Log lines all start with D: so select all lines from the first D: -line
+    // Also remove last \n for the ease of count
+    strLog = strLog.Mid(strLog.Find("D: "));
+    strLog.RemoveLast();
+
+    // Select number of trips shown (1, 3 or All)
+    if (g_iSelectLogTrips == 0)  {    // Last trip only
+        strLog = strLog.substr(strLog.rfind('\n') );
+    }
+
+    if (g_iSelectLogTrips == 1)  {    // Last three trips
+        int i = 0;
+        int numTripChars = 0;
+        int logLength = 0;
+        strLogtrip.clear();
+        strLogtripsum.clear();
+
+        while (i < 3)  {
+            strLogtrip = strLog.substr(strLog.rfind('\n') );
+            logLength = strLog.length();
+            numTripChars = strLogtrip.length();
+            strLog = strLog.Truncate(logLength - numTripChars);
+            strLogtripsum = strLogtrip + strLogtripsum;
+            i++;
+        }
+        strLog = strLogtripsum;
+    }
+
+    // Remove the initial \n added in selection above
+    if (g_iSelectLogTrips != 2) strLog = strLog.erase(0,1);
+    // Put the \n at end of string back again
+    strLog = strLog.Append("\n");
+
+
+    homeDir = wxStandardPaths::Get().GetDocumentsDir();
+    TripLogFile = homeDir + wxFileName::GetPathSeparator() + _T("TripLog.txt");
+
+
+    // Common information for all output formatss
+    docTitle = _("Odometer log");
+    LogFile.clear();
+    LogFile = docTitle;
+
+//  --------------------------------------------------------------------------------------
+// Generate text formatted output, emulating tab using space
+
+    if (g_iSelectLogFormat == 0)  {
+
+        // Set up contents in table format, default to 3 columns
+        LogFile = LogFile + "\n\n  " + _("Departure");
+        LogFile = LogFile + "              " + _("Arrival");
+        LogFile = LogFile + "             " + _("Trip");
+
+        // Any restarts? Then add more headers.
+        restartPos = strLog.find("R:", 0);
+
+        if (restartPos >= 1)  {          // -1 if not found
+            LogFile = LogFile + "       " + _("Restart");
+            LogFile = LogFile + "             " + _("Arrival");
+            LogFile = LogFile + "             " + _("Trip");
+        }
+
+        // Need spaces for detection
+        strLog.Replace( "A:", "   A:" );
+        strLog.Replace( "T:", "   T:" );
+        strLog.Replace( "R:", "   R:" );
+
+        // Set string positions on first row
+        departPos = strLog.find("D:", 0);
+        arrivalPos = strLog.find("A:", 0;
+        restartPos = strLog.find("R:", 0);
+        tripPos = strLog.find("T:", arrivalPos);  // Always after arrival
+
+
+        // Calculate number of characters in trip distance
+        tripDecimalPos = strLog.find(",", tripPos);
+        tripLen = (tripDecimalPos - (tripPos + 3));
+        EOLPos = strLog.find("\n", 0);
+
+        while (departPos >= 0) {  // Once per row
+            numRestarts = 0;
+
+            // Restart on this line?
+            restartPos = -1;
+            if (restartPos < EOLPos) restartPos = strLog.find("R:", departPos);
+            arrivalPos = strLog.find("A:", departPos);
+            tripPos = strLog.find("T:", arrivalPos);
+            // Distance need be fixed length
+            // Trip distance info is terminated by a comma.
+            tripDecimalPos = strLog.find(".", tripPos);
+            tripLen = (tripDecimalPos - (tripPos + 3));
+
+            if (tripLen <= 0 ) tripLen = 0;
+            while ((tripLen < 5 ) && (tripPos >= 0))  {  // Third colu8mn only
+                strLog.insert((tripPos + 3), space);  // include tag "T: " in position
+                tripLen++;
+            }
+            EOLPos = strLog.find("\n", departPos);
+            if (restartPos > EOLPos) restartPos = -1;
+
+            while (restartPos >= 0)  {  // At least one restart on this departure
+                numRestarts = 1;
+                arrivalPos = strLog.find("A:", restartPos);
+                tripPos = strLog.find("T:", restartPos);
+
+                // Fix size on trip length after restarts, sixth column
+                // Five digits plus decimal for trip distance
+                tripDecimalPos = strLog.find(".", tripPos);
+                tripLen = (tripDecimalPos - (tripPos + 3));
+                if (tripLen <= 0 ) tripLen = 0;
+                while ((tripLen < 5 ) && (tripPos >= 0))  {  // Sixth column
+                    strLog.insert((tripPos + 3), space);  // include tag "T: " in position
+                    tripLen++;
+                }
+                EOLPos = strLog.find("\n", tripPos);
+
+                prevRestartPos = restartPos;
+                restartPos = strLog.find("R:", prevRestartPos + 10);
+
+                // A second valid restart found, add space for three first columns
+                if ((restartPos >= 0 ) && (restartPos < EOLPos)) {
+                    numRestarts = numRestarts + 1;
+
+                    // Need to move restart columns to columns 4 to 6
+                    restartLen = 0;
+                    moveResColumns = "";
+                    while (restartLen < 51 )  {
+                        moveResColumns.Append(space);
+                        restartLen++;
+                    }
+                    wxString restartRow = "\n" + moveResColumns;
+
+                    // First departure line messes up lacking previous data positions
+                    prevEOLPos = EOLPos;
+                    EOLPos = strLog.find("\n", tripPos);
+
+                    int diffprevRestartPos = (restartPos - prevRestartPos);
+
+                    if ((EOLPos > 200) && (diffprevRestartPos > 100)) {
+                        strLog.replace(restartPos, 3, restartRow);
+                    }
+                    if (diffprevRestartPos < 100) {
+                        strLog.replace(restartPos, 3, restartRow);
+                    }
+
+                    // Remove blanks after restart distance in sixth column
+                    int termBlanksPos = 0;
+                    termBlanksPos = strLog.find(",", tripPos) + 1;
+                    EOLPos = strLog.find("\n", termBlanksPos);
+                    int termBlanks = EOLPos - termBlanksPos;
+                    if (termBlanks > 0) strLog.Remove(termBlanksPos, termBlanks);
+                }
+                if (restartPos < 0) numRestarts = 0;
+            }
+            prevDepartPos = departPos;
+            departPos = strLog.find("D:", (prevDepartPos +10));
+        }
+
+        strLog.Replace( "D: ", "");
+        strLog.Replace( "A: ", "");
+        strLog.Replace( "T: ", "");
+        strLog.Replace( "R: ", "");
+        strLog.Replace( ",", "" );
+
+
+        LogFile = LogFile + "\n" + strLog;
+        strLog = LogFile;
+        TripLogFile = homeDir + wxFileName::GetPathSeparator() + _T("OdometerLog.txt");
+    }
+
+//  --------------------------------------------------------------------------------------
+// Generate CSV formatted output, uses comma as separator
+
+    if (g_iSelectLogFormat == 1)  {
+
+        LogFile = docTitle;
+
+        // Set up contents in table format, default to 3 columns
+        LogFile = LogFile + "\n" + _("Departure") + ",";
+        LogFile = LogFile + _("Arrival") + ",";
+        LogFile = LogFile + _("Trip");
+
+        // Any restarts? Then add more headers.
+        restartPos = strLog.find("R:", 0);
+
+        if (restartPos >= 1)  {          // -1 if not found
+            LogFile = LogFile + "," + _("Restart") + ",";
+            LogFile = LogFile + _("Arrival") + ",";
+            LogFile = LogFile + _("Trip");
+        }
+
+        // Set string positions on first row
+        departPos = strLog.find("D:", 0);
+        arrivalPos = strLog.find("A:", 0);
+        restartPos = strLog.find("R:", 0);
+        tripPos = strLog.find("T:", arrivalPos);  // Always after arrival
+
+        // Calculate number of characters in trip distance
+        tripDecimalPos = strLog.find(",", tripPos);
+        tripLen = (tripDecimalPos - (tripPos + 3));
+        EOLPos = strLog.find("\n", 0);
+
+        while (departPos >= 0) {  // Once per row
+            numRestarts = 0;
+
+            // Restart on this line?
+            restartPos = -1;
+            if (restartPos < EOLPos) restartPos = strLog.find("R:", departPos);
+            arrivalPos = strLog.find("A:", departPos);
+            tripPos = strLog.find("T:", arrivalPos);
+
+            EOLPos = strLog.find("\n", departPos);
+            if (restartPos > EOLPos) restartPos = -1;
+
+            while (restartPos >= 0)  {  // At least one restart on this departure
+                numRestarts = 1;
+                arrivalPos = strLog.find("A:", restartPos);
+                tripPos = strLog.find("T:", restartPos);
+
+                // Remove comma after restart distance in sixth column
+                int endCommaPos = 0;
+                endCommaPos = strLog.find(",", tripPos);
+                EOLPos = strLog.find("\n", tripPos);
+                if (EOLPos > endCommaPos)  strLog.Remove(endCommaPos, 2);
+
+                prevRestartPos = restartPos;
+                restartPos = strLog.find("R:", prevRestartPos + 10);
+
+                // A second valid restart found, add space for three first columns
+                if ((restartPos >= 0 ) && (restartPos < EOLPos)) {
+                    numRestarts = numRestarts + 1;
+                    wxString restartRow = "\n,,,";
+
+                    // First departure line messes ups
+                    if (EOLPos > 80)  strLog.replace(restartPos, 3,  restartRow);
+                    if (EOLPos > 0)  strLog.replace(restartPos, 3, restartRow);
+
+                }
+                if (restartPos < 0) numRestarts = 0;
+            }
+            prevDepartPos = departPos;
+            departPos = strLog.find("D:", (prevDepartPos +10));
+        }
+
+        strLog.Replace( "D: ", "");
+        strLog.Replace( " A: ", "");
+        strLog.Replace( " T: ", "");
+        strLog.Replace( " R: ", "");
+        strLog.Replace( ",,,,", ",,,");
+
+        LogFile = LogFile + "\n" + strLog;
+        strLog = LogFile;
+        TripLogFile = homeDir + wxFileName::GetPathSeparator() + _T("OdometerLog.csv");
+    }
+
+//  --------------------------------------------------------------------------------------
+// Generate HTML formatted output
+
+    if (g_iSelectLogFormat == 2)  {
+        wxString cssStyle = "<style>\n.center\n{\nmargin-left: auto;\nmargin-right: auto;\n}\nth, td\n{\ntext-align: center;\npadding-left: 15px;\npadding-right: 15px;\n}\ntable tbody td:nth-child(3){\ntext-align: right;\n}\ntable tbody td:nth-child(6){\ntext-align: right;\n}\n</style>\n";
+        LogFile = "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n" + cssStyle + "<title> ";
+        LogFile = LogFile  + docTitle + "</title>\n</head\n";
+        LogFile = LogFile + "<body>\n<h2><center>" + docTitle + "</center></h2>\n";
+
+        // Set up contents in table format, default to 3 columns
+        LogFile = LogFile + "<p>\n<table class=\"center\">\n<tr>";
+        LogFile = LogFile + "<th>" + _("Departure") + "</th>\n";
+        LogFile = LogFile + "<th>" + _("Arrival") + "</th>\n";
+        LogFile = LogFile + "<th>" + _("Trip") + "</th>\n";
+
+        // Are there any restarts? Then add headers.
+        restartPos = strLog.find("R:", 0);
+
+        if (restartPos >= 1)  {          // -1 if not found
+            LogFile = LogFile + "<th>" + _("Restart") + "</th>\n";
+            LogFile = LogFile + "<th>" + _("Arrival") + "</th>\n";
+            LogFile = LogFile + "<th>" + _("Trip") + "</th>\n";
+        }
+
+        // Quit table header row and format table data rows
+        LogFile = LogFile + "</tr> ";
+
+        // End of string has no detectable indicator, add one
+        strLog = strLog.Append("\n");
+
+        // Add comumn handling when showing restarted trips
+        newResRow = "</td></tr><tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>";
+
+        // Rebuild strLog into html code
+        // \n need be first or '\n' will be replaced all over
+        strLog.Replace( "\n", "</td></tr>\n" );
+        strLog.Replace( "D:", "<tr>\n<td>D:" );
+        strLog.Replace( "A:", "</td>\n<td>A:" );
+        strLog.Replace( "T:", "</td>\n<td>T:" );
+        strLog.Replace( "R:", "</td>\n<td>R:" );
+
+        // Set initial string positions
+        departPos = strLog.find("D:", 0);
+        arrivalPos = strLog.find("A:", 0);
+        restartPos = strLog.find("R:", 0);
+        tripPos = strLog.find("T:", arrivalPos);
+        EOLPos = strLog.find("</td></tr>", 0);
+        if (restartPos > EOLPos) restartPos = -1;
+
+        while (departPos >= 0) {
+            numRestarts = 0;
+            arrivalPos = strLog.find("A:", departPos);
+            restartPos = strLog.find("R:", departPos);
+            tripPos = strLog.find("T:", arrivalPos);
+            EOLPos = strLog.find("</td></tr>", departPos);
+            if (restartPos > EOLPos) restartPos = -1;
+
+            while (restartPos >= 0)  {   // One valid restart before EOL
+                numRestarts = 1;
+                prevRestartPos = restartPos;
+                restartPos = strLog.find("R:", prevRestartPos + 10);
+
+                if ((restartPos >= 0) && ((restartPos - prevRestartPos) < 200))  {
+                    strLog.replace(restartPos, 3, newResRow);
+                }
+                if (restartPos < 0) numRestarts = 0;
+            }
+            prevDepartPos = departPos;
+            departPos = strLog.find("D:", (prevDepartPos +10));
+        }
+
+        strLog.Replace( "D: ", "");
+        strLog.Replace( "A: ", "");
+        strLog.Replace( "T: ", "");
+        strLog.Replace( "R: ", "");
+        strLog.Replace( ",", "" );
+
+        LogFile = LogFile + strLog + "</tr></table>\n</p>";
+        LogFile = LogFile + "</table>\n</body>\n</html>" ;
+        strLog = LogFile;
+        TripLogFile = homeDir + wxFileName::GetPathSeparator() + _T("OdometerLog.html");
+    }
+
+
+    // Save log file in users home directory
+    TripLogFileName.Open(TripLogFile, wxFile::write);
+    TripLogFileName.Write(strLog);
+    TripLogFileName.Close();
+
+
+    if (g_iSelectLogOutput == 1)  {    // Open the file in a reader/browser
+
+        if (g_iSelectLogFormat == 0)  {  // txt-formatted
+            wxFileType* fileType = wxTheMimeTypesManager->GetFileTypeFromExtension("txt");
+            wxString cmd = fileType->GetOpenCommand(TripLogFile);
+#ifdef __WXOSX__
+            cmd = "/bin/bash -c \"open " + TripLogFile + "\"";
+#endif
+            wxExecute(cmd);
+            cmd.Clear();
+            delete fileType;
+        }
+
+        if (g_iSelectLogFormat == 1)  {  // csv-formatted
+            wxFileType* fileType = wxTheMimeTypesManager->GetFileTypeFromExtension("csv");
+            wxString cmd = fileType->GetOpenCommand(TripLogFile);
+#ifdef __WXOSX__
+            cmd = "/bin/bash -c \"open " + TripLogFile + "\"";
+#endif
+            wxExecute(cmd);
+            cmd.Clear();
+            delete fileType;
+        }
+
+        if (g_iSelectLogFormat == 2) {   // HTML-formatted
+            if (!wxLaunchDefaultBrowser(wxString("file://") + TripLogFile)) {
+                TripLogFile.Replace("/", "\\");
+            }
+            wxFileType* fileType = wxTheMimeTypesManager->GetFileTypeFromExtension("html");
+            wxString cmd = fileType->GetOpenCommand("file:///" + TripLogFile);
+            wxExecute(cmd);
+            cmd.Clear();
+            delete fileType;
+        }
+    }
+}
+
+
+// Based on the 'Odometer Preferences Dialog'
+OdometerViewLogDialog::OdometerViewLogDialog(wxWindow *parent, wxWindowID id):
+    wxDialog(parent, id, _("Log View Settings"), wxDefaultPosition, wxDefaultSize,     wxDEFAULT_DIALOG_STYLE) {
+    Connect(wxEVT_CLOSE_WINDOW, wxCloseEventHandler(OdometerViewLogDialog::OnCloseLogDialog), NULL, this);
+
+    int border_size = 2;
+
+    wxBoxSizer* itemBoxSizerMainLogViewPanel = new wxBoxSizer(wxVERTICAL);
+    SetSizer(itemBoxSizerMainLogViewPanel);
+    wxFlexGridSizer *itemFlexGridSizer = new wxFlexGridSizer(1);
+    m_pLogPanelPreferences = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize,
+        wxBORDER_NONE);
+    itemBoxSizerMainLogViewPanel->Add(m_pLogPanelPreferences, 1, wxEXPAND | wxTOP | wxRIGHT,
+        border_size);
+
+    //   Main frame and box for Viewing options
+    wxBoxSizer* itemBoxSizerMainFrame = new wxBoxSizer(wxVERTICAL);
+    m_pLogPanelPreferences->SetSizer(itemBoxSizerMainFrame);
+    itemBoxSizerMainFrame->AddSpacer( 5 );
+    wxStaticBox* itemStaticBoxViewOpts = new wxStaticBox(m_pLogPanelPreferences, wxID_ANY,
+       _("Display options"), wxDefaultPosition, wxDefaultSize);
+    wxStaticBoxSizer* itemStaticBoxLogViewSizer01 = new wxStaticBoxSizer(itemStaticBoxViewOpts, wxHORIZONTAL);
+
+    itemBoxSizerMainFrame->Add(itemStaticBoxLogViewSizer01, 1, border_size);
+    itemBoxSizerMainFrame->AddSpacer( 10 );
+
+    //   Select log information
+    wxFlexGridSizer *itemFlexGridLogSizer01 = new wxFlexGridSizer(2);
+    itemFlexGridLogSizer01->AddGrowableCol(0);
+    itemStaticBoxLogViewSizer01->Add(itemFlexGridLogSizer01, 1, wxEXPAND | wxALL, 0);
+    m_pRadioBoxPanel = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize,
+        wxBORDER_NONE);
+    wxString Trips[] = { _("Last trip"),_("Last three trips"),_("All logged trips") };
+    int Num_Trips = 3;
+    itemFlexGridLogSizer01->Add(m_pRadioBoxPanel, 0, wxEXPAND | wxALL, border_size);
+    m_pRadioBoxTrips = new wxRadioBox(m_pRadioBoxPanel, wxID_ANY, _("Select trips"),
+    wxDefaultPosition, wxDefaultSize, Num_Trips, Trips, wxRA_SPECIFY_COLS, 1 );
+    m_pRadioBoxTrips->SetSelection (g_iSelectLogTrips);
+
+    //   Select log view format
+    wxFlexGridSizer *itemFlexGridLogSizer02 = new wxFlexGridSizer(2);
+    itemFlexGridLogSizer02->AddGrowableCol(0);
+    itemStaticBoxLogViewSizer01->Add(itemFlexGridLogSizer02, 1, wxEXPAND | wxALL, 0);
+    m_pRadioBoxPanel = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize,
+        wxBORDER_NONE);
+    wxString ViewFormat[] = { _("Formatted text"),_("CSV format"),_("HTML format") };
+    int Num_ViewFormats = 3;
+    itemFlexGridLogSizer02->Add(m_pRadioBoxPanel, 0, wxEXPAND | wxALL, border_size);
+    m_pRadioBoxFormat = new wxRadioBox(m_pRadioBoxPanel, wxID_ANY, _("View formats"),
+    wxDefaultPosition, wxDefaultSize, Num_ViewFormats, ViewFormat, wxRA_SPECIFY_COLS, 1 );
+    m_pRadioBoxFormat->SetSelection (g_iSelectLogFormat);
+
+    //   Select log output options
+    wxFlexGridSizer *itemFlexGridLogSizer03 = new wxFlexGridSizer(2);
+    itemFlexGridLogSizer03->AddGrowableCol(0);
+    itemStaticBoxLogViewSizer01->Add(itemFlexGridLogSizer03, 1, wxEXPAND | wxALL, 0);
+    m_pRadioBoxPanel = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize,
+        wxBORDER_NONE);
+    wxString Output[] = { _("Save to disk"),_("External viewer") };
+    int Num_Output = 2;
+    itemFlexGridLogSizer03->Add(m_pRadioBoxPanel, 0, wxEXPAND | wxALL, border_size);
+    m_pRadioBoxOutput = new wxRadioBox(m_pRadioBoxPanel, wxID_ANY, _("Output"),
+    wxDefaultPosition, wxDefaultSize, Num_Output, Output, wxRA_SPECIFY_COLS, 1 );
+    m_pRadioBoxOutput->SetSelection (g_iSelectLogOutput);
+
+
+	wxStdDialogButtonSizer* ViewDialogButtonSizer = CreateStdDialogButtonSizer(wxOK | wxCANCEL);
+    itemBoxSizerMainLogViewPanel->Add(ViewDialogButtonSizer, 0, wxALIGN_RIGHT, 5);
+}
+
+
+// Executed when clicking upper right corner 'X', not when clicking 'CANCEL' or 'OK', WHY!!!
+void OdometerViewLogDialog::OnCloseLogDialog(wxCloseEvent& event) {
+
+    event.Skip();
+}
+
+
+void OdometerViewLogDialog::SaveLogConfig() {
+
+//    wxMessageBox (_T("Saving Log Config"));
+
+    g_iSelectLogTrips = m_pRadioBoxTrips->GetSelection();
+    g_iSelectLogFormat = m_pRadioBoxFormat->GetSelection();
+    g_iSelectLogOutput = m_pRadioBoxOutput->GetSelection();
+
+}

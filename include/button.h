@@ -80,6 +80,7 @@ public:
     void OnButtonClickTripReset( wxCommandEvent& event);
     void OnButtonClickStartStop( wxCommandEvent& event);
     void OnButtonClickLegReset( wxCommandEvent& event);
+    void OnButtonClickShowLog( wxCommandEvent& event);
 
     int b_width = 150;
     int b_height = 33;

@@ -3,7 +3,7 @@
 # Copyright:   2018 - 2023
 # License:     GPL v3+
 # ---------------------------------------------------------------------------
-# Frontend2  v1.0.253.0   Author: Dave Register
+# Frontend2  v1.0.278.11   Author: Jon Gough
 # ---------------------------------------------------------------------------
 ## ----- When changing this file do NOT change the order in which sections occur        ----- ##
 ## ----- Changes should only be made between the section blocks that identify where     ----- ##
@@ -21,6 +21,9 @@ if(COMMAND cmake_policy)
         cmake_policy(SET CMP0043 NEW)
     endif(POLICY CMP0043)
     cmake_policy(SET CMP0048 NEW)
+    if(POLICY CMP0076)
+        cmake_policy(SET CMP0076 NEW)
+    endif(POLICY CMP0076)
     if(POLICY CMP0077)
         cmake_policy(SET CMP0077 NEW)
     endif(POLICY CMP0077)
@@ -37,10 +40,10 @@ set(LONG_DESCRIPTION "Using GPS/GNSS satellite data to calculate log and trip in
 
 set(VERSION_MAJOR "0")
 set(VERSION_MINOR "8")
-set(VERSION_PATCH "0")
+set(VERSION_PATCH "1")
 set(VERSION_TWEAK "0")
-set(VERSION_DATE "18/08/2023")  # DD/MM/YYYY format
-set(OCPN_MIN_VERSION "ov50")
+set(VERSION_DATE "13/12/2023")  # DD/MM/YYYY format
+set(OCPN_MIN_VERSION "ov58")
 set(OCPN_API_VERSION_MAJOR "1")
 set(OCPN_API_VERSION_MINOR "18")
 
@@ -57,7 +60,8 @@ set(ALPHA "alpha")  #Standard Repos
 
 # Set if your Cloudsmith Base Repository name does not match your Git Repository name.
 set (CLOUDSMITH_BASE_REPOSITORY "gps-odometer")  #without the pi
-# Match the cloudsmith org name, not the user.
+
+# Set the following to use OpenCPN cloudsmith repositories instead of own repositories
 set(CLOUDSMITH_USER "opencpn") 
 #set(CLOUDSMITH_USER "LennartG-Sve")
 
@@ -155,9 +159,9 @@ SET(SRCS
     src/long.cpp
     src/gga.cpp
     src/rmc.cpp
-    libs/wxJSON/src/jsonval.cpp
-    libs/wxJSON/src/jsonreader.cpp
-    libs/wxJSON/src/jsonwriter.cpp
+#    libs/wxJSON/src/jsonval.cpp
+#    libs/wxJSON/src/jsonreader.cpp
+#    libs/wxJSON/src/jsonwriter.cpp
     libs/N2KParser/src/N2kMessages.cpp
     libs/N2KParser/src/N2kMsg.cpp
     libs/N2KParser/src/N2KParser.cpp
@@ -195,10 +199,10 @@ set(LIBHDRS
     libs/GL/gl_private.h
     libs/GL/glext.h
     libs/GL/glu.h
-    libs/wxJSON/include/json_defs.h
-    libs/wxJSON/include/jsonreader.h
-    libs/wxJSON/include/jsonval.h
-    libs/wxJSON/include/jsonwriter.h
+#    libs/wxJSON/include/json_defs.h
+#    libs/wxJSON/include/jsonreader.h
+#    libs/wxJSON/include/jsonval.h
+#    libs/wxJSON/include/jsonwriter.h
     libs/N2KParser/include/N2kDef.h
     libs/N2KParser/include/N2kMessages.h
     libs/N2KParser/include/N2kMsg.h
@@ -210,8 +214,8 @@ set(LIBHDRS
 ## GPS Odometer plugin uses SVG for toolbar icons
 add_definitions(-DPLUGIN_USE_SVG)
 
-#set(EXTINCLUDE_DIR ${EXTINCLUDE_DIR} extinclude libs/ocpn-api/)
-set(EXTINCLUDE_DIR libs/ocpn-api/)
+##set(EXTINCLUDE_DIR ${EXTINCLUDE_DIR} extinclude libs/ocpn-api/)
+## set(EXTINCLUDE_DIR libs/ocpn-api/)
 
 ##
 ## ----- JSON validation is not used, section skipped ----- ##
@@ -219,11 +223,11 @@ set(EXTINCLUDE_DIR libs/ocpn-api/)
 
 INCLUDE_DIRECTORIES(BEFORE ${PROJECT_SOURCE_DIR}/include)
 ## INCLUDE_DIRECTORIES(BEFORE ${PROJECT_SOURCE_DIR}/ocpninclude)
-include_directories(BEFORE ${PROJECT_SOURCE_DIR}/${EXTINCLUDE_DIR})
-include_directories(BEFORE ${PROJECT_SOURCE_DIR}/libs/)
+## include_directories(BEFORE ${PROJECT_SOURCE_DIR}/${EXTINCLUDE_DIR})
+## include_directories(BEFORE ${PROJECT_SOURCE_DIR}/libs/)
 include_directories(BEFORE ${PROJECT_SOURCE_DIR}/libs/GL)
-include_directories(BEFORE ${PROJECT_SOURCE_DIR}/libs/ocpn-api)
-include_directories(BEFORE ${PROJECT_SOURCE_DIR}/libs/wxJSON/include)
+## include_directories(BEFORE ${PROJECT_SOURCE_DIR}/libs/ocpn-api)
+## include_directories(BEFORE ${PROJECT_SOURCE_DIR}/libs/wxJSON/include)
 
 ##INCLUDE_DIRECTORIES(BEFORE ${PROJECT_SOURCE_DIR}/api-16)
 INCLUDE_DIRECTORIES(BEFORE ${PROJECT_SOURCE_DIR}/src)
@@ -244,12 +248,33 @@ INCLUDE_DIRECTORIES(BEFORE ${PROJECT_SOURCE_DIR}/src)
 target_sources(${PACKAGE_NAME} PUBLIC ${SRCS} ${HDRS} ${LIBHDRS})
 
 if(NOT OCPN_FLATPAK_CONFIG)
-    # Build environment not available when flatpak is being configured so following statements will not work
+    # Build environment not available when flatpak is being configured
+    # so following statements will not work
     message(STATUS "${CMLOC}Adding target link libraries to ${PACKAGE_NAME}")
 
-    add_subdirectory(libs/tinyxml)
+    if (WIN32)
+        add_subdirectory(opencpn-libs/WindowsHeaders)
+        target_link_libraries(${PACKAGE_NAME} windows::headers)
+    endif (WIN32)
 
+    add_subdirectory(opencpn-libs/api-18)
+    target_link_libraries(${PACKAGE_NAME} ocpn::api)
+
+    add_subdirectory(opencpn-libs/tinyxml)
     target_link_libraries(${PACKAGE_NAME} ocpn::tinyxml)
+
+##    add_subdirectory(opencpn-libs/odapi)
+##    target_link_libraries(${PACKAGE_NAME} ocpn::odapi)
+
+##    add_subdirectory(opencpn-libs/jsonlib)
+##    target_link_libraries(${PACKAGE_NAME} ocpn::jsonlib)
+
+    add_subdirectory(opencpn-libs/wxJSON)
+    target_link_libraries(${PACKAGE_NAME} ocpn::wxjson)
+
+##    add_subdirectory(opencpn-libs/plugin_dc)
+##    target_link_libraries(${PACKAGE_NAME} ocpn::plugin-dc)
+
 endif(NOT OCPN_FLATPAK_CONFIG)
 
 add_definitions(-DTIXML_USE_STL)

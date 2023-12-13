@@ -77,8 +77,9 @@ class OdometerWindowContainer {
 public:
 	OdometerWindowContainer(OdometerWindow *odometer_window, wxString name, wxString caption, wxString orientation, wxArrayInt inst) {
        m_pOdometerWindow = odometer_window; m_sName = name; m_sCaption = caption; m_sOrientation = orientation; 
-       m_aInstrumentList = inst; m_bIsVisible = false; m_bIsDeleted = false; m_bShowSpeed = true; m_bShowDepArrTimes = true;
-       m_bShowTripLeg = true; }
+       m_aInstrumentList = inst; m_bIsVisible = false; m_bIsDeleted = false; m_bShowSpeed = true;
+       m_bShowDepArrTimes = true; m_bShowTripLeg = true; m_bGenerateLogFile = true;
+       m_bIncludeTripStops = false; }
 
 	~OdometerWindowContainer(){}
 
@@ -90,10 +91,14 @@ public:
 	bool m_bShowSpeed;
 	bool m_bShowDepArrTimes;
 	bool m_bShowTripLeg;
+	bool m_bGenerateLogFile;
+	bool m_bIncludeTripStops;
+	bool m_bTripStopMinutes;
 	wxString m_sName;
 	wxString m_sCaption;
 	wxString m_sOrientation;
 	wxArrayInt m_aInstrumentList;
+
 };
 
 class OdometerInstrumentContainer {
@@ -158,11 +163,17 @@ public:
 	int GetToolbarItemId();
 	int GetOdometerWindowShownCount();
     void Odometer();
+    void ShowViewLogDialog(wxWindow *parent);
+    void GenerateLogOutput();
+    void rmOldLogFiles();
+	
 
 	  
     int id;
-
+    int i;   // Integer for while loops
     double TotDist = 0.0;
+    double oldTotDist = 0.0;
+    double dispTotDist = 0.0;
     wxString DistUnit;
     void SetPluginMessage(wxString &message_id, wxString &message_body);
 
@@ -175,7 +186,10 @@ private:
 
     // Send deconstructed NMEA 1083 sentence  values to each display
     void SendSentenceToAllInstruments(int st, double value, wxString unit);
+    void TripAutoReset(wxString ArrTime, wxDateTime LocalTime);
     void GetDistance();
+    void DefineTripData();
+    void WriteTripData();
 
     // OpenCPN goodness, pointers to Configuration, AUI Manager and Toolbar
     wxFileConfig *m_pconfig;
@@ -184,6 +198,7 @@ private:
 
     // Hide/Show Odometer Windows
     wxArrayOfOdometer m_ArrayOfOdometerWindow;
+    wxArrayOfOdometer m_ArrayOfOdometerLogWindow;
     int m_show_id;
     int m_hide_id;
 
@@ -195,7 +210,9 @@ private:
     double mVar;
     wxDateTime mUTCDateTime;
     iirfilter mSOGFilter;
+    int PwrOnDelaySecs;
     wxString m_SatsRequired;
+    wxTimeSpan PwrOnDelay;
     wxString m_PwrOnDelSecs;
     wxString m_HDOPdefine;
     wxString m_FilterSOG;
@@ -208,7 +225,7 @@ private:
     double HDOPlevel;
     int validGPS = 0;
     int useNMEA = 0;
-    int PowerUp = 1;
+    int Initializing = 1;
     int PowerUpActive = 1;
     int mUTC_Watchdog;
     int GNSSok = 0;
@@ -235,29 +252,50 @@ private:
     wxDateTime UTCTime;
     wxTimeSpan TimeOffset;
     wxDateTime LocalTime;
+    wxDateTime CurrTime;
 
     // Odometer trip time
     double NMEASpeed; 
     double CurrSpeed = 0.0; 
     double FilteredSpeed; 
     double OnRouteSpeed;
+    int OnRoute = 0;
     wxDateTime EnabledTime;
     wxDateTime DepTime;
     wxDateTime ArrTime;
-    int ArrTimeShow = 1;
+    wxDateTime ResTime;
+    wxDateTime TripResetTime;
+    double ResetDelay;
+    int ArrTimeShow;
     wxString strDep;
     wxString strArr;
+    wxString strRes;
+    wxString strReset;
+    wxString strLocal;
     int SetDepTime = 0;
     int UseSavedDepTime = 1;
     int UseSavedArrTime = 1;
+    int oldMinute;
 
     // Odometer Trip and Sumlog distances
     wxString m_TotDist;
+    wxString m_confTotDist;
     wxString m_TripDist;
+    wxString m_confTripDist;
     wxString m_DepTime; 
+    wxString logDepTime; 
     wxString m_ArrTime;
+    wxString logArrTime;
+    wxString m_ResTime;
+    wxString logResTime;
+    wxString m_LocalTime;
+    wxString strLog;
     double StepDist = 0;
-    double TripDist = 0;
+    double TripDist = 0.0;
+    double oldTripDist = 0.0;
+    double dispTripDist = 0.0;
+    int saveTripDist = 0;
+    int saveTotDist = 0;
     int ResetDist;
     int CurrSec;
     int PrevSec;
@@ -270,39 +308,94 @@ private:
     wxString m_LegDist;
     wxString m_LegTime; 
     double LegDist = 0;
+    double dispLegDist = 0;
     int CountLeg = 0;
     wxDateTime LegStart;
     wxTimeSpan LegTime;
 
     // Save log data to data dir
     wxString m_sumlogFile;
-    wxFile m_sumlogFileName;
-    wxTextFile m_sumlogInFile;
+    wxFile m_sumLogFileName;
+    wxTextFile m_sumLogFileTextReader;
     double sumLog = 0;
-    int readSumlog = 1;
-    wxString m_dataCurrDist;
-    double dataCurrDist = 0.0;
+    int ReadSumlogFromData;
+    wxString m_dataTotDist;
+    double dataTotDist = 0.0;
+    wxString oldLogFile;
+    wxFile m_oldLogFileName;
 
-    wxString m_triplogFile;
-    wxFile m_triplogFileName;
-    wxTextFile m_triplogInFile;
     double tripLog = 0.0;
-    int ReadTripFromData = 1;
-
-    wxString m_depTimeFile;
-    wxFile m_depTimeFileName;
-    wxTextFile m_depTimeInFile;
+    int ReadTripFromData;
+    wxString m_dataTripDist;
+    double dataTripDist = 0.0;
     wxString departure = " - - - ";
     wxString dataCurrTime;
-    int ReadDepFromData = 1;
-
-    wxString m_arrTimeFile;
-    wxFile m_arrTimeFileName;
-    wxTextFile m_arrTimeInFile;
+    int ReadDepFromData;
     wxString arrival = " - - - ";
-    int ReadArrFromData = 1;
+    wxString restart = " ";
+    int ReadArrFromData;
     int ArrTimeSet = 1;
+    int ResTimeSet = 1;
+    int ReadResFromData;
+    int ReadSavedData = 0;
+    wxString currLogLine;
 
+    // Log file handling
+    wxString m_DataFile;
+    wxTextFile m_DataFileTextReader;
+    int readDataFile = 0;
+    wxString m_LogFile;
+    wxFile m_LogFileName;
+    int TripMode = 0;
+    int StopMinutes = 5;
+    int ReadTripModeFromData;
+    int saveTripMode = 0;
+    wxString strTripMode;
+    int AutoReset = 0;
+    int ReadTripAutoResetFromData;
+    int saveTripAutoReset = 0;
+    wxString strTripAutoReset;
+    int TimeDateWritten = 0;
+    int saveDepTime = 0;
+    int DepTimeFound;
+    int saveArrTime = 0;
+    int ArrTimeFound;
+    int saveResTime = 0;
+    int ResTimeFound;
+    wxString m_ResumeAfter;
+    wxString strLogtrip;
+    wxString strLogtripsum;
+    wxString docTitle;
+    wxString LogFile;
+
+    wxString homeDir;
+    wxString TripLogFile;
+    wxFile TripLogFileName;
+    int restartNum;
+    wxString arrivalString;
+    int arrivalPos;
+    int prevArrivalPos;
+    wxString departString;
+    int departPos;
+    int prevDepartPos;
+    wxString EOLString;
+    int EOLPos;
+    int prevEOLPos;
+    wxString restartString;
+    int restartPos;
+    int prevRestartPos = 0;
+    int numRestarts = 0;
+    wxString tripString;
+    int tripPos;
+    int prevTripPos;
+    int tripLen;
+    int tripDecimalPos;
+    wxString space = " ";
+    wxString moveResColumns;
+    wxString newResRow;
+    wxString subStrLog;
+    int subLength;
+    int restartLen;
 
     // Odometer uses version 2 configuration settings
     int m_config_version;
@@ -331,22 +424,56 @@ public:
     wxChoice *m_pChoiceUTCOffset;
     wxChoice *m_pChoiceSpeedUnit;
     wxChoice *m_pChoiceDistanceUnit;
+    wxChoice *m_pChoiceTripDelayTime;
+    wxChoice *m_pChoiceMinTripStop;
     wxSpinCtrlDouble *m_pSpinDBTOffset;
 	wxCheckBox *m_pCheckBoxShowSpeed;
 	wxCheckBox *m_pCheckBoxShowDepArrTimes;
 	wxCheckBox *m_pCheckBoxShowTripLeg;
-
+	wxCheckBox *m_pCheckBoxGenerateLogFile;
+	wxCheckBox *m_pCheckBoxIncludeTripStops;
 
 
 private:
 	void UpdateOdometerButtonsState(void);
+	void RefreshOdometerButtonsState(void);
 	void UpdateButtonsState(void);
 	wxListCtrl *m_pListCtrlOdometers;
 	wxPanel *m_pPanelPreferences;
 	wxTextCtrl *m_pTextCtrlCaption;
 	wxCheckBox *m_pCheckBoxIsVisible;
 	wxListCtrl *m_pListCtrlInstruments;
+
 };
+
+class OdometerViewLogDialog : public wxDialog {
+public:
+	OdometerViewLogDialog(wxWindow *pparent, wxWindowID id);
+	~OdometerViewLogDialog() {}
+
+	void OnCloseLogDialog(wxCloseEvent& event);
+    void SaveLogConfig();
+
+	wxFontPickerCtrl *m_pFontPickerTitle;
+	wxFontPickerCtrl *m_pFontPickerData;
+	wxFontPickerCtrl *m_pFontPickerLabel;
+	wxFontPickerCtrl *m_pFontPickerSmall;
+	wxRadioBox *m_pRadioBoxTrips;
+	wxRadioBox *m_pRadioBoxFormat;
+	wxRadioBox *m_pRadioBoxOutput;
+
+
+private:
+	wxPanel *m_pLogPanelPreferences;
+	wxPanel *m_pRadioBoxPanel;
+
+
+
+
+
+};
+
+
 
 class AddInstrumentDlg : public wxDialog {
 public:
@@ -365,6 +492,7 @@ enum {
 
 enum {
 	ID_ODO_PREFS = 999,
+    ID_ODO_VIEWLOG,
 	ID_ODO_UNDOCK
 };
 
@@ -403,6 +531,9 @@ public:
     void SendSentenceToAllInstruments(int st, double value, wxString unit);
     void ChangePaneOrientation(int orient, bool updateAUImgr);
 
+    void ViewLogDialog(wxWindow *parent);
+
+
 	// TODO: OnKeyPress pass event to main window or disable focus
 
     OdometerWindowContainer *m_Container;
@@ -414,7 +545,6 @@ public:
     wxSize m_resizeStartSize;
     bool m_binResize;
     bool m_binResize2;
-
 
 private:
 	wxAuiManager *m_pauimgr;

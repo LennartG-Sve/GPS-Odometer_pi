@@ -53,6 +53,7 @@
 extern int g_iResetTrip;
 extern int g_iStartStopLeg;
 extern int g_iResetLeg;
+extern int g_iShowLogDialog;
 extern int g_iPanelWidth;
 
 
@@ -62,8 +63,8 @@ extern int g_iPanelWidth;
 //
 //--------------------------------------------------------------
 
-OdometerInstrument_Button::OdometerInstrument_Button(wxWindow *pparent, wxWindowID id, wxString title,
-      int cap_flag ) : OdometerInstrument(pparent, id, title, cap_flag )
+OdometerInstrument_Button::OdometerInstrument_Button(wxWindow *pparent, wxWindowID id,
+    wxString title, int cap_flag ) : OdometerInstrument(pparent, id, title, cap_flag )
 {
 
     m_id = id;
@@ -86,6 +87,7 @@ OdometerInstrument_Button::OdometerInstrument_Button(wxWindow *pparent, wxWindow
 //    b_width = width + 24;        // If not using default common width
     b_height = m_TitleHeight + 12;
 
+
     if (m_cap_flag == 32) {
 
         wxBoxSizer* instrument = new wxBoxSizer(wxVERTICAL);
@@ -98,7 +100,7 @@ OdometerInstrument_Button::OdometerInstrument_Button(wxWindow *pparent, wxWindow
             wxCommandEventHandler(OdometerInstrument_Button::OnButtonClickTripReset), NULL, this );
     }
 
-    if (m_cap_flag == 256) {
+    if (m_cap_flag == 512) {
         wxBoxSizer* instrument = new wxBoxSizer(wxVERTICAL);
         wxButton* m_pLegStartStopButton = new wxButton(this, m_id, _( m_title ), wxDefaultPosition, wxSize(b_width,b_height) );
         m_pLegStartStopButton->SetForegroundColour(wxColor(0,0,0));        
@@ -109,7 +111,7 @@ OdometerInstrument_Button::OdometerInstrument_Button(wxWindow *pparent, wxWindow
             wxCommandEventHandler(OdometerInstrument_Button::OnButtonClickStartStop), NULL, this );
     }
 
-    if (m_cap_flag == 512) {
+    if (m_cap_flag == 1024) {
         wxBoxSizer* instrument = new wxBoxSizer(wxVERTICAL);
         wxButton* m_pLegResetButton = new wxButton(this, m_id, _( m_title ), wxDefaultPosition, wxSize(b_width,b_height) );
         m_pLegResetButton->SetForegroundColour(wxColor(0,0,0));        
@@ -119,7 +121,6 @@ OdometerInstrument_Button::OdometerInstrument_Button(wxWindow *pparent, wxWindow
         m_pLegResetButton->Connect( wxEVT_COMMAND_BUTTON_CLICKED, 
             wxCommandEventHandler(OdometerInstrument_Button::OnButtonClickLegReset), NULL, this );
     }
-
 
     m_title = ( "" );  // Remove the title row behind the button
 }
