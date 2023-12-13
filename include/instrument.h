@@ -155,7 +155,7 @@ protected:
 	wxString m_data;
 	wxString m_format;
 	int m_DataHeight;
-	
+
 	void Draw(wxGCDC *dc);
 };
 

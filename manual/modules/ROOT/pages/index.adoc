@@ -23,13 +23,13 @@ The GPS Odometer contain these basic functions:
 
 == Instruments
 
-The instruments are shown in the above listed order and it is not possible to change this order. It is however possible to toggle the optional instruments on or off right-clicking on the instrument panel and select 'Settings'. 
+The instruments are shown in the above listed order and it is not possible to change this order. It is however possible to toggle the optional instruments on or off right-clicking on the instrument panel and select 'Settings'.
 The trip log, with options, is viewed right-clicking on the instrument selecting 'View trip log'.
 
 . Total distance, Trip distance plus the Trip reset button can not be toggled off. Just leave the GPS Odometer on screen and reset the trip counter once the trip is ended (and log book written?) or before the next trip starts.
 . The trip will be considered started as soon as the speed increases above 'Minimum Route Speed', preset at 2 knots (selectable in the settings menu). The departure date and time will be displayed on the instrument as the upper value for 'Departure & Arrival'.
 . The trip will be considered stopped as soon as the speed decreases below 'Minimum Route Speed' and the date and time will be displayed on the instrument as the lower value for 'Departure & Arrival'.
-. If the speed then again increases above 'Minimum Route Speed' the trip be either continued or restarted depending on if the 'Trip reset' button has been clicked or not. You may even shut down OpenCPN for e.g. a lunch break, the 'Trip distance' as well as 'Departure & Arrival' times are remembered until the Trip reset button is clicked. Just note that there will be an automatic trip reset executed if 'Autoreset Trip' is selected and the break time exceeds the 'Minimum trip stop time' selected in the settings menu.  
+. If the speed then again increases above 'Minimum Route Speed' the trip be either continued or restarted depending on if the 'Trip reset' button has been clicked or not. You may even shut down OpenCPN for e.g. a lunch break, the 'Trip distance' as well as 'Departure & Arrival' times are remembered until the Trip reset button is clicked. Just note that there will be an automatic trip reset executed if 'Autoreset Trip' is selected and the break time exceeds the 'Minimum trip stop time' selected in the settings menu.
 . Departure and arrival times are displayed according to the ISO standard 8601 primary alternative ('YYYY-MM-DD HH:MM').
 . 'Total distance' is simply a counter of distance travelled and is not affected by the reset button. Note that you can edit (increase only) the 'Totaldistance' value in the OpenCPN configuration file e.g. if the GPS Odometer is replacing another log instrument. The format is '12345.6' (one decimal only) and remember to do that while OpenCPN is shut down or your change will be lost.
 . The Leg Trip functionality is a bit different as it has higher time and distance resolution, intended for e.g. tight navigation time and distance measurements. Like “How far is it between X and Y?” or “How long time does it take between Y and Z”. Start or resume the distance and time counters clicking the Start/Stop Leg button, it will count distance and time until the button is clicked again. Click the Leg Reset button to zero distance and time and begin a new count session. This counter does not use the 'Minimum Route Speed' setting.
@@ -111,6 +111,6 @@ The name is 'GPS Odometer' as I started this before any GNSS units was available
 
 I did this plugin as I wanted a simple GPS/GNSS based Odometer. The Logbook has that option but you may not need all the other stuff in there and also wants an on-screen solution.
 
-For 'dry-runs' I recommend gpsfeed+ in a square pattern (getting various speeds). 
+For 'dry-runs' I recommend gpsfeed+ in a square pattern (getting various speeds).
 
 Contact: You can PM me through OpenCPN in Cruisers Forum, look for LennartG or use Search → Advanced search → Search by user name.
