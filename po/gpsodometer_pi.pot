@@ -177,6 +177,7 @@ msgstr ""
 msgid "mph"
 msgstr ""
 
+
 #: src/odometer_pi.cpp:2129
 msgid "Distance units:"
 msgstr ""
@@ -186,6 +187,7 @@ msgid "Kilometers"
 msgstr ""
 
 #: src/odometer_pi.cpp:2132
+
 msgid "Nautical miles"
 msgstr ""
 

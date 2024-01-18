@@ -189,6 +189,7 @@ private:
     void GetDistance();
     void DefineTripData();
     void WriteTripData();
+//    void ReadTripData();
 
     // OpenCPN goodness, pointers to Configuration, AUI Manager and Toolbar
     wxFileConfig *m_pconfig;
@@ -410,6 +411,8 @@ public:
 	void OnInstrumentSelected(wxListEvent& event);
 	void SaveOdometerConfig(void);
     void RecalculateSize( void );
+    void OnInstrumentAdd();
+    void OnInstrumentDelete();
 
 	wxArrayOfOdometer m_Config;
 	wxFontPickerCtrl *m_pFontPickerTitle;
@@ -435,8 +438,7 @@ public:
 
 private:
 	void UpdateOdometerButtonsState(void);
-	void RefreshOdometerButtonsState(void);
-	void UpdateButtonsState(void);
+    wxChoice *m_pChoiceOrientation;
 	wxListCtrl *m_pListCtrlOdometers;
 	wxPanel *m_pPanelPreferences;
 	wxTextCtrl *m_pTextCtrlCaption;
@@ -465,11 +467,6 @@ public:
 private:
 	wxPanel *m_pLogPanelPreferences;
 	wxPanel *m_pRadioBoxPanel;
-
-
-
-
-
 };
 
 
@@ -529,6 +526,7 @@ public:
     void SetInstrumentList(wxArrayInt list);
     void SendSentenceToAllInstruments(int st, double value, wxString unit);
     void ChangePaneOrientation(int orient, bool updateAUImgr);
+    int orient = 0;  // Always vertical
 
     void ViewLogDialog(wxWindow *parent);
 
