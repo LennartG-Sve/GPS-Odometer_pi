@@ -83,7 +83,7 @@ public:
     void OnButtonClickShowLog( wxCommandEvent& event);
 
     int b_width = 150;
-    int b_height = 33;
+    int b_height;
     int GetNumber;
 
 private:

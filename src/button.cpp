@@ -54,8 +54,6 @@ extern int g_iResetTrip;
 extern int g_iStartStopLeg;
 extern int g_iResetLeg;
 extern int g_iShowLogDialog;
-extern int g_iPanelWidth;
-
 
 //--------------------------------------------------------------
 //
@@ -63,6 +61,7 @@ extern int g_iPanelWidth;
 //
 //--------------------------------------------------------------
 
+// Executed at start and when closing setup
 OdometerInstrument_Button::OdometerInstrument_Button(wxWindow *pparent, wxWindowID id,
     wxString title, int cap_flag ) : OdometerInstrument(pparent, id, title, cap_flag )
 {
@@ -84,12 +83,33 @@ OdometerInstrument_Button::OdometerInstrument_Button(wxWindow *pparent, wxWindow
     Connect(wxEVT_RIGHT_DOWN, wxMouseEventHandler(OdometerInstrument::MouseEvent), NULL, this);
 #endif
 
-//    b_width = width + 24;        // If not using default common width
-    b_height = m_TitleHeight + 12;
+}
 
+OdometerInstrument_Button::~OdometerInstrument_Button(void) {
+}
+
+// Executed at start, when closing setup and when instument size is changed
+wxSize OdometerInstrument_Button::GetSize(int orient, wxSize hint) {
+    wxClientDC dc(this);
+    int w;
+    dc.GetTextExtent(m_title, &w, &m_TitleHeight, 0, 0, g_pFontTitle);
+    dc.GetTextExtent(_T("000"), &w, &m_DataHeight, 0, 0, g_pFontData);
+
+    wxSize size = GetClientSize();
+
+    // Set resonable values
+    if (hint.x < 150) hint.x = 150;
+    if (hint.y < 28) hint.y = 28;
+    if (hint.y > 30) hint.y = 30;
+
+    if (size.x < 150) size.x = 150;
+    b_width = size.x;
+
+    if (size.y < 28) size.y = 28;
+    b_height = m_TitleHeight + 12;
+    if (b_height < 29) b_height = 29;
 
     if (m_cap_flag == 32) {
-
         wxBoxSizer* instrument = new wxBoxSizer(wxVERTICAL);
         wxButton* m_pTripResetButton = new wxButton(this, m_id, _( m_title ), wxDefaultPosition, wxSize(b_width,b_height) );
         m_pTripResetButton->SetForegroundColour(wxColor(0,0,0));
@@ -121,10 +141,11 @@ OdometerInstrument_Button::OdometerInstrument_Button(wxWindow *pparent, wxWindow
         m_pLegResetButton->Connect( wxEVT_COMMAND_BUTTON_CLICKED, 
             wxCommandEventHandler(OdometerInstrument_Button::OnButtonClickLegReset), NULL, this );
     }
-
-    m_title = ( "" );  // Remove the title row behind the button
+    return wxSize(wxMax(hint.x, DefaultWidth), b_height);
 }
 
+void OdometerInstrument_Button::SetData(int st, double data, wxString unit) {
+}
 
 void OdometerInstrument_Button::OnButtonClickTripReset( wxCommandEvent& event)  {
 
@@ -141,23 +162,9 @@ void OdometerInstrument_Button::OnButtonClickLegReset( wxCommandEvent& event)  {
     if ( event.GetInt() == 0 )  g_iResetLeg = 1; 
 } 
 
-OdometerInstrument_Button::~OdometerInstrument_Button(void) {
-}
-
-wxSize OdometerInstrument_Button::GetSize(int orient, wxSize hint) {
-      wxClientDC dc(this);
-      int w;
-      dc.GetTextExtent(m_title, &w, &m_TitleHeight, 0, 0, g_pFontTitle);
-      dc.GetTextExtent(_T("000"), &w, &m_DataHeight, 0, 0, g_pFontData);
-
-      return wxSize(wxMax(hint.x, DefaultWidth), b_height);
-
-}
-
-void OdometerInstrument_Button::SetData(int st, double data, wxString unit) {
-}
 
 void OdometerInstrument_Button::Draw(wxGCDC* dc) {
+
       wxColour cl;
 
 #ifdef __WXMSW__

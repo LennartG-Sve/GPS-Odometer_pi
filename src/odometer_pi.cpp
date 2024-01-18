@@ -57,11 +57,27 @@
 #include <wx/utils.h>
 #include <wx/mimetype.h>
 
+
 // Global variables for fonts
 wxFont *g_pFontTitle;
 wxFont *g_pFontData;
 wxFont *g_pFontLabel;
 wxFont *g_pFontSmall;
+
+wxFont g_FontTitle;
+wxFont g_FontData;
+wxFont g_FontLabel;
+wxFont g_FontSmall;
+
+wxFont *g_pUSFontTitle;
+wxFont *g_pUSFontData;
+wxFont *g_pUSFontLabel;
+wxFont *g_pUSFontSmall;
+
+wxFont g_USFontTitle;
+wxFont g_USFontData;
+wxFont g_USFontLabel;
+wxFont g_USFontSmall;
 
 
 // Preferences, Units and Values
@@ -87,6 +103,7 @@ int         g_iResetLeg = 0;
 int         g_iAutoResetTrip = 0;
 int         g_iAutoResetTripTime = 6;
 wxString    g_sDataDir;
+int         g_iOdoPanelWidth;
 
 /*
 TripMode = 0;    // Trip reset, speed below OnRoute
@@ -233,9 +250,15 @@ int odometer_pi::Init(void) {
     g_pFontLabel = new wxFont(11, wxFONTFAMILY_SWISS, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL);
     g_pFontSmall = new wxFont(8, wxFONTFAMILY_SWISS, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL);
 
+    g_pUSFontTitle = &g_USFontTitle;
+    g_pUSFontData = &g_USFontData;
+    g_pUSFontLabel = &g_USFontLabel;
+    g_pUSFontSmall = &g_USFontSmall;
+
     // Wire up the OnClose AUI event
     m_pauimgr = GetFrameAuiManager();
-    m_pauimgr->Connect(wxEVT_AUI_PANE_CLOSE, wxAuiManagerEventHandler(odometer_pi::OnPaneClose), NULL, this);
+    m_pauimgr->Connect(wxEVT_AUI_PANE_CLOSE, 
+                       wxAuiManagerEventHandler(odometer_pi::OnPaneClose), NULL, this);
 
     // Get a pointer to the opencpn configuration object
     m_pconfig = GetOCPNConfigObject();
@@ -296,6 +319,7 @@ int odometer_pi::Init(void) {
 }
 
 bool odometer_pi::DeInit(void) {
+
     // Save the current configuration
     SaveConfig();
 
@@ -321,24 +345,20 @@ bool odometer_pi::DeInit(void) {
     // And this appears to close each odometer container
     OdometerWindowContainer *pdwc = m_ArrayOfOdometerWindow.Item(0);
     delete pdwc;
-
-    // Unload the fonts
-    delete g_pFontTitle;
-    delete g_pFontData;
-    delete g_pFontLabel;
-    delete g_pFontSmall;
     return true;
 }
 
 double GetJsonDouble(wxJSONValue &value) {
-    double d_ret;
-    if (value.IsDouble()) {
-        return d_ret = value.AsDouble();
-    }
-    else if (value.IsInt()) {
-        int i_ret = value.AsInt();
-        return d_ret = i_ret;
-    }
+  double d_ret = 0;
+  if (value.IsDouble()) {
+    d_ret = value.AsDouble();
+    return d_ret;
+  } else if (value.IsLong()) {
+    int i_ret = value.AsLong();
+    d_ret = i_ret;
+    return d_ret;
+  }
+  return nan("");
 }
 
 // Called for each timer tick, refreshes each display
@@ -396,6 +416,7 @@ wxBitmap *odometer_pi::GetPlugInBitmap() {
 
 // Sends the data value from the parsed NMEA sentence to each gauge
 void odometer_pi::SendSentenceToAllInstruments(int st, double value, wxString unit) {
+
     OdometerWindow *odometer_window = m_ArrayOfOdometerWindow.Item(0)->m_pOdometerWindow;
 	if (odometer_window) {
 	    odometer_window->SendSentenceToAllInstruments(st, value, unit);
@@ -605,7 +626,6 @@ void odometer_pi::HandleN2K_129026(ObservedEvt ev) {
 }
 
 
-
 void odometer_pi::HandleN2K_129029(ObservedEvt ev) {
   NMEA2000Id id_129029(129029);
   std::vector<uint8_t>v = GetN2000Payload(id_129029, ev);
@@ -668,7 +688,6 @@ void odometer_pi::HandleN2K_129029(ObservedEvt ev) {
 //..........................
 
 void odometer_pi::Odometer() {
-
      //  Adjust time to local time zone used by departure and arrival times
     UTCTime = wxDateTime::Now();
     double offset = ((g_iOdoUTCOffset-24)*30);
@@ -711,10 +730,6 @@ void odometer_pi::Odometer() {
     /* TODO: There must be a better way to receive the reset event from
              'OdometerInstrument_Button' but using a global variable for transfer.  */
     if (g_iResetTrip == 1) {
-
-//        printf("\nReset trip detected:      %s",m_LocalTime.mb_str().data());
-//        printf("\n");
-
         UseSavedDepTime = 0;
         UseSavedArrTime = 0;
         UseSavedTrip = 0;
@@ -786,10 +801,6 @@ void odometer_pi::Odometer() {
         if ((g_iGenerateLogFile == 1) && (PowerUpActive == 0) &&
             ((TripMode == 2) || (TripMode == 4)))  {
 
-//            printf("\nRestarted trip at:        %s",m_LocalTime.mb_str().data());
-//            printf("\nTrip mode:                %d",TripMode);
-//            printf("\n");
-
             // Fetch trip stop times, setup in setup dialogue
             switch (g_iTripStopMinutes) {
                 case 0:
@@ -823,12 +834,16 @@ void odometer_pi::Odometer() {
 
             // Define required time between arrival and resumed trip
             g_iIncludeTripStops = 1;
-            if (StopMinutes == 9999) g_iIncludeTripStops = 0;
+            if (StopMinutes == 9999) {
+                g_iIncludeTripStops = 0;
+                StopMinutes = 0;
+            }
+            ArrTime.ParseDateTime(m_ArrTime);
             wxDateTime TripStopTime;
             TripStopTime = ArrTime;
             wxTimeSpan TripStopDelay(0,StopMinutes,0);
             TripStopTime = TripStopTime.Add(TripStopDelay);
-            wxString m_ResumeAfter = TripStopTime.FormatISOCombined(' ');
+            m_ResumeAfter = TripStopTime.FormatISOCombined(' ');
 
             // Trip resumed, set new TripMode and write data to disk
             TripMode = 5;
@@ -846,8 +861,6 @@ void odometer_pi::Odometer() {
     if (DepTimeShow == 0) {
         strDep = "---";    // Trip reset selected
     }
-    SendSentenceToAllInstruments(OCPN_DBP_STC_DEPART, ' ' , strDep);
-
 
     // Arrival and Resume times
     // Reset trip button pressed
@@ -885,11 +898,8 @@ void odometer_pi::Odometer() {
     }
     if (ArrTimeShow == 0) strArr = "---";    // Trip reset selected
 
-    SendSentenceToAllInstruments(OCPN_DBP_STC_ARRIV, ' ' , strArr );
-
     // Read updated distances and times from data direcrory
     if ((ReadSavedData == 1) && (m_DataFileTextReader.Open(m_DataFile))) {
-//        printf("\n\nTrip data file opened at: %s",m_LocalTime.mb_str().data());
 
         if (ReadTripFromData == 1)  {
             m_dataTripDist = m_DataFileTextReader.GetLine(0);
@@ -900,7 +910,6 @@ void odometer_pi::Odometer() {
                 TripDist = dataTripDist;
                 saveTripDist = 1;
             }
-//            printf("\nTrip Distance:            %s",m_dataTripDist.mb_str().data());
             ReadTripFromData = 0;
         }
 
@@ -908,51 +917,45 @@ void odometer_pi::Odometer() {
             m_dataTotDist = m_DataFileTextReader.GetLine(1);
             m_dataTotDist.ToDouble(&dataTotDist);  // From data save
             m_confTotDist.ToDouble(&TotDist);      // From conf file
+
             // Use TotDist from conf file if higher (user updated value)
             if (dataTotDist >= TotDist) {
                 TotDist = dataTotDist;
                 saveTotDist = 1;
             }
-//            printf("\nTotal Distance:           %s",m_dataTotDist.mb_str().data());
             ReadSumlogFromData = 0;
         }
 
         if (ReadDepFromData == 1)  {
             m_DepTime = m_DataFileTextReader.GetLine(2);
-//            printf("\nDeparture time:           %s",m_DepTime.mb_str().data());
             ReadDepFromData = 0;
         }
 
-        if (ReadArrFromData == 1)  {
+//        if (ReadArrFromData == 1)  {
             m_ArrTime = m_DataFileTextReader.GetLine(3);
-//            printf("\nArrival time:             %s",m_ArrTime.mb_str().data());
             ReadArrFromData = 0;
-        }
+//        }
 
         if (ReadResFromData == 1)  {
             m_ResTime = m_DataFileTextReader.GetLine(4);
             if (m_ResTime < m_DepTime) m_ResTime = m_DepTime;
-//            printf("\nResumed trip at:          %s",m_ResTime.mb_str().data());
             ReadResFromData = 0;
         }
 
         if (ReadTripModeFromData == 1)  {
             strTripMode = m_DataFileTextReader.GetLine(5);
             TripMode = wxAtoi(strTripMode);
-//            printf("\nTrip Mode:                %d",TripMode);
             ReadTripModeFromData = 0;
         }
 
         if (ReadTripAutoResetFromData == 1)  {
             strTripAutoReset = m_DataFileTextReader.GetLine(6);
             AutoReset = wxAtoi(strTripAutoReset);
-//            printf("\nAuto reset trip:          %d",AutoReset);
             ReadTripAutoResetFromData = 0;
         }
 
         m_DataFileTextReader.Close();
         ReadSavedData = 0;
-//        printf("\nAll trip data read\n");
     }
 
 
@@ -972,7 +975,7 @@ void odometer_pi::Odometer() {
 
     wxDateTime PwrTime;    // Dummy for proper EnabledTime function
 
-    if (Initializing == 1) {
+    if (Initializing == 1) {   // Set in odometer_pi.h
         EnabledTime = LocalTime;
         int PwrOnDelaySecs = atoi(m_PwrOnDelSecs);
         if (PwrOnDelaySecs <= 4) PwrOnDelaySecs = 5;
@@ -980,6 +983,7 @@ void odometer_pi::Odometer() {
         wxDateTime PwrTime = EnabledTime.Add(PwrOnDelay);
         DefineTripData();
         Initializing = 0;
+        ArrTimeShow = 1;
         ReadSavedData = 1;
         ReadSumlogFromData = 1;
         ReadTripFromData = 1;
@@ -992,13 +996,12 @@ void odometer_pi::Odometer() {
     }
 
     PowerUpActive = 1;
-    if (EnabledTime > LocalTime) {  // Poer up time delay elapsed
+    if (EnabledTime > LocalTime) {  // Power up time delay elapsed
         StepDist = 0.0;
         PowerUpActive = 1;
     } else {
-        PowerUpActive = 0;
+        PowerUpActive = 0;  // Power up time not yet elapsed 
     }
-
 
     // Total distance (sumlog)
     oldTotDist = TotDist;
@@ -1020,10 +1023,6 @@ void odometer_pi::Odometer() {
     m_TotDist.Trim(0);
     m_TotDist.Trim(1);
 
-    // Display uses double, need the one with one decimal
-    m_TotDist.ToDouble(&dispTotDist);
-
-
     // Trip distance
     oldTripDist = TripDist;
     TripDist = (TripDist + StepDist);
@@ -1043,9 +1042,6 @@ void odometer_pi::Odometer() {
     m_TripDist.Printf("%.1f", dispTripDist);  // Cut trailing zeroes
     m_TripDist.Trim(0);
     m_TripDist.Trim(1);
-
-    // Display uses double, need the one with one decimal
-    m_TripDist.ToDouble(&dispTripDist);
 
     // Leg Trip
     // Toggle leg counter and button text
@@ -1081,18 +1077,44 @@ void odometer_pi::Odometer() {
     m_LegDist.Trim(0);
     m_LegDist.Trim(1);
 
-    // Display uses double, need the one with two decimals
-    m_LegDist.ToDouble(&dispLegDist);
-
-
     m_LegTime = LegTime.Format("%H:%M:%S");
     wxString strLegTime;
     strLegTime = LegTime.Format("%H:%M:%S");
 
-    SendSentenceToAllInstruments(OCPN_DBP_STC_SUMLOG, dispTotDist , DistUnit );
-    SendSentenceToAllInstruments(OCPN_DBP_STC_TRIPLOG, dispTripDist , DistUnit );
-    SendSentenceToAllInstruments(OCPN_DBP_STC_LEGDIST, dispLegDist , DistUnit );
-    SendSentenceToAllInstruments(OCPN_DBP_STC_LEGTIME, ' ' , strLegTime );
+
+    // Calculate and set text offset, emulated adding spaces
+    int textOffset = g_iOdoPanelWidth;
+    if (textOffset < 150) textOffset = 150; 
+    textOffset = (textOffset - 150)/8;
+        
+    int setTextOffset = 0;
+    wxString addTextOffset = "";
+    wxString space = " ";
+    while (setTextOffset < textOffset) {
+        addTextOffset.Append(space);
+        setTextOffset++;
+    }
+
+    // Organize display setup
+    wxString m_dispTotDist;
+    m_dispTotDist = addTextOffset + m_TotDist + " " + DistUnit;
+    wxString m_dispTripDist;
+    m_dispTripDist = addTextOffset + m_TripDist + " " + DistUnit;
+    wxString m_dispDep;
+    m_dispDep = addTextOffset + strDep;
+    wxString m_dispArr;
+    m_dispArr = addTextOffset + strArr;
+    wxString m_dispLegDist;
+    m_dispLegDist = addTextOffset + m_LegDist + " " + DistUnit;
+    wxString m_dispLegTime;
+    m_dispLegTime = addTextOffset + strLegTime;
+
+    SendSentenceToAllInstruments(OCPN_DBP_STC_SUMLOG, ' ', m_dispTotDist );
+    SendSentenceToAllInstruments(OCPN_DBP_STC_TRIPLOG, ' ' , m_dispTripDist );
+    SendSentenceToAllInstruments(OCPN_DBP_STC_DEPART, ' ' , m_dispDep);
+    SendSentenceToAllInstruments(OCPN_DBP_STC_ARRIV, ' ' , m_dispArr );
+    SendSentenceToAllInstruments(OCPN_DBP_STC_LEGDIST, ' ' , m_dispLegDist );
+    SendSentenceToAllInstruments(OCPN_DBP_STC_LEGTIME, ' ' , m_dispLegTime );
 
     TripAutoReset(strArr, LocalTime);
 }
@@ -1161,18 +1183,25 @@ void odometer_pi::rmOldLogFiles() {
     wxMilliSleep(50);
 }
 
+/*
+void odometer_pi::ReadTripData() {
+    // Read arrival time data from data direcrory
+    if (m_DataFileTextReader.Open(m_DataFile)) {
+        m_ArrTime = m_DataFileTextReader.GetLine(3);
+        wxMilliSleep(50);     // Required by slow systems with SSD disks (?)
+        m_DataFileTextReader.Close();
+    }
+}
+*/
 
 void odometer_pi::WriteTripData() {
-
     // Write updated trip data to data direcrory,
     if (m_DataFileTextReader.Open(m_DataFile)) {
-//        printf("\nTrip data log opened at:  %s",m_LocalTime.mb_str().data());
 
         if (saveTripDist == 1)  {
             wxString writeTripDist;
             writeTripDist.Printf("%f", TripDist);
             m_DataFileTextReader.GetLine(0) = writeTripDist;
-//            printf("\nTrip Distance:            %s",writeTripDist.mb_str().data());
             saveTripDist = 0;
         }
 
@@ -1180,7 +1209,6 @@ void odometer_pi::WriteTripData() {
             wxString writeTotDist;
             writeTotDist.Printf("%f", TotDist);
             m_DataFileTextReader.GetLine(1) = writeTotDist;
-//            printf("\nTotal Distance:           %s",writeTotDist.mb_str().data());
             saveTotDist = 0;
         }
 
@@ -1207,8 +1235,7 @@ void odometer_pi::WriteTripData() {
                     DepLogAge = DepLogAge.Mid(3,16);
 
                     if (DepLogAge < m_AgeTime) {
-                        m_DataFileTextReader.RemoveLine(7);
-//                        printf("\nOld log line removed:     %s",DepLogAge.mb_str().data());
+                        m_DataFileTextReader.RemoveLine(8);
                     } else {
                         OldDepartRemove = 0;
                     }
@@ -1224,7 +1251,6 @@ void odometer_pi::WriteTripData() {
             if (g_iGenerateLogFile == 1)  {
                 m_DataFileTextReader.AddLine("D: " + logDepTime);
             }
-//            printf("\nLogged departure time:    %s",logDepTime.mb_str().data());
             saveDepTime = 0;
         }
 
@@ -1244,18 +1270,14 @@ void odometer_pi::WriteTripData() {
                 currLogLine.Clear();
                 currLogLine = m_DataFileTextReader.GetLastLine();
                 m_DataFileTextReader.GetLastLine() = (currLogLine + arrLog + tripLog);
-//                printf("\nLogged arrival time:      %s",logArrTime.mb_str().data());
             }
             saveArrTime = 0;
         }
 
         if (saveResTime == 1)  {
-
             if ((g_iGenerateLogFile == 1) && (TripMode == 5))   {
 
-                // Include trip stops in logfile if 'g_iIncludeTripStops' = 1
-                // and local time is greater than current 'm_ResumeAfter', or
-                // do not include trip stops in logfile (g_iIncludeTripStops == 0)
+                // Include trip stops in logfile
                 if (((g_iIncludeTripStops == 1) && (m_LocalTime <= m_ResumeAfter))
                     || (g_iIncludeTripStops == 0))  {
                     TripMode = 6;
@@ -1269,18 +1291,15 @@ void odometer_pi::WriteTripData() {
                     currLogLine.Clear();
                     currLogLine = m_DataFileTextReader.GetLastLine();
 
-//                    printf("\nTrip stop to short, removing last arrival");
-//                    printf("\nString length:            %ld",currLogLine.Len());
-//                    printf("\nCharacters to remove:     %d",CharsToRemove);
-//                    printf("\nRemaining characters:     %ld",(currLogLine.Len() - CharsToRemove));
-
                     // Starting or stopping while on route could cause time errors
                     // Also ensure there are enough characters in the file
                     // Strip required characters from end  and write back
                     if ((m_ArrTime < m_LocalTime) && (currLogLine.Len() > 40))  {
-                        m_DataFileTextReader.GetLastLine() = (currLogLine.Mid(0, (currLogLine.Len() - CharsToRemove)));
+                        m_DataFileTextReader.GetLastLine() = (currLogLine.Mid(0,
+                        (currLogLine.Len() - CharsToRemove)));
                     }
                 } else {
+
                     // Trip arrival shall not be removed, add resume time
                     ResTime = LocalTime;
                     m_ResTime = ResTime.FormatISOCombined(' ');
@@ -1291,35 +1310,29 @@ void odometer_pi::WriteTripData() {
                     currLogLine.Clear();
                     currLogLine = m_DataFileTextReader.GetLastLine();
                     m_DataFileTextReader.GetLastLine() = (currLogLine + resLog);
-//                    printf("\nTrip stop exceeding minimum stop time");
                 }
                 m_DataFileTextReader.GetLine(4) = m_ResTime;
             }
             TripMode = 3;
             saveTripMode = 1;
-//            printf("\nLogged resume time:       %s",logResTime.mb_str().data());
             saveResTime = 0;
         }
 
         if (saveTripMode == 1)  {
             strTripMode = std::to_string(TripMode);
             m_DataFileTextReader.GetLine(5) = strTripMode;
-//            printf("\nTripMode:                 %d",TripMode);
             saveTripMode = 0;
         }
 
         if (saveTripAutoReset == 1)  {
             strTripAutoReset = std::to_string(AutoReset);
             m_DataFileTextReader.GetLine(6) = strTripAutoReset;
-//            printf("\nAuto reset trip:          %d",AutoReset);
             saveTripAutoReset = 0;
         }
 
         m_DataFileTextReader.Write();
         wxMilliSleep(50);     // Required by slow systems with SSD disks (?)
         m_DataFileTextReader.Close();
-//        printf("\nTrip data log closed at:  %s",m_LocalTime.mb_str().data());
-//        printf("\n");
     }
 }
 
@@ -1362,10 +1375,7 @@ void odometer_pi::GetDistance() {
 
 
 void odometer_pi::TripAutoReset(wxString strArr, wxDateTime LocalTime) {
-
-// TODO: Denna startar om om inte deaktiverad
-
-// Automatic Trip Reset
+    // Automatic Trip Reset
     if ((g_iAutoResetTrip == 1) && (AutoReset == 1)) {
 
         switch (g_iAutoResetTripTime) {  // Calculate time selected
@@ -1404,7 +1414,6 @@ void odometer_pi::TripAutoReset(wxString strArr, wxDateTime LocalTime) {
 
         wxDateTime ArrRefTime;
         ArrRefTime.ParseDateTime(m_ArrTime.Truncate(16));
-
         wxDateTime ArrResetTime = ArrRefTime.Add(m_ResetDelay);
         strReset = ArrResetTime.FormatISOCombined(' ');
         strReset = strReset.Truncate(16);  // Cut seconds
@@ -1412,6 +1421,7 @@ void odometer_pi::TripAutoReset(wxString strArr, wxDateTime LocalTime) {
         wxDateTime ResetTime = LocalTime;
         strLocal = ResetTime.Format(wxT("%F %R"));
         if (strLocal >= strReset) g_iResetTrip = 1;
+
         AutoReset = 0;
         saveTripAutoReset = 1;
         WriteTripData();
@@ -1457,19 +1467,31 @@ int odometer_pi::GetToolbarToolCount(void) {
 //---------------------------------------------------------------------------------------------------------
 
 void odometer_pi::ShowPreferencesDialog(wxWindow* parent) {
-	OdometerPreferencesDialog *dialog = new OdometerPreferencesDialog(parent, wxID_ANY, m_ArrayOfOdometerWindow);
+	OdometerPreferencesDialog *dialog = new OdometerPreferencesDialog(
+        parent, wxID_ANY, m_ArrayOfOdometerWindow);
 
 	if (dialog->ShowModal() == wxID_OK) {
-		// Reload the fonts in case they have been changed
-		delete g_pFontTitle;
-		delete g_pFontData;
-		delete g_pFontLabel;
-		delete g_pFontSmall;
 
-		g_pFontTitle = new wxFont(dialog->m_pFontPickerTitle->GetSelectedFont());
-		g_pFontData = new wxFont(dialog->m_pFontPickerData->GetSelectedFont());
-		g_pFontLabel = new wxFont(dialog->m_pFontPickerLabel->GetSelectedFont());
-		g_pFontSmall = new wxFont(dialog->m_pFontPickerSmall->GetSelectedFont());
+        double scaler = 1.0;
+        if (OCPN_GetWinDIPScaleFactor() < 1.0)
+        scaler = 1.0 + OCPN_GetWinDIPScaleFactor() / 4;
+        scaler = wxMax(1.0, scaler);
+
+        g_pUSFontTitle = new wxFont(dialog->m_pFontPickerTitle->GetSelectedFont());
+        g_FontTitle = g_pUSFontTitle->Scaled(scaler);
+        g_USFontTitle = *g_pUSFontTitle;
+
+        g_pUSFontData = new wxFont(dialog->m_pFontPickerData->GetSelectedFont());
+        g_FontData = g_pUSFontData->Scaled(scaler);
+        g_USFontData = *g_pUSFontData;
+
+        g_pUSFontLabel = new wxFont(dialog->m_pFontPickerLabel->GetSelectedFont());
+        g_FontLabel = g_pUSFontLabel->Scaled(scaler);
+        g_USFontLabel = *g_pUSFontLabel;
+
+        g_pUSFontSmall = new wxFont(dialog->m_pFontPickerSmall->GetSelectedFont());
+        g_FontSmall = g_pUSFontSmall->Scaled(scaler);
+        g_USFontSmall = *g_pUSFontSmall;
 
         /* Instrument visibility is not detected by ApplyConfig as no instuments are added,
            reordered or deleted. Globals are not checked at all by ApplyConfig.  */
@@ -1490,52 +1512,28 @@ void odometer_pi::ShowPreferencesDialog(wxWindow* parent) {
         g_iGenerateLogFile = 0;
         if (GenerateLogFile == true) g_iGenerateLogFile = 1;
 
-        // Reload instruments and select panel
-        OdometerWindowContainer *cont = m_ArrayOfOdometerWindow.Item(0);
-        cont->m_pOdometerWindow->SetInstrumentList(cont->m_aInstrumentList);
-        OdometerWindow *d_w = cont->m_pOdometerWindow;
-        wxAuiPaneInfo &pane = m_pauimgr->GetPane(d_w);
-
-        // Update panel size
-        wxSize sz = cont->m_pOdometerWindow->GetMinSize();
-
-        /* TODO: These sizes are forced as dialog size and instruments messes up totally
-                 otherwise, probably due to the use of checkboxes instead of
-                 general selection.
-                 It is not perfect and should eventually be fixed somehow.
-                 The height does not always compute properly. Sometimes need to restart
-                 plugin or OpenCPN to resize. Button width = 150, then add dialog
-                 frame = 10 incl slight margin.
-                 This is not perfect but better than the line above, should maybe be
-                 reworked! */
-
-        sz.Set(160,125);  // Minimum size with Total distance, Trip distance and Trip reset.
-        if (g_iShowSpeed == 1) sz.IncBy(0,170);       // Add for Speed instrument
-        if (g_iShowDepArrTimes == 1) sz.IncBy(0,50);  // Add for departure/arrival times
-        if (g_iShowTripLeg == 1) sz.IncBy(0,120);      // Add for trip dist, time and reset
-
-        pane.MinSize(sz).BestSize(sz).FloatingSize(sz);
 
 		// OnClose should handle that for us normally but it doesn't seems to do so
 		// We must save changes first
-		dialog->SaveOdometerConfig();
-		m_ArrayOfOdometerWindow.Clear();
-		m_ArrayOfOdometerWindow = dialog->m_Config;
+        dialog->SaveOdometerConfig();
+        m_ArrayOfOdometerWindow.Clear();
+        m_ArrayOfOdometerWindow = dialog->m_Config;
 
 		ApplyConfig();
 		SaveConfig();   // TODO BUG: Does not save configuration file
-
-		// Not exactly sure what this does. Pesumably if no odometers are displayed, the
-        // toolbar icon is toggled/untoggled??
 		SetToolbarItemState(m_toolbar_item_id, GetOdometerWindowShownCount() != 0);
 	}
-
-	// Invoke the dialog destructor
+    // Invoke the dialog destructor
 	dialog->Destroy();
+
+    OdometerWindow *odometer_window = m_ArrayOfOdometerWindow.Item(0)->m_pOdometerWindow;
+    odometer_window->Fit();
+    odometer_window->Refresh();
 }
 
 
 void odometer_pi::SetColorScheme(PI_ColorScheme cs) {
+
     OdometerWindow *odometer_window = m_ArrayOfOdometerWindow.Item(0)->m_pOdometerWindow;
     if (odometer_window) {
 		odometer_window->SetColorScheme(cs);
@@ -1547,19 +1545,19 @@ int odometer_pi::GetToolbarItemId() {
 }
 
 int odometer_pi::GetOdometerWindowShownCount() {
+
     int cnt = 0;
 
     OdometerWindow *odometer_window = m_ArrayOfOdometerWindow.Item(0)->m_pOdometerWindow;
     if (odometer_window) {
         wxAuiPaneInfo &pane = m_pauimgr->GetPane(odometer_window);
-        if (pane.IsOk() && pane.IsShown()) {
-			cnt++;
-		}
+        if (pane.IsOk() && pane.IsShown()) cnt++;
     }
     return cnt;
 }
 
 void odometer_pi::OnPaneClose(wxAuiManagerEvent& event) {
+
     // if name is unique, we should use it
     OdometerWindow *odometer_window = (OdometerWindow *) event.pane->window;
     int cnt = 0;
@@ -1582,6 +1580,7 @@ void odometer_pi::OnPaneClose(wxAuiManagerEvent& event) {
 }
 
 void odometer_pi::OnToolbarToolCallback(int id) {
+
     int cnt = GetOdometerWindowShownCount();
     bool b_anyviz = false;   // ???
     for (size_t i = 0; i < m_ArrayOfOdometerWindow.GetCount(); i++) {
@@ -1663,6 +1662,7 @@ void odometer_pi::OnToolbarToolCallback(int id) {
 }
 
 void odometer_pi::UpdateAuiStatus(void) {
+
     // This method is called after the PlugIn is initialized
     // and the frame has done its initial layout, possibly from a saved wxAuiManager
     // "Perspective"
@@ -1673,6 +1673,16 @@ void odometer_pi::UpdateAuiStatus(void) {
     wxAuiPaneInfo &pane = m_pauimgr->GetPane(cont->m_pOdometerWindow);
     // Initialize visible state as perspective is loaded now
     cont->m_bIsVisible = (pane.IsOk() && pane.IsShown());
+
+#ifdef __WXQT__
+    if (pane.IsShown()) {
+        pane.Show(false);
+        m_pauimgr->Update();
+        pane.Show(true);
+        m_pauimgr->Update();
+    }
+#endif
+
     m_pauimgr->Update();
 
     // We use this callback here to keep the context menu selection in sync with the
@@ -1682,7 +1692,6 @@ void odometer_pi::UpdateAuiStatus(void) {
 
 // Loads a saved configuration
 bool odometer_pi::LoadConfig(void) {
-
     wxFileConfig *pConf = (wxFileConfig *) m_pconfig;
 
     if (pConf) {
@@ -1698,17 +1707,30 @@ bool odometer_pi::LoadConfig(void) {
         wxString LabelFont;
         wxString SmallFont;
 
-        pConf->Read(_T("FontTitle"), &config, wxEmptyString);
-		LoadFont(&g_pFontTitle, config);
+        double scaler = 1.0;
+        if (OCPN_GetWinDIPScaleFactor() < 1.0)
+            scaler = 1.0 + OCPN_GetWinDIPScaleFactor()/4;
+        scaler = wxMax(1.0, scaler);
 
-		pConf->Read(_T("FontData"), &config, wxEmptyString);
-        LoadFont(&g_pFontData, config);
+        pConf->Read(_T("FontTitle"), &config, TitleFont);
+        LoadFont(&g_pUSFontTitle, config);
+        g_FontTitle = g_pUSFontTitle->Scaled(scaler);
+        g_pFontTitle = &g_FontTitle;
 
-		pConf->Read(_T("FontLabel"), &config, wxEmptyString);
-		LoadFont(&g_pFontLabel, config);
+        g_pFontData = &g_FontData;
+        pConf->Read(_T("FontData"), &config, DataFont);
+        LoadFont(&g_pUSFontData, config);
+        g_FontData = g_pUSFontData->Scaled(scaler);
 
-        pConf->Read(_T("FontSmall"), &config, wxEmptyString);
-		LoadFont(&g_pFontSmall, config);
+        g_pFontLabel = &g_FontLabel;
+        pConf->Read(_T("FontLabel"), &config, LabelFont);
+        LoadFont(&g_pUSFontLabel, config);
+        g_FontLabel = g_pUSFontLabel->Scaled(scaler);
+
+        g_pFontSmall = &g_FontSmall;
+        pConf->Read(_T("FontSmall"), &config, SmallFont);
+        LoadFont(&g_pUSFontSmall, config);
+        g_FontSmall = g_pUSFontSmall->Scaled(scaler);
 
 		// Load the dedicated odometer settings plus set default values
         pConf->Read( _T("TotalDistance"), &m_confTotDist, "0.0");
@@ -1733,43 +1755,52 @@ bool odometer_pi::LoadConfig(void) {
         pConf->Read(_T("LogFormat"), &g_iSelectLogFormat, 2);
         pConf->Read(_T("LogOutput"), &g_iSelectLogOutput, 1);
 
+        int d_cnt = 0;
 
-        // Set the total number of available instruments
-        int d_cnt = 10;
-
-        // TODO: Memory leak? We should destroy everything first
+        // Memory leak? We should destroy everything first
         m_ArrayOfOdometerWindow.Clear();
         if (version.IsEmpty() && d_cnt == -1) {
-
-            //  Version 1 style generated at first start also in OpenCPN 5.0 or later
-            // Load the default instrument list, do not change this order!
-            ar.Add( ID_DBP_D_SOG );
-            ar.Add( ID_DBP_I_SUMLOG );
-            ar.Add( ID_DBP_I_TRIPLOG );
-            ar.Add( ID_DBP_I_DEPART );
-            ar.Add( ID_DBP_I_ARRIV );
-            ar.Add( ID_DBP_B_TRIPRES );
-            ar.Add( ID_DBP_C_AUTORESET);
-            ar.Add( ID_DBP_I_LEGDIST );
-            ar.Add( ID_DBP_I_LEGTIME );
-            ar.Add( ID_DBP_B_STARTSTOP );
-            ar.Add( ID_DBP_B_LEGRES );
-
+           m_config_version = 1;
+            // Let's load version 1 or default settings.
+            int i_cnt;
+            pConf->Read(_T("InstrumentCount"), &i_cnt, -1);
+            wxArrayInt ar;
+            if (i_cnt != -1) {
+                for (int i = 0; i < i_cnt; i++) {
+                    int id;
+                    pConf->Read(wxString::Format(_T("Instrument%d"), i + 1), &id, -1);
+                    if (id != -1) ar.Add(id);
+                }
+            } else {
+                // Load the default instrument list, do not change this order!
+                // Not default instruments are commented out
+                ar.Add( ID_DBP_I_SUMLOG );
+                ar.Add( ID_DBP_I_TRIPLOG );
+                ar.Add( ID_DBP_I_DEPART );
+                ar.Add( ID_DBP_I_ARRIV );
+                ar.Add( ID_DBP_B_TRIPRES );
+                ar.Add( ID_DBP_C_AUTORESET );
+            }
+      
 	        // Generate a named GUID for the odometer container
-            OdometerWindowContainer *cont = new OdometerWindowContainer(NULL, MakeName(), _("GPS Odometer"), _T("V"), ar);
+            OdometerWindowContainer *cont = new OdometerWindowContainer(
+                NULL, MakeName(), _("GPS Odometer"), _T("V"), ar);
             m_ArrayOfOdometerWindow.Add(cont);
             cont->m_bPersVisible = true;
 
         } else {
-            // Configuration Version 2
+           // Configuration Version 2
             m_config_version = 2;
             bool b_onePersisted = false;
-
+         
             wxString name;
             pConf->Read(_T("Name"), &name, MakeName());
             wxString caption;
             pConf->Read(_T("Caption"), &caption, _("Odometer"));
-            wxString orient = "V";
+            wxString orient;
+            pConf->Read(_T("Orientation"), &orient, _T("V"));
+            int i_cnt;
+            pConf->Read(_T("InstrumentCount"), &i_cnt, -1);
             bool b_persist;
             pConf->Read(_T("Persistence"), &b_persist, 0);
             bool b_speedo;
@@ -1777,7 +1808,7 @@ bool odometer_pi::LoadConfig(void) {
             bool b_deparr;
             pConf->Read( _T("ShowDepArrTimes"), &b_deparr, 1);
             bool b_tripleg;
-            pConf->Read( _T("ShowTripLeg"), &b_tripleg, 1);
+            pConf->Read( _T("ShowTripLeg"), &b_tripleg, 0);
             bool b_genlogfile;
             pConf->Read( _T("GenLogFile"), &b_genlogfile, 1);
             bool b_incltripstops;
@@ -1791,13 +1822,26 @@ bool odometer_pi::LoadConfig(void) {
             bool b_logoutput;
             pConf->Read(_T("LogOutput"), &b_logoutput, 1);
 
-            // Always 11 numerically ordered instruments in the array
             wxArrayInt ar;
-            for (int i = 0; i < 12; i++) {
-                ar.Add(i);
+            ar.Clear();
+            if (b_speedo == true) ar.Add( ID_DBP_D_SOG );
+            ar.Add( ID_DBP_I_SUMLOG );
+            ar.Add( ID_DBP_I_TRIPLOG );
+            if (b_deparr == true) {
+                ar.Add( ID_DBP_I_DEPART );
+                ar.Add( ID_DBP_I_ARRIV );
+            }
+            ar.Add( ID_DBP_B_TRIPRES );
+            ar.Add( ID_DBP_C_AUTORESET );
+            if (b_tripleg == true) {
+                ar.Add( ID_DBP_I_LEGDIST );
+                ar.Add( ID_DBP_I_LEGTIME );
+                ar.Add( ID_DBP_B_STARTSTOP );
+                ar.Add( ID_DBP_B_LEGRES );
             }
 
-            OdometerWindowContainer *cont = new OdometerWindowContainer(NULL, name, caption, orient, ar);
+            OdometerWindowContainer *cont = 
+                new OdometerWindowContainer(NULL, name, caption, orient, ar);
 
             cont->m_bPersVisible = b_persist;
             cont->m_bShowSpeed = b_speedo;
@@ -1805,15 +1849,12 @@ bool odometer_pi::LoadConfig(void) {
             cont->m_bShowTripLeg = b_tripleg;
             cont->m_bGenerateLogFile = b_genlogfile;
 
-            // TODO: Using globals to pass these variables, works but is bad coding
             g_iShowSpeed = b_speedo;
             g_iShowDepArrTimes = b_deparr;
             g_iShowTripLeg = b_tripleg;
             g_iGenerateLogFile = b_genlogfile;
 
-    		if (b_persist) {
-	    	    b_onePersisted = true;
-    		}
+    		if (b_persist) b_onePersisted = true;
 
             m_ArrayOfOdometerWindow.Add(cont);
 
@@ -1821,9 +1862,7 @@ bool odometer_pi::LoadConfig(void) {
             // Make sure at least one odometer is scheduled to be visible
             if (m_ArrayOfOdometerWindow.Count() && !b_onePersisted){
                 OdometerWindowContainer *cont = m_ArrayOfOdometerWindow.Item(0);
-                if (cont) {
-	        	    cont->m_bPersVisible = true;
-	        	}
+                if (cont) cont->m_bPersVisible = true;
             }
         }
         return true;
@@ -1839,19 +1878,18 @@ void odometer_pi::LoadFont(wxFont **target, wxString native_info)
 }
 
 bool odometer_pi::SaveConfig(void) {
-
-    /* TODO: Does not save when called from 'odometer_pi::ShowPreferencesDialog' (or several
-             other routines) but works correct when starting/stopping OpenCPN.  */
+    /* Does not save when called from 'odometer_pi::ShowPreferencesDialog' (or several
+       other routines) but works correct when starting/stopping OpenCPN.  */
 
     wxFileConfig *pConf = (wxFileConfig *) m_pconfig;
 
     if (pConf) {
         pConf->SetPath(_T("/PlugIns/GPS-Odometer"));
         pConf->Write(_T("Version"), _T("2"));
-        pConf->Write(_T("FontTitle"), g_pFontTitle->GetNativeFontInfoDesc());
-        pConf->Write(_T("FontData"), g_pFontData->GetNativeFontInfoDesc());
-        pConf->Write(_T("FontLabel"), g_pFontLabel->GetNativeFontInfoDesc());
-        pConf->Write(_T("FontSmall"), g_pFontSmall->GetNativeFontInfoDesc());
+        pConf->Write(_T("FontTitle"), g_pUSFontTitle->GetNativeFontInfoDesc());
+        pConf->Write(_T("FontData"), g_pUSFontData->GetNativeFontInfoDesc());
+        pConf->Write(_T("FontLabel"), g_pUSFontLabel->GetNativeFontInfoDesc());
+        pConf->Write(_T("FontSmall"), g_pUSFontSmall->GetNativeFontInfoDesc());
 
         pConf->Write( _T("TotalDistance"), m_TotDist);
         pConf->Write( _T("TripDistance"), m_TripDist);
@@ -1871,11 +1909,19 @@ bool odometer_pi::SaveConfig(void) {
         pConf->Write(_T("SpeedUnit"), g_iOdoSpeedUnit);
         pConf->Write(_T("DistanceUnit"), g_iOdoDistanceUnit);
 
-        pConf->Write(_T("OdometerCount"), (int) m_ArrayOfOdometerWindow.GetCount());
-        OdometerWindowContainer *cont = m_ArrayOfOdometerWindow.Item(0);
+        // Only one Odometer Window
+        pConf->Write(_T("OdometerCount"), 
+            (int) m_ArrayOfOdometerWindow.GetCount());
+            OdometerWindowContainer *cont = m_ArrayOfOdometerWindow.Item(0);
         pConf->Write(_T("Name"), cont->m_sName);
         pConf->Write(_T("Caption"), cont->m_sCaption);
+        pConf->Write(_T("Orientation"), cont->m_sOrientation);
         pConf->Write(_T("Persistence"), cont->m_bPersVisible);
+        pConf->Write(_T("InstrumentCount"),
+                   (int)cont->m_aInstrumentList.GetCount());
+        for (unsigned int j = 0; j < cont->m_aInstrumentList.GetCount(); j++)
+            pConf->Write(wxString::Format(_T("Instrument%d"), j + 1),
+                     cont->m_aInstrumentList.Item(j));
         pConf->Write(_T("ShowSpeedometer"), cont->m_bShowSpeed);
         pConf->Write(_T("ShowDepArrTimes"), cont->m_bShowDepArrTimes);
         pConf->Write(_T("ShowTripLeg"), cont->m_bShowTripLeg);
@@ -1898,42 +1944,89 @@ void odometer_pi::ApplyConfig(void) {
     // Reverse order to handle deletes
     for (size_t i = m_ArrayOfOdometerWindow.GetCount(); i > 0; i--) {
         OdometerWindowContainer *cont = m_ArrayOfOdometerWindow.Item(i - 1);
-        int orient = 0 ;   // Always vertical ('0')
+//        int orient = (cont->m_sOrientation == _T("V") ? wxVERTICAL : wxHORIZONTAL);
+        int orient = 0;  // Always vertical
         if(!cont->m_pOdometerWindow) {
+
             // A new odometer is created
-            cont->m_pOdometerWindow = new OdometerWindow(GetOCPNCanvasWindow(), wxID_ANY,
-                    m_pauimgr, this, orient, cont);
+            cont->m_pOdometerWindow = new OdometerWindow(
+                GetOCPNCanvasWindow(), wxID_ANY, m_pauimgr, this, orient, cont);
             cont->m_pOdometerWindow->SetInstrumentList(cont->m_aInstrumentList);
             bool vertical = orient == wxVERTICAL;
             wxSize sz = cont->m_pOdometerWindow->GetMinSize();
+
             // Mac has a little trouble with initial Layout() sizing...
             #ifdef __WXOSX__
                 if (sz.x == 0) sz.IncTo(wxSize(160, 388));
             #endif
-            wxAuiPaneInfo p = wxAuiPaneInfo().Name(cont->m_sName).Caption(cont->m_sCaption).CaptionVisible(false).TopDockable(
-                !vertical).BottomDockable(!vertical).LeftDockable(vertical).RightDockable(vertical).MinSize(
-                sz).BestSize(sz).FloatingSize(sz).FloatingPosition(100, 100).Float().Show(cont->m_bIsVisible).Gripper(false) ;
+            wxAuiPaneInfo p = wxAuiPaneInfo()
+                                  .Name(cont->m_sName)
+                                  .Caption(cont->m_sCaption)
+                                  .CaptionVisible(false)
+                                  .TopDockable(!vertical)
+                                  .BottomDockable(!vertical)
+                                  .LeftDockable(vertical)
+                                  .RightDockable(vertical)
+                                  .MinSize(sz)
+                                  .BestSize(sz)
+                                  .FloatingSize(sz)
+                                  .FloatingPosition(100, 100)
+                                  .Float()
+                                  .Show(cont->m_bIsVisible)
+                                  .Gripper(false);
 
             m_pauimgr->AddPane(cont->m_pOdometerWindow, p);
-                //wxAuiPaneInfo().Name(cont->m_sName).Caption(cont->m_sCaption).CaptionVisible(false).TopDockable(
-               // !vertical).BottomDockable(!vertical).LeftDockable(vertical).RightDockable(vertical).MinSize(
-               // sz).BestSize(sz).FloatingSize(sz).FloatingPosition(100, 100).Float().Show(cont->m_bIsVisible));
+            //wxAuiPaneInfo().Name(cont->m_sName).Caption(cont->m_sCaption
+            // ).CaptionVisible(false).TopDockable(
+            // !vertical).BottomDockable(vertical).LeftDockable(vertical
+            // ).RightDockable(vertical).MinSize( sz).BestSize(sz).FloatingSize(
+            // sz).FloatingPosition(100, 100).Float().Show(cont->m_bIsVisible));
 
+#ifdef __OCPN__ANDROID__
             wxAuiPaneInfo& pane = m_pauimgr->GetPane( cont->m_pOdometerWindow );
             pane.Dockable( false );
+#endif
 
         } else {
+
             // Update the current odometer
             wxAuiPaneInfo& pane = m_pauimgr->GetPane(cont->m_pOdometerWindow);
             pane.Caption(cont->m_sCaption).Show(cont->m_bIsVisible);
-            if (!cont->m_pOdometerWindow->isInstrumentListEqual(cont->m_aInstrumentList)) {
+            if (!cont->m_pOdometerWindow->isInstrumentListEqual(
+                     cont->m_aInstrumentList)) {
                 cont->m_pOdometerWindow->SetInstrumentList(cont->m_aInstrumentList);
                 wxSize sz = cont->m_pOdometerWindow->GetMinSize();
                 pane.MinSize(sz).BestSize(sz).FloatingSize(sz);
             }
-            if (cont->m_pOdometerWindow->GetSizerOrientation() != orient) {
-                cont->m_pOdometerWindow->ChangePaneOrientation(orient, false);
-            }
+            // Orientation is fixed
+//            if (cont->m_pOdometerWindow->GetSizerOrientation() != orient) {
+//                cont->m_pOdometerWindow->ChangePaneOrientation(orient, false);
+//            }
+
+            // TODO: Does not properly resize to window height when content is changed.
+            //       wxSize sz, GetMinSize and GetSize all report correct height but
+            //       SetSize does not update the displayed window border size even 
+            //       though selectable area appears ok.
+            OdometerWindow *odometer_window = cont->m_pOdometerWindow;
+            odometer_window->SetSize(cont->m_pOdometerWindow->GetMinSize());
+//            odometer_window->SetClientSize(cont->m_pOdometerWindow->GetMinSize());
+//            odometer_window->Fit();
+            odometer_window->Refresh();
+            odometer_window->Update();
+/*
+//------------------
+    printf("\nUpdate the current odometer");
+    wxSize size = odometer_window->GetMinSize() ;
+    printf("\nodometer_window->GetMinSize():");
+    printf("\nPanel width:            %d",size.x);
+    printf("\nPanel height, in:       %d",size.y);
+    size = odometer_window->GetSize() ;
+    printf("\nodometer_window->GetSize():");
+    printf("\nPanel width:            %d",size.x);
+    printf("\nPanel height, in:       %d",size.y);
+    printf("\n"); 
+//------------------
+*/
         }
     }
     m_pauimgr->Update();
@@ -1946,7 +2039,6 @@ void odometer_pi::PopulateContextMenu(wxMenu* menu) {
 }
 
 void odometer_pi::ShowOdometer(size_t id, bool visible) {
-
     if (id < m_ArrayOfOdometerWindow.GetCount()) {
         OdometerWindowContainer *cont = m_ArrayOfOdometerWindow.Item(id);
         m_pauimgr->GetPane(cont->m_pOdometerWindow).Show(visible);
@@ -1963,9 +2055,16 @@ void odometer_pi::ShowOdometer(size_t id, bool visible) {
 //
 //---------------------------------------------------------------------------------------------------------
 
-OdometerPreferencesDialog::OdometerPreferencesDialog(wxWindow *parent, wxWindowID id, wxArrayOfOdometer config) :
-        wxDialog(parent, id, _("Odometer Settings"), wxDefaultPosition, wxDefaultSize,  wxDEFAULT_DIALOG_STYLE) {
-    Connect(wxEVT_CLOSE_WINDOW, wxCloseEventHandler(OdometerPreferencesDialog::OnCloseDialog), NULL, this);
+OdometerPreferencesDialog::OdometerPreferencesDialog(
+    wxWindow *parent, wxWindowID id, wxArrayOfOdometer config) 
+    :  wxDialog(parent, id, _("Odometer Settings"), wxDefaultPosition, 
+           wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER) {
+
+    int display_width, display_height;
+    wxDisplaySize(&display_width, &display_height);
+
+    Connect(wxEVT_CLOSE_WINDOW,
+             wxCloseEventHandler(OdometerPreferencesDialog::OnCloseDialog), NULL, this);
 
     // Copy original config
     m_Config = wxArrayOfOdometer(config);
@@ -2038,28 +2137,28 @@ OdometerPreferencesDialog::OdometerPreferencesDialog(wxWindow *parent, wxWindowI
     wxStaticText* itemStaticText02 = new wxStaticText(m_pPanelPreferences, wxID_ANY, _("Title:"),
             wxDefaultPosition, wxDefaultSize, 0);
     itemFlexGridSizer02->Add(itemStaticText02, 0, wxEXPAND | wxALL, border_size);
-    m_pFontPickerTitle = new wxFontPickerCtrl(m_pPanelPreferences, wxID_ANY, *g_pFontTitle,
+    m_pFontPickerTitle = new wxFontPickerCtrl(m_pPanelPreferences, wxID_ANY, g_USFontTitle,
             wxDefaultPosition, wxDefaultSize);
     itemFlexGridSizer02->Add(m_pFontPickerTitle, 0, wxALIGN_RIGHT | wxALL, 0);
 
     wxStaticText* itemStaticText03 = new wxStaticText(m_pPanelPreferences, wxID_ANY, _("Data:"),
             wxDefaultPosition, wxDefaultSize, 0);
     itemFlexGridSizer02->Add(itemStaticText03, 0, wxEXPAND | wxALL, border_size);
-    m_pFontPickerData = new wxFontPickerCtrl(m_pPanelPreferences, wxID_ANY, *g_pFontData,
+    m_pFontPickerData = new wxFontPickerCtrl(m_pPanelPreferences, wxID_ANY, g_USFontData,
             wxDefaultPosition, wxDefaultSize);
     itemFlexGridSizer02->Add(m_pFontPickerData, 0, wxALIGN_RIGHT | wxALL, 0);
 
     wxStaticText* itemStaticText04 = new wxStaticText(m_pPanelPreferences, wxID_ANY, _("Label:"),
             wxDefaultPosition, wxDefaultSize, 0);
     itemFlexGridSizer02->Add(itemStaticText04, 0, wxEXPAND | wxALL, border_size);
-    m_pFontPickerLabel = new wxFontPickerCtrl(m_pPanelPreferences, wxID_ANY, *g_pFontLabel,
+    m_pFontPickerLabel = new wxFontPickerCtrl(m_pPanelPreferences, wxID_ANY, g_USFontLabel,
             wxDefaultPosition, wxDefaultSize);
     itemFlexGridSizer02->Add(m_pFontPickerLabel, 0, wxALIGN_RIGHT | wxALL, 0);
 
     wxStaticText* itemStaticText05 = new wxStaticText(m_pPanelPreferences, wxID_ANY, _("Small:"),
             wxDefaultPosition, wxDefaultSize, 0);
     itemFlexGridSizer02->Add(itemStaticText05, 0, wxEXPAND | wxALL, border_size);
-    m_pFontPickerSmall = new wxFontPickerCtrl(m_pPanelPreferences, wxID_ANY, *g_pFontSmall,
+    m_pFontPickerSmall = new wxFontPickerCtrl(m_pPanelPreferences, wxID_ANY, g_USFontSmall,
             wxDefaultPosition, wxDefaultSize);
     itemFlexGridSizer02->Add(m_pFontPickerSmall, 0, wxALIGN_RIGHT | wxALL, 0);
 
@@ -2100,16 +2199,16 @@ OdometerPreferencesDialog::OdometerPreferencesDialog(wxWindow *parent, wxWindowI
         wxDefaultPosition, wxDefaultSize, 0 );
     itemFlexGridSizer03->Add( itemStaticText09, 0, wxEXPAND | wxALL, border_size );
     wxString m_UTCOffsetChoices[] = {
-        _T( "-12:00" ), _T( "-11:30" ), _T( "-11:00" ), _T( "-10:30" ), _T( "-10:00" ), _T( "-09:30" ),
-        _T( "-09:00" ), _T( "-08:30" ), _T( "-08:00" ), _T( "-07:30" ), _T( "-07:00" ), _T( "-06:30" ),
-        _T( "-06:00" ), _T( "-05:30" ), _T( "-05:00" ), _T( "-04:30" ), _T( "-04:00" ), _T( "-03:30" ),
-        _T( "-03:00" ), _T( "-02:30" ), _T( "-02:00" ), _T( "-01:30" ), _T( "-01:00" ), _T( "-00:30" ),
-        _T( " 00:00" ), _T( " 00:30" ), _T( " 01:00" ), _T( " 01:30" ), _T( " 02:00" ), _T( " 02:30" ),
-        _T( " 03:00" ), _T( " 03:30" ), _T( " 04:00" ), _T( " 04:30" ), _T( " 05:00" ), _T( " 05:30" ),
-        _T( " 06:00" ), _T( " 06:30" ), _T( " 07:00" ), _T( " 07:30" ), _T( " 08:00" ), _T( " 08:30" ),
-        _T( " 09:00" ), _T( " 09:30" ), _T( " 10:00" ), _T( " 10:30" ), _T( " 11:00" ), _T( " 11:30" ),
-        _T( " 12:00" )
-    };
+        _T( "-12:00" ), _T( "-11:30" ), _T( "-11:00" ), _T( "-10:30" ), _T( "-10:00" ),
+        _T( "-09:30" ), _T( "-09:00" ), _T( "-08:30" ), _T( "-08:00" ), _T( "-07:30" ),
+        _T( "-07:00" ), _T( "-06:30" ), _T( "-06:00" ), _T( "-05:30" ), _T( "-05:00" ),
+        _T( "-04:30" ), _T( "-04:00" ), _T( "-03:30" ), _T( "-03:00" ), _T( "-02:30" ),
+        _T( "-02:00" ), _T( "-01:30" ), _T( "-01:00" ), _T( "-00:30" ), _T( " 00:00" ),
+        _T( " 00:30" ), _T( " 01:00" ), _T( " 01:30" ), _T( " 02:00" ), _T( " 02:30" ),
+        _T( " 03:00" ), _T( " 03:30" ), _T( " 04:00" ), _T( " 04:30" ), _T( " 05:00" ),
+        _T( " 05:30" ), _T( " 06:00" ), _T( " 06:30" ), _T( " 07:00" ), _T( " 07:30" ),
+        _T( " 08:00" ), _T( " 08:30" ), _T( " 09:00" ), _T( " 09:30" ), _T( " 10:00" ),
+        _T( " 10:30" ), _T( " 11:00" ), _T( " 11:30" ), _T( " 12:00" )};
     int m_UTCOffsetNChoices = sizeof( m_UTCOffsetChoices ) / sizeof( wxString );
     m_pChoiceUTCOffset = new wxChoice( m_pPanelPreferences, wxID_ANY, wxDefaultPosition, wxDefaultSize,
         m_UTCOffsetNChoices, m_UTCOffsetChoices, 0 );
@@ -2156,7 +2255,8 @@ OdometerPreferencesDialog::OdometerPreferencesDialog(wxWindow *parent, wxWindowI
     m_pChoiceMinTripStop->SetSelection( g_iTripStopMinutes );
     itemFlexGridSizer03->Add( m_pChoiceMinTripStop, 0, wxALIGN_RIGHT | wxALL, 0 );
 
-	wxStdDialogButtonSizer* DialogButtonSizer = CreateStdDialogButtonSizer(wxOK | wxCANCEL);
+	wxStdDialogButtonSizer* DialogButtonSizer = 
+        CreateStdDialogButtonSizer(wxOK | wxCANCEL);
     itemBoxSizerMainPanel->Add(DialogButtonSizer, 0, wxALIGN_RIGHT | wxALL, 5);
 
     /* NOTE: These are not preferences settings items, there are no change options in Odometer
@@ -2167,14 +2267,16 @@ OdometerPreferencesDialog::OdometerPreferencesDialog(wxWindow *parent, wxWindowI
          wxLC_REPORT | wxLC_NO_HEADER | wxLC_SINGLE_SEL | wxLC_SORT_ASCENDING );
     m_pListCtrlInstruments->InsertColumn(0, _("Instruments"));
 
-
     UpdateOdometerButtonsState();
-    SetMinSize(wxSize(200, -1));
+//    SetMinSize(wxSize(200, -1));
+
     Fit();
+    Refresh();
 }
 
+// Is this ever used?
 void OdometerPreferencesDialog::OnCloseDialog(wxCloseEvent& event) {
-
+    UpdateOdometerButtonsState();
     SaveOdometerConfig();
     event.Skip();
 }
@@ -2198,6 +2300,35 @@ void OdometerPreferencesDialog::SaveOdometerConfig(void) {
     cont->m_bShowTripLeg = m_pCheckBoxShowTripLeg->IsChecked();
     cont->m_bGenerateLogFile = m_pCheckBoxGenerateLogFile->IsChecked();
     cont->m_sCaption = m_pTextCtrlCaption->GetValue();
+
+    cont->m_aInstrumentList.Clear();
+
+    // Original count modified to read checkboxes and using fixed instrument order
+    // Show speedometer, always first, instrument 0
+    if (m_pCheckBoxShowSpeed->IsChecked()) { 
+        size_t speedinstr = 0;
+        cont->m_aInstrumentList.Add(speedinstr);
+    }
+    // Total distance and trip distance can not be toggled on/off. Instruments 1 - 2.
+    for (size_t distanceinstr = 1; distanceinstr < 3; distanceinstr++) {
+        cont->m_aInstrumentList.Add(distanceinstr);
+    }
+    // Departure and arrival, instruments 3 - 4.
+    if (m_pCheckBoxShowDepArrTimes->IsChecked()) {
+        for (size_t deparrinstr = 3; deparrinstr < 5; deparrinstr++) {
+            cont->m_aInstrumentList.Add(deparrinstr);
+        }
+    }
+    // trip reset button and autoreset, instruments 5 - 6.
+    for (size_t resetinstr = 5; resetinstr < 7; resetinstr++) {
+        cont->m_aInstrumentList.Add(resetinstr);
+    }
+    // Trip leg, time plus buttons, instruments 7 - 10.
+    if (m_pCheckBoxShowTripLeg->IsChecked()) {
+        for (size_t leginstr = 7; leginstr < 11; leginstr++) {
+            cont->m_aInstrumentList.Add(leginstr);
+        }
+    }
 }
 
 void OdometerPreferencesDialog::OnOdometerSelected(wxListEvent& event) {
@@ -2206,11 +2337,11 @@ void OdometerPreferencesDialog::OnOdometerSelected(wxListEvent& event) {
 }
 
 void OdometerPreferencesDialog::UpdateOdometerButtonsState() {
+
     long item = -1;
 
     // Forcing 'item = 0' enables the one (and only) panel in the settings dialogue.
     item = 0;
-
     bool enable = (item != -1);
 
     m_pPanelPreferences->Enable( enable );
@@ -2222,6 +2353,8 @@ void OdometerPreferencesDialog::UpdateOdometerButtonsState() {
     m_pCheckBoxShowTripLeg->SetValue(cont->m_bShowTripLeg);
     m_pCheckBoxGenerateLogFile->SetValue(cont->m_bGenerateLogFile);
     m_pTextCtrlCaption->SetValue(cont->m_sCaption);
+//    m_pChoiceOrientation->SetSelection(cont->m_sOrientation == _T("V") ? 0 : 1);
+
     m_pListCtrlInstruments->DeleteAllItems();
     for (size_t i = 0; i < cont->m_aInstrumentList.GetCount(); i++) {
         wxListItem item;
@@ -2229,12 +2362,6 @@ void OdometerPreferencesDialog::UpdateOdometerButtonsState() {
         item.SetId(m_pListCtrlInstruments->GetItemCount());
         m_pListCtrlInstruments->InsertItem(item);
     }
-    m_pListCtrlInstruments->SetColumnWidth(0, wxLIST_AUTOSIZE);
-}
-
-
-void OdometerPreferencesDialog::RefreshOdometerButtonsState() {
-
 }
 
 
@@ -2245,19 +2372,17 @@ void OdometerPreferencesDialog::RefreshOdometerButtonsState() {
 //---------------------------------------------------------------------------------------------------------
 
 // wxWS_EX_VALIDATE_RECURSIVELY required to push events to parents
-OdometerWindow::OdometerWindow(wxWindow *pparent, wxWindowID id, wxAuiManager *auimgr,
-        odometer_pi* plugin, int orient, OdometerWindowContainer* mycont) :
+OdometerWindow::OdometerWindow(wxWindow *pparent, wxWindowID id,
+                                wxAuiManager *auimgr, odometer_pi* plugin,
+                                int orient, OdometerWindowContainer* mycont) :
         wxWindow(pparent, id, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE, _T("Odometer")) {
+
     m_pauimgr = auimgr;
     m_plugin = plugin;
     m_Container = mycont;
 
-    int sizerOrient = wxVERTICAL;
-    if (orient != 0)
-      sizerOrient = wxHORIZONTAL;
-
 	// wx2.9 itemBoxSizer = new wxWrapSizer(orient);
-    itemBoxSizer = new wxBoxSizer(sizerOrient);
+    itemBoxSizer = new wxBoxSizer(orient);
     SetSizer(itemBoxSizer);
     Connect(wxEVT_SIZE, wxSizeEventHandler(OdometerWindow::OnSize), NULL, this);
     Connect(wxEVT_CONTEXT_MENU, wxContextMenuEventHandler(OdometerWindow::OnContextMenu), NULL,
@@ -2269,9 +2394,9 @@ OdometerWindow::OdometerWindow(wxWindow *pparent, wxWindowID id, wxAuiManager *a
 
     m_binResize = false;
     m_binPinch = false;
-
 }
 
+// Only at shutdown, very last thing
 OdometerWindow::~OdometerWindow() {
     for (size_t i = 0; i < m_ArrayOfInstrument.GetCount(); i++) {
         OdometerInstrumentContainer *pdic = m_ArrayOfInstrument.Item(i);
@@ -2279,19 +2404,30 @@ OdometerWindow::~OdometerWindow() {
     }
 }
 
+// Executed at start, when closing setup and when instument size is changed
 void OdometerWindow::OnSize(wxSizeEvent& event) {
     event.Skip();
-    for (unsigned int i=0; i<m_ArrayOfInstrument.size(); i++) {
+    for (unsigned int i=0; i < m_ArrayOfInstrument.size(); i++) {
         OdometerInstrument* inst = m_ArrayOfInstrument.Item(i)->m_pInstrument;
-        inst->SetMinSize(inst->GetSize(itemBoxSizer->GetOrientation(), GetClientSize()));
+        inst->SetMinSize (
+            inst->GetSize(itemBoxSizer->GetOrientation(), GetClientSize()));
     }
 
-    // TODO: Better handling of size after repetitive closing of preferences (almost ok)
-    SetMinSize(wxDefaultSize);
-    Fit();
     SetMinSize(itemBoxSizer->GetMinSize());
-    Layout();
+/*
+//------------------
+    printf("\nOdometerWindow::OnSize");
+    wxSize size = itemBoxSizer->GetMinSize() ;
+    printf("\nSetMinSize():");
+    printf("\nPanel width:            %d",size.x);
+    printf("\nPanel height, in:       %d",size.y);
+    printf("\n"); 
+//------------------
+*/
+
+//    Fit();
     Refresh();
+    Update();
 }
 
 void OdometerWindow::OnContextMenu(wxContextMenuEvent& event) {
@@ -2310,13 +2446,13 @@ void OdometerWindow::OnContextMenu(wxContextMenuEvent& event) {
 }
 
 void OdometerWindow::OnContextMenuSelect(wxCommandEvent& event) {
+
     if (event.GetId() < ID_ODO_PREFS) {
 	// Toggle odometer visibility
         m_plugin->ShowOdometer(event.GetId()-1, event.IsChecked());
         SetToolbarItemState(m_plugin->GetToolbarItemId(),
             m_plugin->GetOdometerWindowShownCount() != 0);
     }
-
 
     switch(event.GetId()) {
         case ID_ODO_PREFS: {
@@ -2335,7 +2471,6 @@ void OdometerWindow::OnContextMenuSelect(wxCommandEvent& event) {
             return;     // Nothing changed so nothing need be saved
         }
     }
-
     m_plugin->SaveConfig();
 }
 
@@ -2350,6 +2485,7 @@ void OdometerWindow::SetColorScheme(PI_ColorScheme cs) {
 }
 
 void OdometerWindow::ChangePaneOrientation(int orient, bool updateAUImgr) {
+
     m_pauimgr->DetachPane(this);
     SetSizerOrientation(orient);
     bool vertical = orient == wxVERTICAL;
@@ -2357,18 +2493,31 @@ void OdometerWindow::ChangePaneOrientation(int orient, bool updateAUImgr) {
 
     // We must change Name to reset AUI perpective
     m_Container->m_sName = MakeName();
-    m_pauimgr->AddPane(this, wxAuiPaneInfo().Name(m_Container->m_sName).Caption(
-        m_Container->m_sCaption).CaptionVisible(true).TopDockable(!vertical).BottomDockable(
-        !vertical).LeftDockable(vertical).RightDockable(vertical).MinSize(sz).BestSize(
-        sz).FloatingSize(sz).FloatingPosition(100, 100).Float().Show(m_Container->m_bIsVisible));
+    m_pauimgr->AddPane(this, wxAuiPaneInfo()
+                                 .Name(m_Container->m_sName)
+                                 .Caption( m_Container->m_sCaption)
+                                 .CaptionVisible(true)
+                                 .TopDockable(!vertical)
+                                 .BottomDockable(!vertical)
+                                 .LeftDockable(vertical)
+                                 .RightDockable(vertical)
+                                 .MinSize(sz)
+                                 .BestSize(sz)
+                                 .FloatingSize(sz)
+                                 .FloatingPosition(100, 100)
+                                 .Float()
+                                 .Show(m_Container->m_bIsVisible));
 
+#ifdef __OCPN__ANDROID__
     wxAuiPaneInfo& pane = m_pauimgr->GetPane( this );
     pane.Dockable( false );
+#endif
 
     if (updateAUImgr) m_pauimgr->Update();
 }
 
 void OdometerWindow::SetSizerOrientation(int orient) {
+
     itemBoxSizer->SetOrientation(orient);
     // We must reset all MinSize to ensure we start with new default
     wxWindowListNode* node = GetChildren().GetFirst();
@@ -2376,21 +2525,29 @@ void OdometerWindow::SetSizerOrientation(int orient) {
         node->GetData()->SetMinSize(wxDefaultSize);
         node = node->GetNext();
     }
-    SetMinSize(wxDefaultSize);
-    Fit();
+//    SetMinSize(wxDefaultSize);
     SetMinSize(itemBoxSizer->GetMinSize());
+//    Fit();
+    Refresh();
+    Update();
 }
 
 int OdometerWindow::GetSizerOrientation() {
     return itemBoxSizer->GetOrientation();
 }
 
+
 bool isArrayIntEqual(const wxArrayInt& l1, const wxArrayOfInstrument &l2) {
-    if (l1.GetCount() != l2.GetCount()) return false;
 
-    for (size_t i = 0; i < l1.GetCount(); i++)
-        if (l1.Item(i) != l2.Item(i)->m_ID) return false;
+    if (l1.GetCount() != l2.GetCount()) {
+        return false;
 
+    }
+    for (size_t i = 0; i < l1.GetCount(); i++) {
+        if (l1.Item(i) != l2.Item(i)->m_ID) {
+            return false;
+         }
+    }
     return true;
 }
 
@@ -2399,6 +2556,7 @@ bool OdometerWindow::isInstrumentListEqual(const wxArrayInt& list) {
 }
 
 // Create and display each instrument in a odometer container
+// executed at start and when closing setup
 void OdometerWindow::SetInstrumentList(wxArrayInt list) {
 
     m_ArrayOfInstrument.Clear();
@@ -2410,100 +2568,108 @@ void OdometerWindow::SetInstrumentList(wxArrayInt list) {
         OdometerInstrument *instrument = NULL;
 
         switch (id) {
-            case ID_DBP_D_SOG:
-                if ( g_iShowSpeed == 1 ) {
+            case ID_DBP_D_SOG:  // id = 0
+//                if ( g_iShowSpeed == 1 ) {
                     instrument = new OdometerInstrument_Speedometer( this, wxID_ANY,
                         GetInstrumentCaption( id ), OCPN_DBP_STC_SOG, 0, g_iOdoSpeedMax );
                     ( (OdometerInstrument_Dial *) instrument )->SetOptionLabel
                         ( g_iOdoSpeedMax / 20 + 1, DIAL_LABEL_HORIZONTAL );
-                    ( (OdometerInstrument_Dial *) instrument )->SetOptionMarker( 0.5, DIAL_MARKER_SIMPLE, 2 );
-                }
+                    ( (OdometerInstrument_Dial *) instrument )
+                        ->SetOptionMarker( 0.5, DIAL_MARKER_SIMPLE, 2 );
+//                }
                 break;
 
-            case ID_DBP_I_SUMLOG:
+            case ID_DBP_I_SUMLOG:  // id = 1
                 instrument = new OdometerInstrument_Single( this, wxID_ANY,
-                    GetInstrumentCaption( id ), OCPN_DBP_STC_SUMLOG, _T("%12.1f") );
+                    GetInstrumentCaption( id ), OCPN_DBP_STC_SUMLOG, _T("%5s") );
                 break;
 
-            case ID_DBP_I_TRIPLOG:
+            case ID_DBP_I_TRIPLOG:  // id = 2
                 instrument = new OdometerInstrument_Single( this, wxID_ANY,
-                    GetInstrumentCaption( id ), OCPN_DBP_STC_TRIPLOG, _T("%12.1f") );
+                    GetInstrumentCaption( id ), OCPN_DBP_STC_TRIPLOG, _T("%10s") );
                 break;
 
-            case ID_DBP_I_DEPART:
-                if ( g_iShowDepArrTimes == 1 ) {
+            case ID_DBP_I_DEPART:  // id = 3
                     instrument = new OdometerInstrument_String( this, wxID_ANY,
                         GetInstrumentCaption( id ), OCPN_DBP_STC_DEPART, _T("%1s") );
-                }
                 break;
 
-
-            case ID_DBP_I_ARRIV:
-                if ( g_iShowDepArrTimes == 1 ) {
+            case ID_DBP_I_ARRIV:  // id = 4
                     instrument = new OdometerInstrument_String( this, wxID_ANY,
                         GetInstrumentCaption( id ), OCPN_DBP_STC_ARRIV, _T("%1s") );
-                }
                 break;
 
-
-
-            case ID_DBP_B_TRIPRES:
+            case ID_DBP_B_TRIPRES:  // id = 5
                 instrument = new OdometerInstrument_Button( this, wxID_ANY,
                     GetInstrumentCaption( id ), OCPN_DBP_STC_TRIPRES );
                 break;
 
-            case ID_DBP_C_AUTORESET:
+            case ID_DBP_C_AUTORESET:  // id = 6
                 instrument = new OdometerInstrument_Checkbox( this, wxID_ANY,
                     GetInstrumentCaption( id ), g_iAutoResetTrip );
                 break;
 
-            case ID_DBP_I_LEGDIST:
-                if ( g_iShowTripLeg == 1 ) {
+            case ID_DBP_I_LEGDIST:  // id = 7
                     instrument = new OdometerInstrument_Single( this, wxID_ANY,
-                        GetInstrumentCaption( id ), OCPN_DBP_STC_LEGDIST,_T("%12.2f") );
-                }
+                        GetInstrumentCaption( id ), OCPN_DBP_STC_LEGDIST,_T("%10s") );
                 break;
 
-            case ID_DBP_I_LEGTIME:
-                if ( g_iShowTripLeg == 1 ) {
+            case ID_DBP_I_LEGTIME:  // id = 8
                     instrument = new OdometerInstrument_String( this, wxID_ANY,
-                        GetInstrumentCaption( id ), OCPN_DBP_STC_LEGTIME,_T("%6s") );
-                }
+                        GetInstrumentCaption( id ), OCPN_DBP_STC_LEGTIME,_T("%8s") );
                 break;
 
-            case ID_DBP_B_STARTSTOP:
-                if ( g_iShowTripLeg == 1 ) {
+            case ID_DBP_B_STARTSTOP:  // id = 9
                     instrument = new OdometerInstrument_Button( this, wxID_ANY,
                         GetInstrumentCaption( id ), OCPN_DBP_STC_STARTSTOP );
-                }
                 break;
 
-            case ID_DBP_B_LEGRES:
-                if ( g_iShowTripLeg == 1 ) {
+            case ID_DBP_B_LEGRES:  // id = 10
                     instrument = new OdometerInstrument_Button( this, wxID_ANY,
                         GetInstrumentCaption( id ), OCPN_DBP_STC_LEGRES );
-                }
                 break;
 	    	}
 
         if (instrument) {
             instrument->instrumentTypeId = id;
-            m_ArrayOfInstrument.Add(new OdometerInstrumentContainer(id, instrument,instrument->GetCapacity()));
+            m_ArrayOfInstrument.Add(new OdometerInstrumentContainer(
+                id, instrument,instrument->GetCapacity()));
             itemBoxSizer->Add(instrument, 0, wxEXPAND, 0);
         }
     }
 
-    // Reset MinSize to ensure we start with a new default
-    SetMinSize(wxDefaultSize);
-    Fit();
-    Layout();
+    //  TODO: This is read but not setting values at start, is it even used anywhere?
+    //        Fetched from OpenCPN dashboard plugin
+    //        This is only read and used used when returning fron the setup menu.
+    //        The width reported is default 150, only
+
+    //  In the absense of any other hints, build the default instrument sizes by 
+    //  taking the calculated with of the first (and succeeding) instruments as
+    //  hints for the next. So, best in default loads to start with an instrument
+    //  that accurately calculates its minimum width. e.g.
+    //  DashboardInstrument_Position
+
+
+    wxSize Hint = wxSize(DefaultWidth, DefaultWidth);  // Default width == 150
+    for (unsigned int i = 0; i < m_ArrayOfInstrument.size(); i++) {
+        OdometerInstrument *inst = m_ArrayOfInstrument.Item(i)->m_pInstrument;
+        inst->SetMinSize(inst->GetSize(itemBoxSizer->GetOrientation(), Hint));
+        Hint = inst->GetMinSize();
+    }
+
     SetMinSize(itemBoxSizer->GetMinSize());
+
+//    Fit();
+    Refresh();
+    Update();
 }
 
 void OdometerWindow::SendSentenceToAllInstruments(int st, double value, wxString unit) {
+
     for (size_t i = 0; i < m_ArrayOfInstrument.GetCount(); i++) {
 		if (m_ArrayOfInstrument.Item(i)->m_cap_flag & st) {
 			m_ArrayOfInstrument.Item(i)->m_pInstrument->SetData(st, value, unit);
+
 		}
     }
 }
@@ -2520,10 +2686,8 @@ void odometer_pi::ShowViewLogDialog(wxWindow* parent) {
 
     // Apply clicked, save current alternatives and execute view options
     if (dialog->ShowModal() == wxID_OK) {
-
         dialog->SaveLogConfig();
         GenerateLogOutput();
-
     }
 
     // Invoke the dialog destructor
@@ -2589,6 +2753,7 @@ void odometer_pi::GenerateLogOutput() {
 
 //  --------------------------------------------------------------------------------------
 // Generate text formatted output, emulating tab using space
+//  --------------------------------------------------------------------------------------
 
     if (g_iSelectLogFormat == 0)  {
 
@@ -2716,6 +2881,7 @@ void odometer_pi::GenerateLogOutput() {
 
 //  --------------------------------------------------------------------------------------
 // Generate CSV formatted output, uses comma as separator
+//  --------------------------------------------------------------------------------------
 
     if (g_iSelectLogFormat == 1)  {
 
@@ -2801,6 +2967,7 @@ void odometer_pi::GenerateLogOutput() {
 
 //  --------------------------------------------------------------------------------------
 // Generate HTML formatted output
+//  --------------------------------------------------------------------------------------
 
     if (g_iSelectLogFormat == 2)  {
         wxString cssStyle = "<style>\n.center\n{\nmargin-left: auto;\nmargin-right: auto;\n}\nth, td\n{\ntext-align: center;\npadding-left: 15px;\npadding-right: 15px;\n}\ntable tbody td:nth-child(3){\ntext-align: right;\n}\ntable tbody td:nth-child(6){\ntext-align: right;\n}\n</style>\n";
@@ -2927,7 +3094,10 @@ void odometer_pi::GenerateLogOutput() {
 }
 
 
-// Based on the 'Odometer Preferences Dialog'
+//  --------------------------------------------------------------------------------------
+// Generate log view Dialog
+//  --------------------------------------------------------------------------------------
+
 OdometerViewLogDialog::OdometerViewLogDialog(wxWindow *parent, wxWindowID id):
     wxDialog(parent, id, _("Log View Settings"), wxDefaultPosition, wxDefaultSize,     wxDEFAULT_DIALOG_STYLE) {
     Connect(wxEVT_CLOSE_WINDOW, wxCloseEventHandler(OdometerViewLogDialog::OnCloseLogDialog), NULL, this);
@@ -2993,7 +3163,8 @@ OdometerViewLogDialog::OdometerViewLogDialog(wxWindow *parent, wxWindowID id):
     m_pRadioBoxOutput->SetSelection (g_iSelectLogOutput);
 
 
-	wxStdDialogButtonSizer* ViewDialogButtonSizer = CreateStdDialogButtonSizer(wxOK | wxCANCEL);
+	wxStdDialogButtonSizer* ViewDialogButtonSizer = 
+        CreateStdDialogButtonSizer(wxOK | wxCANCEL);
     itemBoxSizerMainLogViewPanel->Add(ViewDialogButtonSizer, 0, wxALIGN_RIGHT, 5);
 }
 
@@ -3006,8 +3177,6 @@ void OdometerViewLogDialog::OnCloseLogDialog(wxCloseEvent& event) {
 
 
 void OdometerViewLogDialog::SaveLogConfig() {
-
-//    wxMessageBox (_T("Saving Log Config"));
 
     g_iSelectLogTrips = m_pRadioBoxTrips->GetSelection();
     g_iSelectLogFormat = m_pRadioBoxFormat->GetSelection();

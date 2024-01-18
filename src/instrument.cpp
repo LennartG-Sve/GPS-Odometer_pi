@@ -39,7 +39,6 @@
 #include "instrument.h"
 //#include "wx28compat.h"
 
-int             g_iPanelWidth = 0;
 extern    int   g_iAutoResetTrip;
 
 //----------------------------------------------------------------
@@ -50,6 +49,7 @@ extern    int   g_iAutoResetTrip;
 
 OdometerInstrument::OdometerInstrument(wxWindow *pparent, wxWindowID id, wxString title, int cap_flag)
       :wxControl(pparent, id, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE) {
+
       m_title = title;
       m_cap_flag = cap_flag;
 
@@ -108,18 +108,6 @@ void OdometerInstrument::OnPaint(wxPaintEvent& WXUNUSED(event)) {
         wxLogMessage(_T("OdometerInstrument::OnPaint() fatal: Zero size DC."));
         return;
     }
-
-    g_iPanelWidth = size.x;
-
-/*
-    // Message log, prints to stdout
-    wxString dmsg( _T("Log: ") );
-    wxString txtmsg;
-    txtmsg << g_iPanelWidth;
-    dmsg.append(txtmsg);
-    wxLogMessage(dmsg);
-    printf("%s\n", dmsg.ToUTF8().data());
-*/
 
 #if wxUSE_GRAPHICS_CONTEXT
     wxGCDC dc(pdc);
@@ -238,7 +226,6 @@ void OdometerInstrument_Single::Draw(wxGCDC* dc) {
       dc->DrawText(m_data, 10, m_TitleHeight);
 
 #endif
-
 }
 
 void OdometerInstrument_Single::SetData(int st, double data, wxString unit) {
@@ -290,6 +277,7 @@ OdometerInstrument_String::OdometerInstrument_String(wxWindow *pparent, wxWindow
 wxSize OdometerInstrument_String::GetSize(int orient, wxSize hint) {
       wxClientDC dc(this);
       int w;
+//      dc.SetTextAlign(TA_CENTER);
       dc.GetTextExtent(m_title, &w, &m_TitleHeight, 0, 0, g_pFontTitle);
       dc.GetTextExtent(_T("000"), &w, &m_DataHeight, 0, 0, g_pFontData);
 
@@ -327,7 +315,6 @@ void OdometerInstrument_String::Draw(wxGCDC* dc) {
       dc->DrawText(m_data, 10, m_TitleHeight);
 
 #endif
-
 }
 
 void OdometerInstrument_String::SetData(int st, double data, wxString unit) {
@@ -431,7 +418,6 @@ void OdometerInstrument_Checkbox::Draw(wxGCDC* dc) {
       dc->DrawText(m_data, 10, m_TitleHeight);
 
 #endif
-
 }
 
 void OdometerInstrument_Checkbox::SetData(int st, double data, wxString unit) {

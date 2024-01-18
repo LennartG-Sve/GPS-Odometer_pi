@@ -61,14 +61,15 @@ double deg2rad(double angle) {
       return angle/180.0*M_PI;
 }
 
-OdometerInstrument_Dial::OdometerInstrument_Dial(wxWindow *parent, wxWindowID id, wxString title, int cap_flag,
-                  int s_angle, int r_angle, int s_value, int e_value) : OdometerInstrument(parent, id, title, cap_flag) {
+OdometerInstrument_Dial::OdometerInstrument_Dial(
+    wxWindow *parent, wxWindowID id, wxString title, int cap_flag,
+    int s_angle, int r_angle, int s_value, int e_value)
+    : OdometerInstrument(parent, id, title, cap_flag) {
       m_AngleStart = s_angle;
       m_AngleRange = r_angle;
       m_MainValueMin = s_value;
       m_MainValueMax = e_value;
       m_MainValueCap = cap_flag;
-
       m_MainValue = s_value;
       m_ExtraValue = 0;
       m_MainValueFormat = _T("%d");
@@ -84,6 +85,33 @@ OdometerInstrument_Dial::OdometerInstrument_Dial(wxWindow *parent, wxWindowID id
       m_LabelOption = DIAL_LABEL_HORIZONTAL;
       m_LabelArray = wxArrayString();
 }
+
+wxSize OdometerInstrument_Dial::GetSize(int orient, wxSize hint) {
+      wxClientDC dc(this);
+      int w;
+      dc.GetTextExtent(m_title, &w, &m_TitleHeight, 0, 0, g_pFontTitle);
+      if (orient == wxHORIZONTAL) {
+          w = wxMax(hint.y, DefaultWidth+m_TitleHeight);
+          return wxSize(w-m_TitleHeight, w);
+      } else {
+          w = wxMax(hint.x, DefaultWidth);
+          return wxSize(w, m_TitleHeight+w);
+      }
+}
+
+void OdometerInstrument_Dial::SetData(int st, double data, wxString unit) {
+      if (st == m_MainValueCap) {
+            m_MainValue = data;
+            m_MainValueUnit = unit;
+      }
+      else if (st == m_ExtraValueCap) {
+            m_ExtraValue = data;
+            m_ExtraValueUnit = unit;
+      }
+  Refresh();
+}
+
+
 
 OdometerInstrument_Dial::~OdometerInstrument_Dial(void) {
 }
@@ -112,32 +140,10 @@ void OdometerInstrument_Dial::SetOptionExtraValue(int cap, wxString format, Dial
 	m_ExtraValueOption = option;
 }
 
-wxSize OdometerInstrument_Dial::GetSize(int orient, wxSize hint) {
-      wxClientDC dc(this);
-      int w;
-      dc.GetTextExtent(m_title, &w, &m_TitleHeight, 0, 0, g_pFontTitle);
-      if (orient == wxHORIZONTAL) {
-          w = wxMax(hint.y, DefaultWidth+m_TitleHeight);
-          return wxSize(w-m_TitleHeight, w);
-      } 
-	  else {
-          w = wxMax(hint.x, DefaultWidth);
-          return wxSize(w, m_TitleHeight+w);
-      }
-}
 
-void OdometerInstrument_Dial::SetData(int st, double data, wxString unit) {
-      if (st == m_MainValueCap) {
-            m_MainValue = data;
-            m_MainValueUnit = unit;
-      }
-      else if (st == m_ExtraValueCap) {
-            m_ExtraValue = data;
-            m_ExtraValueUnit = unit;
-      }
-}
 
 void OdometerInstrument_Dial::Draw(wxGCDC* bdc) {
+
     wxColour c1;
     GetGlobalColor(_T("DASHB"), &c1);
     wxBrush b1(c1);
@@ -152,7 +158,6 @@ void OdometerInstrument_Dial::Draw(wxGCDC* bdc) {
     m_cy = m_TitleHeight + 2;
     m_cy += availableHeight / 2;
     m_radius = availableHeight / 2;
-
 
     DrawLabels(bdc);
     DrawFrame(bdc);
