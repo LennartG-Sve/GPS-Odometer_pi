@@ -182,6 +182,8 @@ private:
     void LoadFont(wxFont **target, wxString native_info);
 
     void ApplyConfig(void);
+	wxArrayOfInstrument m_ArrayOfInstrument;   // Added for test
+	wxBoxSizer *itemBoxSizer;   // Added for test
 
     // Send deconstructed NMEA 1083 sentence  values to each display
     void SendSentenceToAllInstruments(int st, double value, wxString unit);
@@ -189,7 +191,6 @@ private:
     void GetDistance();
     void DefineTripData();
     void WriteTripData();
-//    void ReadTripData();
 
     // OpenCPN goodness, pointers to Configuration, AUI Manager and Toolbar
     wxFileConfig *m_pconfig;
@@ -548,6 +549,7 @@ private:
 	odometer_pi *m_plugin;
 	wxBoxSizer *itemBoxSizer;
 	wxArrayOfInstrument m_ArrayOfInstrument;
+    wxArrayOfOdometer m_ArrayOfOdometerWindow;
 };
 
 #endif

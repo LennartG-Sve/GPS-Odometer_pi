@@ -34,7 +34,6 @@
 // wxWidgets Precompiled Headers
 #include "wx/wxprec.h"
 #include "stdlib.h"
-// #include <cstdlib>
 
 #ifndef  WX_PRECOMP
 #include "wx/wx.h"
@@ -103,6 +102,7 @@ int         g_iResetLeg = 0;
 int         g_iAutoResetTrip = 0;
 int         g_iAutoResetTripTime = 6;
 wxString    g_sDataDir;
+wxSize      g_iOdoInstrSize;
 int         g_iOdoPanelWidth;
 
 /*
@@ -283,7 +283,7 @@ int odometer_pi::Init(void) {
                         ODOMETER_TOOL_POSITION, 0, this);
 
 
-    // Having Loaded the config, then display each of the odometer
+    // Having Loaded the config, then display the odometer
     ApplyConfig();
 
     // If we loaded a version 1 configuration, convert now to version 2,
@@ -333,8 +333,9 @@ bool odometer_pi::DeInit(void) {
 	Stop();
     }
 
-    // This appears to close each odometer instance
+    // Close the odometer instance
     OdometerWindow *odometer_window = m_ArrayOfOdometerWindow.Item(0)->m_pOdometerWindow;
+
     if (odometer_window) {
         m_pauimgr->DetachPane(odometer_window);
         odometer_window->Close();
@@ -365,8 +366,6 @@ double GetJsonDouble(wxJSONValue &value) {
 void odometer_pi::Notify() {
 
     // Force a repaint of each instrument panel
-    // TODO: Need UTCtime as well? 
-//    SendUtcTimeToAllInstruments(mUTCDateTime);
     OdometerWindow *odometer_window = m_ArrayOfOdometerWindow.Item(0)->m_pOdometerWindow;
 	if (odometer_window) {
 	    odometer_window->Refresh();
@@ -485,7 +484,6 @@ void odometer_pi::updateSKItem(wxJSONValue &item, wxString &talker, wxString &sf
             wxJSONValue &value = item["value"];
 
     // Container for last received sat-system info from SK-N2k
-    // TODO Watchdog?
 //    static wxString talkerID = wxEmptyString;  // Type of satellite (GPS, GLONASS...)
 
             SatsRequired = atoi(m_SatsRequired);
@@ -931,10 +929,8 @@ void odometer_pi::Odometer() {
             ReadDepFromData = 0;
         }
 
-//        if (ReadArrFromData == 1)  {
-            m_ArrTime = m_DataFileTextReader.GetLine(3);
-            ReadArrFromData = 0;
-//        }
+        m_ArrTime = m_DataFileTextReader.GetLine(3);
+        ReadArrFromData = 0;
 
         if (ReadResFromData == 1)  {
             m_ResTime = m_DataFileTextReader.GetLine(4);
@@ -1086,7 +1082,7 @@ void odometer_pi::Odometer() {
     int textOffset = g_iOdoPanelWidth;
     if (textOffset < 150) textOffset = 150; 
     textOffset = (textOffset - 150)/8;
-        
+ 
     int setTextOffset = 0;
     wxString addTextOffset = "";
     wxString space = " ";
@@ -1123,13 +1119,13 @@ void odometer_pi::Odometer() {
 void odometer_pi::DefineTripData() {
 
     // Enable saving trip data
-    // Define data file location, ensure it exists or add with default info
+    // Define data file location, ensure it exists or add with default data
     m_DataFile.Clear();
     m_DataFile = g_sDataDir + _T("datalog.log");
 
-    if (m_DataFileTextReader.Open(m_DataFile)) { // File exists
-        m_DataFileTextReader.Close();
-    } else {    // File does not exist yet, create it with default information
+    if (m_DataFileTextReader.Open(m_DataFile)) { 
+        m_DataFileTextReader.Close();  // File exists, just close it again
+    } else {    // File does not exist yet, create it with default data
         m_DataFileTextReader.Create();
         m_DataFileTextReader.Open(m_DataFile);
         m_DataFileTextReader.AddLine("0.0");
@@ -1172,7 +1168,7 @@ void odometer_pi::DefineTripData() {
 
 void odometer_pi::rmOldLogFiles() {
 
-    // Added delays for slow CPU's using SSD disks
+    // Need delays for slow CPU's using SSD disks (Win crashes)
     wxFileName logfile(oldLogFile);
     if (m_oldLogFileName.Open(oldLogFile)) {
         m_oldLogFileName.Close();
@@ -1183,16 +1179,6 @@ void odometer_pi::rmOldLogFiles() {
     wxMilliSleep(50);
 }
 
-/*
-void odometer_pi::ReadTripData() {
-    // Read arrival time data from data direcrory
-    if (m_DataFileTextReader.Open(m_DataFile)) {
-        m_ArrTime = m_DataFileTextReader.GetLine(3);
-        wxMilliSleep(50);     // Required by slow systems with SSD disks (?)
-        m_DataFileTextReader.Close();
-    }
-}
-*/
 
 void odometer_pi::WriteTripData() {
     // Write updated trip data to data direcrory,
@@ -1513,6 +1499,21 @@ void odometer_pi::ShowPreferencesDialog(wxWindow* parent) {
         if (GenerateLogFile == true) g_iGenerateLogFile = 1;
 
 
+        // Need to ensure sizes gets correct based on activated checkboxes 
+        // Values scaled to follow default width 150 px
+        int defheight = 120;      // Default instruments, not selectable
+        int speedoheight = 167;   // Height of speedometer
+        int deparrheight = 51;    // Height of departure and arrival times info
+        int triplegheight = 109;  // Height of tripleg times and buttons
+
+        OdometerWindow *odometer_window = m_ArrayOfOdometerWindow.Item(0)->m_pOdometerWindow;
+        wxSize sz = odometer_window->GetMinSize();  // Need to get width
+        int instrheight = defheight;
+        if (g_iShowSpeed == 1) instrheight = instrheight + speedoheight;
+        if (g_iShowDepArrTimes == 1) instrheight = instrheight + deparrheight;
+        if (g_iShowTripLeg == 1) instrheight = instrheight + triplegheight;
+        g_iOdoInstrSize = wxSize(sz.x,instrheight);
+
 		// OnClose should handle that for us normally but it doesn't seems to do so
 		// We must save changes first
         dialog->SaveOdometerConfig();
@@ -1525,10 +1526,6 @@ void odometer_pi::ShowPreferencesDialog(wxWindow* parent) {
 	}
     // Invoke the dialog destructor
 	dialog->Destroy();
-
-    OdometerWindow *odometer_window = m_ArrayOfOdometerWindow.Item(0)->m_pOdometerWindow;
-    odometer_window->Fit();
-    odometer_window->Refresh();
 }
 
 
@@ -1560,6 +1557,7 @@ void odometer_pi::OnPaneClose(wxAuiManagerEvent& event) {
 
     // if name is unique, we should use it
     OdometerWindow *odometer_window = (OdometerWindow *) event.pane->window;
+
     int cnt = 0;
     OdometerWindowContainer *cont = m_ArrayOfOdometerWindow.Item(0);
     OdometerWindow *d_w = cont->m_pOdometerWindow;
@@ -1567,9 +1565,7 @@ void odometer_pi::OnPaneClose(wxAuiManagerEvent& event) {
         // we must not count this one because it is being closed
         if (odometer_window != d_w) {
             wxAuiPaneInfo &pane = m_pauimgr->GetPane(d_w);
-            if (pane.IsOk() && pane.IsShown()) {
-				cnt++;
-			}
+            if (pane.IsOk() && pane.IsShown()) cnt++;
         } else {
             cont->m_bIsVisible = false;
         }
@@ -1593,6 +1589,7 @@ void odometer_pi::OnToolbarToolCallback(int id) {
 
     OdometerWindowContainer *cont = m_ArrayOfOdometerWindow.Item(0);
     OdometerWindow *odometer_window = cont->m_pOdometerWindow;
+
     if (odometer_window) {
         wxAuiPaneInfo &pane = m_pauimgr->GetPane(odometer_window);
         if (pane.IsOk()) {
@@ -1690,7 +1687,7 @@ void odometer_pi::UpdateAuiStatus(void) {
     SetToolbarItemState(m_toolbar_item_id, GetOdometerWindowShownCount() != 0);
 }
 
-// Loads a saved configuration
+// Load a saved configuration
 bool odometer_pi::LoadConfig(void) {
     wxFileConfig *pConf = (wxFileConfig *) m_pconfig;
 
@@ -1732,7 +1729,7 @@ bool odometer_pi::LoadConfig(void) {
         LoadFont(&g_pUSFontSmall, config);
         g_FontSmall = g_pUSFontSmall->Scaled(scaler);
 
-		// Load the dedicated odometer settings plus set default values
+		// Load odometer settings plus set default values
         pConf->Read( _T("TotalDistance"), &m_confTotDist, "0.0");
         pConf->Read( _T("TripDistance"), &m_confTripDist, "0.0");
         pConf->Read( _T("AutoResetTrip"), &g_iAutoResetTrip, 0);
@@ -1866,9 +1863,11 @@ bool odometer_pi::LoadConfig(void) {
             }
         }
         return true;
-    } else
+    } else {
         return false;
+    }
 }
+
 
 void odometer_pi::LoadFont(wxFont **target, wxString native_info)
 {
@@ -1952,6 +1951,9 @@ void odometer_pi::ApplyConfig(void) {
             cont->m_pOdometerWindow = new OdometerWindow(
                 GetOCPNCanvasWindow(), wxID_ANY, m_pauimgr, this, orient, cont);
             cont->m_pOdometerWindow->SetInstrumentList(cont->m_aInstrumentList);
+// From 5.9.0:
+//            cont->m_pOdometerWindow->SetInstrumentList(cont->m_aInstrumentList,
+//                &(cont->m_aInstrumentPropertyList));
             bool vertical = orient == wxVERTICAL;
             wxSize sz = cont->m_pOdometerWindow->GetMinSize();
 
@@ -1959,6 +1961,7 @@ void odometer_pi::ApplyConfig(void) {
             #ifdef __WXOSX__
                 if (sz.x == 0) sz.IncTo(wxSize(160, 388));
             #endif
+
             wxAuiPaneInfo p = wxAuiPaneInfo()
                                   .Name(cont->m_sName)
                                   .Caption(cont->m_sCaption)
@@ -1993,40 +1996,43 @@ void odometer_pi::ApplyConfig(void) {
             wxAuiPaneInfo& pane = m_pauimgr->GetPane(cont->m_pOdometerWindow);
             pane.Caption(cont->m_sCaption).Show(cont->m_bIsVisible);
             if (!cont->m_pOdometerWindow->isInstrumentListEqual(
-                     cont->m_aInstrumentList)) {
-                cont->m_pOdometerWindow->SetInstrumentList(cont->m_aInstrumentList);
-                wxSize sz = cont->m_pOdometerWindow->GetMinSize();
-                pane.MinSize(sz).BestSize(sz).FloatingSize(sz);
-            }
-            // Orientation is fixed
-//            if (cont->m_pOdometerWindow->GetSizerOrientation() != orient) {
-//                cont->m_pOdometerWindow->ChangePaneOrientation(orient, false);
-//            }
+                cont->m_aInstrumentList)) {
 
-            // TODO: Does not properly resize to window height when content is changed.
-            //       wxSize sz, GetMinSize and GetSize all report correct height but
-            //       SetSize does not update the displayed window border size even 
-            //       though selectable area appears ok.
-            OdometerWindow *odometer_window = cont->m_pOdometerWindow;
-            odometer_window->SetSize(cont->m_pOdometerWindow->GetMinSize());
-//            odometer_window->SetClientSize(cont->m_pOdometerWindow->GetMinSize());
-//            odometer_window->Fit();
-            odometer_window->Refresh();
-            odometer_window->Update();
-/*
-//------------------
-    printf("\nUpdate the current odometer");
-    wxSize size = odometer_window->GetMinSize() ;
-    printf("\nodometer_window->GetMinSize():");
-    printf("\nPanel width:            %d",size.x);
-    printf("\nPanel height, in:       %d",size.y);
-    size = odometer_window->GetSize() ;
-    printf("\nodometer_window->GetSize():");
-    printf("\nPanel width:            %d",size.x);
-    printf("\nPanel height, in:       %d",size.y);
-    printf("\n"); 
-//------------------
-*/
+                // Rebuild list of instruments from scratch
+                cont->m_aInstrumentList.Clear();
+                if (g_iShowSpeed == 1) cont->m_aInstrumentList.Add(0);
+                cont->m_aInstrumentList.Add(1);
+                cont->m_aInstrumentList.Add(2);
+                if (g_iShowDepArrTimes == 1) {
+                    cont->m_aInstrumentList.Add(3);
+                    cont->m_aInstrumentList.Add(4);
+                }
+                cont->m_aInstrumentList.Add(5);
+                cont->m_aInstrumentList.Add(6);
+                if (g_iShowTripLeg == 1) {
+                    cont->m_aInstrumentList.Add(7);
+                    cont->m_aInstrumentList.Add(8);
+                    cont->m_aInstrumentList.Add(9);
+                    cont->m_aInstrumentList.Add(10);
+                }
+                cont->m_pOdometerWindow->SetInstrumentList(cont->m_aInstrumentList);
+                bool vertical = orient == wxVERTICAL;
+                wxSize sz = cont->m_pOdometerWindow->GetMinSize();
+
+                // TODO: Panel gets wrong and need be corrected, likely
+                //       caused by the checkbox not being properly sized.
+                //       Also something with MinSize from previous instrument 
+                //       selection if deleting instruments, non-repeatable
+                sz.y = sz.y + 24; wxSize szmod(sz.x, sz.y); sz = szmod;
+
+                cont->m_pOdometerWindow->SetMinSize(sz);
+                pane.MinSize(sz).BestSize(sz).FloatingSize(sz);
+
+            }
+            // Orientation is vertical only
+            if (cont->m_pOdometerWindow->GetSizerOrientation() != orient) {
+                cont->m_pOdometerWindow->ChangePaneOrientation(orient, false);
+            }
         }
     }
     m_pauimgr->Update();
@@ -2268,10 +2274,11 @@ OdometerPreferencesDialog::OdometerPreferencesDialog(
     m_pListCtrlInstruments->InsertColumn(0, _("Instruments"));
 
     UpdateOdometerButtonsState();
-//    SetMinSize(wxSize(200, -1));
+//    SetMinSize(wxSize(400, -1));
 
     Fit();
-    Refresh();
+    Layout();
+    CentreOnScreen();
 }
 
 // Is this ever used?
@@ -2303,7 +2310,7 @@ void OdometerPreferencesDialog::SaveOdometerConfig(void) {
 
     cont->m_aInstrumentList.Clear();
 
-    // Original count modified to read checkboxes and using fixed instrument order
+    // Modified to read checkboxes and using fixed instrument order
     // Show speedometer, always first, instrument 0
     if (m_pCheckBoxShowSpeed->IsChecked()) { 
         size_t speedinstr = 0;
@@ -2319,7 +2326,7 @@ void OdometerPreferencesDialog::SaveOdometerConfig(void) {
             cont->m_aInstrumentList.Add(deparrinstr);
         }
     }
-    // trip reset button and autoreset, instruments 5 - 6.
+    // trip reset button and autoreset can not be toggled on/off, instruments 5 - 6.
     for (size_t resetinstr = 5; resetinstr < 7; resetinstr++) {
         cont->m_aInstrumentList.Add(resetinstr);
     }
@@ -2412,22 +2419,12 @@ void OdometerWindow::OnSize(wxSizeEvent& event) {
         inst->SetMinSize (
             inst->GetSize(itemBoxSizer->GetOrientation(), GetClientSize()));
     }
-
-    SetMinSize(itemBoxSizer->GetMinSize());
-/*
-//------------------
-    printf("\nOdometerWindow::OnSize");
-    wxSize size = itemBoxSizer->GetMinSize() ;
-    printf("\nSetMinSize():");
-    printf("\nPanel width:            %d",size.x);
-    printf("\nPanel height, in:       %d",size.y);
-    printf("\n"); 
-//------------------
-*/
-
-//    Fit();
+    Layout();
     Refresh();
-    Update();
+
+    // Need width for texts 
+    wxSize size = GetClientSize();
+    g_iOdoPanelWidth = size.x;
 }
 
 void OdometerWindow::OnContextMenu(wxContextMenuEvent& event) {
@@ -2525,11 +2522,9 @@ void OdometerWindow::SetSizerOrientation(int orient) {
         node->GetData()->SetMinSize(wxDefaultSize);
         node = node->GetNext();
     }
-//    SetMinSize(wxDefaultSize);
+    SetMinSize(wxDefaultSize);
+    Fit();
     SetMinSize(itemBoxSizer->GetMinSize());
-//    Fit();
-    Refresh();
-    Update();
 }
 
 int OdometerWindow::GetSizerOrientation() {
@@ -2569,14 +2564,12 @@ void OdometerWindow::SetInstrumentList(wxArrayInt list) {
 
         switch (id) {
             case ID_DBP_D_SOG:  // id = 0
-//                if ( g_iShowSpeed == 1 ) {
-                    instrument = new OdometerInstrument_Speedometer( this, wxID_ANY,
-                        GetInstrumentCaption( id ), OCPN_DBP_STC_SOG, 0, g_iOdoSpeedMax );
-                    ( (OdometerInstrument_Dial *) instrument )->SetOptionLabel
-                        ( g_iOdoSpeedMax / 20 + 1, DIAL_LABEL_HORIZONTAL );
-                    ( (OdometerInstrument_Dial *) instrument )
-                        ->SetOptionMarker( 0.5, DIAL_MARKER_SIMPLE, 2 );
-//                }
+                instrument = new OdometerInstrument_Speedometer( this, wxID_ANY,
+                    GetInstrumentCaption( id ), OCPN_DBP_STC_SOG, 0, g_iOdoSpeedMax );
+                ( (OdometerInstrument_Dial *) instrument )->SetOptionLabel
+                    ( g_iOdoSpeedMax / 20 + 1, DIAL_LABEL_HORIZONTAL );
+                ( (OdometerInstrument_Dial *) instrument )
+                    ->SetOptionMarker( 0.5, DIAL_MARKER_SIMPLE, 2 );
                 break;
 
             case ID_DBP_I_SUMLOG:  // id = 1
@@ -2657,11 +2650,9 @@ void OdometerWindow::SetInstrumentList(wxArrayInt list) {
         Hint = inst->GetMinSize();
     }
 
-    SetMinSize(itemBoxSizer->GetMinSize());
-
-//    Fit();
-    Refresh();
-    Update();
+    Fit();
+    Layout();
+    SetMinSize(itemBoxSizer->GetMinSize()); 
 }
 
 void OdometerWindow::SendSentenceToAllInstruments(int st, double value, wxString unit) {
