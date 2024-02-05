@@ -95,7 +95,10 @@ wxSize OdometerInstrument_Button::GetSize(int orient, wxSize hint) {
     dc.GetTextExtent(m_title, &w, &m_TitleHeight, 0, 0, g_pFontTitle);
     dc.GetTextExtent(_T("000"), &w, &m_DataHeight, 0, 0, g_pFontData);
 
-    wxSize size = GetClientSize();
+    // May use either of GetClientSize, GetMinSize or GetBestSize
+    // Probably GetMinSize is the best option
+//    wxSize size = GetClientSize();
+    wxSize size = GetMinSize();
 
     // Set resonable values
     if (hint.x < 150) hint.x = 150;
@@ -111,35 +114,53 @@ wxSize OdometerInstrument_Button::GetSize(int orient, wxSize hint) {
 
     if (m_cap_flag == 32) {
         wxBoxSizer* instrument = new wxBoxSizer(wxVERTICAL);
-        wxButton* m_pTripResetButton = new wxButton(this, m_id, _( m_title ), wxDefaultPosition, wxSize(b_width,b_height) );
+        wxButton* m_pTripResetButton = new wxButton(this, m_id, _( m_title ), 
+            wxDefaultPosition, wxSize(b_width,b_height) );
         m_pTripResetButton->SetForegroundColour(wxColor(0,0,0));
         m_pTripResetButton->SetFont(*g_pFontTitle);
 
         instrument->Add(m_pTripResetButton, 0, wxEXPAND | wxALL, 5 );
+
+        // Windows need button redrawn when size is changed
+        m_pTripResetButton->Refresh();
+        m_pTripResetButton->Update();
         m_pTripResetButton->Connect( wxEVT_COMMAND_BUTTON_CLICKED, 
-            wxCommandEventHandler(OdometerInstrument_Button::OnButtonClickTripReset), NULL, this );
+            wxCommandEventHandler(OdometerInstrument_Button::OnButtonClickTripReset), 
+            NULL, this );
     }
 
     if (m_cap_flag == 512) {
         wxBoxSizer* instrument = new wxBoxSizer(wxVERTICAL);
-        wxButton* m_pLegStartStopButton = new wxButton(this, m_id, _( m_title ), wxDefaultPosition, wxSize(b_width,b_height) );
+        wxButton* m_pLegStartStopButton = new wxButton(this, m_id, _( m_title ),
+            wxDefaultPosition, wxSize(b_width,b_height) );
         m_pLegStartStopButton->SetForegroundColour(wxColor(0,0,0));        
         m_pLegStartStopButton->SetFont(*g_pFontTitle);
 
         instrument->Add(m_pLegStartStopButton, 0, wxEXPAND | wxALL, 5 );
+
+        // Windows need button redrawn when size is changed
+        m_pLegStartStopButton->Refresh();
+        m_pLegStartStopButton->Update();
         m_pLegStartStopButton->Connect( wxEVT_COMMAND_BUTTON_CLICKED, 
-            wxCommandEventHandler(OdometerInstrument_Button::OnButtonClickStartStop), NULL, this );
+            wxCommandEventHandler(OdometerInstrument_Button::OnButtonClickStartStop), 
+            NULL, this );
     }
 
     if (m_cap_flag == 1024) {
         wxBoxSizer* instrument = new wxBoxSizer(wxVERTICAL);
-        wxButton* m_pLegResetButton = new wxButton(this, m_id, _( m_title ), wxDefaultPosition, wxSize(b_width,b_height) );
+        wxButton* m_pLegResetButton = new wxButton(this, m_id, _( m_title ), 
+            wxDefaultPosition, wxSize(b_width,b_height) );
         m_pLegResetButton->SetForegroundColour(wxColor(0,0,0));        
         m_pLegResetButton->SetFont(*g_pFontTitle);
 
         instrument->Add(m_pLegResetButton, 0, wxEXPAND | wxALL, 5 );
+
+        // Windows need button redrawn when size is changed
+        m_pLegResetButton->Refresh();
+        m_pLegResetButton->Update();
         m_pLegResetButton->Connect( wxEVT_COMMAND_BUTTON_CLICKED, 
-            wxCommandEventHandler(OdometerInstrument_Button::OnButtonClickLegReset), NULL, this );
+            wxCommandEventHandler(OdometerInstrument_Button::OnButtonClickLegReset), 
+            NULL, this );
     }
     return wxSize(wxMax(hint.x, DefaultWidth), b_height);
 }
@@ -164,6 +185,10 @@ void OdometerInstrument_Button::OnButtonClickLegReset( wxCommandEvent& event)  {
 
 
 void OdometerInstrument_Button::Draw(wxGCDC* dc) {
+
+//-----------------------
+//printf("\nDrawing button");
+//-----------------------
 
       wxColour cl;
 

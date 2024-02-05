@@ -101,6 +101,8 @@ There are a few bugs/inconveniences as the instrument window sizing when e.g. re
 
 Also, some of the parameters from the Settings menu does not update the instruments until OpenCPN is restarted, like the maximum speed setting in the speedometer.
 
+The display on high reolution screens may not be optimal but regular screens should work just fine.
+
 == Installing
 
 The GPS Odometer is installed using the package manager.
@@ -113,6 +115,6 @@ The name is 'GPS Odometer' as I started this before any GNSS units was available
 
 I did this plugin as I wanted a simple GPS/GNSS based Odometer. The Logbook has that option but I did not need all the other stuff in there and also wanted an on-screen solution.
 
-For 'dry-runs' I recommend gpsfeed+ in a square pattern (getting various speeds).
+For 'dry-runs' I recommend using the VDR plugin playing a suitable trip.
 
 Contact: You can PM me through OpenCPN in Cruisers Forum, look for LennartG or use Search → Advanced search → Search by user name.

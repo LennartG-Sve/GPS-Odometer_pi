@@ -1078,39 +1078,12 @@ void odometer_pi::Odometer() {
     strLegTime = LegTime.Format("%H:%M:%S");
 
 
-    // Calculate and set text offset, emulated adding spaces
-    int textOffset = g_iOdoPanelWidth;
-    if (textOffset < 150) textOffset = 150; 
-    textOffset = (textOffset - 150)/8;
- 
-    int setTextOffset = 0;
-    wxString addTextOffset = "";
-    wxString space = " ";
-    while (setTextOffset < textOffset) {
-        addTextOffset.Append(space);
-        setTextOffset++;
-    }
-
-    // Organize display setup
-    wxString m_dispTotDist;
-    m_dispTotDist = addTextOffset + m_TotDist + " " + DistUnit;
-    wxString m_dispTripDist;
-    m_dispTripDist = addTextOffset + m_TripDist + " " + DistUnit;
-    wxString m_dispDep;
-    m_dispDep = addTextOffset + strDep;
-    wxString m_dispArr;
-    m_dispArr = addTextOffset + strArr;
-    wxString m_dispLegDist;
-    m_dispLegDist = addTextOffset + m_LegDist + " " + DistUnit;
-    wxString m_dispLegTime;
-    m_dispLegTime = addTextOffset + strLegTime;
-
-    SendSentenceToAllInstruments(OCPN_DBP_STC_SUMLOG, ' ', m_dispTotDist );
-    SendSentenceToAllInstruments(OCPN_DBP_STC_TRIPLOG, ' ' , m_dispTripDist );
-    SendSentenceToAllInstruments(OCPN_DBP_STC_DEPART, ' ' , m_dispDep);
-    SendSentenceToAllInstruments(OCPN_DBP_STC_ARRIV, ' ' , m_dispArr );
-    SendSentenceToAllInstruments(OCPN_DBP_STC_LEGDIST, ' ' , m_dispLegDist );
-    SendSentenceToAllInstruments(OCPN_DBP_STC_LEGTIME, ' ' , m_dispLegTime );
+    SendSentenceToAllInstruments(OCPN_DBP_STC_DEPART, ' ' , strDep );
+    SendSentenceToAllInstruments(OCPN_DBP_STC_ARRIV, ' ' , strArr );
+    SendSentenceToAllInstruments(OCPN_DBP_STC_SUMLOG, TotDist , DistUnit );
+    SendSentenceToAllInstruments(OCPN_DBP_STC_TRIPLOG, TripDist , DistUnit );
+    SendSentenceToAllInstruments(OCPN_DBP_STC_LEGDIST, LegDist , DistUnit );
+    SendSentenceToAllInstruments(OCPN_DBP_STC_LEGTIME, ' ' , strLegTime );
 
     TripAutoReset(strArr, LocalTime);
 }
@@ -2430,6 +2403,8 @@ void OdometerWindow::OnSize(wxSizeEvent& event) {
 void OdometerWindow::OnContextMenu(wxContextMenuEvent& event) {
     wxMenu* contextMenu = new wxMenu();
 
+// TODO: It should not even be possible to dock!
+
     wxAuiPaneInfo &pane = m_pauimgr->GetPane(this);
     if (pane.IsOk() && pane.IsDocked()) {
         contextMenu->Append(ID_ODO_UNDOCK, _("Undock"));
@@ -2574,12 +2549,12 @@ void OdometerWindow::SetInstrumentList(wxArrayInt list) {
 
             case ID_DBP_I_SUMLOG:  // id = 1
                 instrument = new OdometerInstrument_Single( this, wxID_ANY,
-                    GetInstrumentCaption( id ), OCPN_DBP_STC_SUMLOG, _T("%5s") );
+                    GetInstrumentCaption( id ), OCPN_DBP_STC_SUMLOG, _T("%16.1f") );
                 break;
 
             case ID_DBP_I_TRIPLOG:  // id = 2
                 instrument = new OdometerInstrument_Single( this, wxID_ANY,
-                    GetInstrumentCaption( id ), OCPN_DBP_STC_TRIPLOG, _T("%10s") );
+                    GetInstrumentCaption( id ), OCPN_DBP_STC_TRIPLOG, _T("%16.1f") );
                 break;
 
             case ID_DBP_I_DEPART:  // id = 3
@@ -2604,12 +2579,12 @@ void OdometerWindow::SetInstrumentList(wxArrayInt list) {
 
             case ID_DBP_I_LEGDIST:  // id = 7
                     instrument = new OdometerInstrument_Single( this, wxID_ANY,
-                        GetInstrumentCaption( id ), OCPN_DBP_STC_LEGDIST,_T("%10s") );
+                        GetInstrumentCaption( id ), OCPN_DBP_STC_LEGDIST,_T("%13.2f") );
                 break;
 
             case ID_DBP_I_LEGTIME:  // id = 8
                     instrument = new OdometerInstrument_String( this, wxID_ANY,
-                        GetInstrumentCaption( id ), OCPN_DBP_STC_LEGTIME,_T("%8s") );
+                        GetInstrumentCaption( id ), OCPN_DBP_STC_LEGTIME,_T("%6s") );
                 break;
 
             case ID_DBP_B_STARTSTOP:  // id = 9
