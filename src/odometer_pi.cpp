@@ -1783,14 +1783,14 @@ bool odometer_pi::LoadConfig(void) {
             pConf->Read( _T("GenLogFile"), &b_genlogfile, 1);
             bool b_incltripstops;
             pConf->Read( _T("InclTripStops"), &b_incltripstops, 0);
-            bool b_tripstopminutes;
-            pConf->Read( _T("TripStopMinutes"), &b_tripstopminutes, 5);
-            bool b_selectlogtrips;
-            pConf->Read(_T("NumLogTrips"), &b_selectlogtrips, 0);
-            bool b_logtripformat;
-            pConf->Read(_T("LogFormat"), &b_logtripformat, 1);
-            bool b_logoutput;
-            pConf->Read(_T("LogOutput"), &b_logoutput, 1);
+            int i_tripstopminutes;
+            pConf->Read( _T("TripStopMinutes"), &i_tripstopminutes, 5);
+            int i_selectlogtrips;
+            pConf->Read(_T("NumLogTrips"), &i_selectlogtrips, 0);
+            int i_logtripformat;
+            pConf->Read(_T("LogFormat"), &i_logtripformat, 1);
+            int i_logoutput;
+            pConf->Read(_T("LogOutput"), &i_logoutput, 1);
 
             wxArrayInt ar;
             ar.Clear();
@@ -2647,6 +2647,17 @@ void OdometerWindow::SendSentenceToAllInstruments(int st, double value, wxString
 //
 //---------------------------------------------------------------------------------------------------------
 
+// TODO: Denna visar bara delar av menyn, ner till 'Välj resa' och checkboxen 'senaste resan'
+//       knapparna 'OK' och 'Avbryt' visas. Det går inte att klicka på resvalet.
+// Dessutom:
+//  18:36:01.995 WARNING config.cpp:259 Invalid value 5 for a boolean key "TripStopMinutes" in config file.
+//  18:36:01.995 WARNING config.cpp:259 Invalid value 2 for a boolean key "LogFormat" in config file.
+//  16:43:13.872 WARNING config.cpp:259 Invalid value 5 for a boolean key "TripStopMinutes" in config file.
+//  16:43:13.872 WARNING config.cpp:259 Invalid value 2 for a boolean key "LogFormat" in config file.
+
+// Dessa värden (boolean) får bara vara true eller false. Var sätts dom boolean? Variablerna är integers.
+
+ 
 void odometer_pi::ShowViewLogDialog(wxWindow* parent) {
     OdometerViewLogDialog *dialog = new OdometerViewLogDialog(parent, wxID_ANY);
 
