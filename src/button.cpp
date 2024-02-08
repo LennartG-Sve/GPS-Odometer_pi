@@ -112,6 +112,11 @@ wxSize OdometerInstrument_Button::GetSize(int orient, wxSize hint) {
     b_height = m_TitleHeight + 12;
     if (b_height < 29) b_height = 29;
 
+
+// TODO: wxFULL_REPAINT_ON_RESIZE is not enough, still not doing any repaint,
+//       should it be on wxWindow?
+
+
     if (m_cap_flag == 32) {
         wxBoxSizer* instrument = new wxBoxSizer(wxVERTICAL);
         wxButton* m_pTripResetButton = new wxButton(this, m_id, _( m_title ), 

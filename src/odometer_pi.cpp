@@ -2353,11 +2353,14 @@ void OdometerPreferencesDialog::UpdateOdometerButtonsState() {
 //
 //---------------------------------------------------------------------------------------------------------
 
+// TODO: Added wxFULL_REPAINT_ON_RESIZE here as id did not work on button, test and verify
+
 // wxWS_EX_VALIDATE_RECURSIVELY required to push events to parents
 OdometerWindow::OdometerWindow(wxWindow *pparent, wxWindowID id,
                                 wxAuiManager *auimgr, odometer_pi* plugin,
                                 int orient, OdometerWindowContainer* mycont) :
-        wxWindow(pparent, id, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE, _T("Odometer")) {
+        wxWindow(pparent, id, wxDefaultPosition, wxDefaultSize,
+            wxBORDER_NONE | wxFULL_REPAINT_ON_RESIZE, _T("Odometer")) {
 
     m_pauimgr = auimgr;
     m_plugin = plugin;
@@ -2695,15 +2698,20 @@ OdometerViewLogDialog::OdometerViewLogDialog(wxWindow *parent, wxWindowID id):
     itemStaticBoxLogViewSizer01->Add(itemFlexGridLogSizer01, 1, wxEXPAND | wxALL, 0);
     m_pRadioBoxPanel = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize,
         wxBORDER_NONE);
+    itemFlexGridLogSizer01->Add(m_pRadioBoxPanel, 0, wxEXPAND | wxALL, border_size);
 
     wxString Trips[] = { _("Last trip"),_("Last three trips"),_("All logged trips") };
     int Num_Trips = 3;
-    itemFlexGridLogSizer01->Add(m_pRadioBoxPanel, 0, wxEXPAND | wxALL, border_size);
-//    m_pRadioBoxTrips = new wxRadioBox(m_pRadioBoxPanel, wxID_ANY, _("Select trips"),
-//        wxDefaultPosition, wxDefaultSize, Num_Trips, Trips, wxRA_SPECIFY_COLS, 1 );
+
     m_pRadioBoxTrips = new wxRadioBox(m_pRadioBoxPanel, wxID_ANY, _("Select trips"),
         wxDefaultPosition, wxDefaultSize, Num_Trips, Trips, 1, wxRA_SPECIFY_COLS );
+
     m_pRadioBoxTrips->SetSelection (g_iSelectLogTrips);
+
+
+
+
+
 
     //   Select log view format
     wxFlexGridSizer *itemFlexGridLogSizer02 = new wxFlexGridSizer(2);
@@ -2714,8 +2722,6 @@ OdometerViewLogDialog::OdometerViewLogDialog(wxWindow *parent, wxWindowID id):
     wxString ViewFormat[] = { _("Formatted text"),_("CSV format"),_("HTML format") };
     int Num_ViewFormats = 3;
     itemFlexGridLogSizer02->Add(m_pRadioBoxPanel, 0, wxEXPAND | wxALL, border_size);
-//    m_pRadioBoxFormat = new wxRadioBox(m_pRadioBoxPanel, wxID_ANY, _("View formats"),
-//        wxDefaultPosition, wxDefaultSize, Num_ViewFormats, ViewFormat, wxRA_SPECIFY_COLS, 1 );
     m_pRadioBoxFormat = new wxRadioBox(m_pRadioBoxPanel, wxID_ANY, _("View formats"),
         wxDefaultPosition, wxDefaultSize, Num_ViewFormats, ViewFormat, 1, wxRA_SPECIFY_COLS);
     m_pRadioBoxFormat->SetSelection (g_iSelectLogFormat);
@@ -2729,8 +2735,6 @@ OdometerViewLogDialog::OdometerViewLogDialog(wxWindow *parent, wxWindowID id):
     wxString Output[] = { _("Save to disk"),_("External viewer") };
     int Num_Output = 2;
     itemFlexGridLogSizer03->Add(m_pRadioBoxPanel, 0, wxEXPAND | wxALL, border_size);
-//    m_pRadioBoxOutput = new wxRadioBox(m_pRadioBoxPanel, wxID_ANY, _("Output"),
-//        wxDefaultPosition, wxDefaultSize, Num_Output, Output, wxRA_SPECIFY_COLS, 1 );
     m_pRadioBoxOutput = new wxRadioBox(m_pRadioBoxPanel, wxID_ANY, _("Output"),
         wxDefaultPosition, wxDefaultSize, Num_Output, Output, 1, wxRA_SPECIFY_COLS);
     m_pRadioBoxOutput->SetSelection (g_iSelectLogOutput);
@@ -2751,9 +2755,9 @@ void OdometerViewLogDialog::OnCloseLogDialog(wxCloseEvent& event) {
 
 void OdometerViewLogDialog::SaveLogConfig() {
 
-    g_iSelectLogTrips = m_pRadioBoxTrips->GetSelection();
-    g_iSelectLogFormat = m_pRadioBoxFormat->GetSelection();
-    g_iSelectLogOutput = m_pRadioBoxOutput->GetSelection();
+//    g_iSelectLogTrips = m_pRadioBoxTrips->GetSelection();
+//    g_iSelectLogFormat = m_pRadioBoxFormat->GetSelection();
+//    g_iSelectLogOutput = m_pRadioBoxOutput->GetSelection();
 
 }
 
