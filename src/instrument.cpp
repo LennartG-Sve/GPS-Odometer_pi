@@ -97,6 +97,7 @@ void OdometerInstrument::OnEraseBackground(wxEraseEvent& WXUNUSED(evt)) {
 
 
 void OdometerInstrument::OnPaint(wxPaintEvent& WXUNUSED(event)) {
+
     wxAutoBufferedPaintDC pdc(this);
     if (!pdc.IsOk()) {
         wxLogMessage(_T("OdometerInstrument::OnPaint() fatal: wxAutoBufferedPaintDC.IsOk() false."));
@@ -337,6 +338,7 @@ OdometerInstrument_Checkbox::OdometerInstrument_Checkbox(wxWindow *pparent, wxWi
      wxString title, int autoReset) :OdometerInstrument(pparent, id, title, autoReset)
 {
 
+    m_id = id;
     m_title = title;
     wxClientDC dc(this);
     int width;
@@ -354,6 +356,7 @@ OdometerInstrument_Checkbox::OdometerInstrument_Checkbox(wxWindow *pparent, wxWi
     int c_height;
     c_width = width;
     c_height = m_TitleHeight;
+
 
     wxBoxSizer* instrument = new wxBoxSizer(wxVERTICAL);
     SetSizer(instrument);

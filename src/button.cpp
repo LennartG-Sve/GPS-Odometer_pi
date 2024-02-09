@@ -113,8 +113,8 @@ wxSize OdometerInstrument_Button::GetSize(int orient, wxSize hint) {
     if (b_height < 29) b_height = 29;
 
 
-// TODO: wxFULL_REPAINT_ON_RESIZE is not enough, still not doing any repaint,
-//       should it be on wxWindow?
+// TODO: wxFULL_REPAINT_ON_RESIZE and Refresh -> Update here is not enough, still 
+//       not doing any repaint, should it be on wxWindow, and where?
 
 
     if (m_cap_flag == 32) {
@@ -123,8 +123,6 @@ wxSize OdometerInstrument_Button::GetSize(int orient, wxSize hint) {
             wxDefaultPosition, wxSize(b_width,b_height), wxFULL_REPAINT_ON_RESIZE );
         m_pTripResetButton->SetForegroundColour(wxColor(0,0,0));
         m_pTripResetButton->SetFont(*g_pFontTitle);
-
-        // Windows need button repaint plus refresh and update on resize
         m_pTripResetButton->Refresh();
         m_pTripResetButton->Update();
 
@@ -140,10 +138,9 @@ wxSize OdometerInstrument_Button::GetSize(int orient, wxSize hint) {
             wxDefaultPosition, wxSize(b_width,b_height), wxFULL_REPAINT_ON_RESIZE );
         m_pLegStartStopButton->SetForegroundColour(wxColor(0,0,0));        
         m_pLegStartStopButton->SetFont(*g_pFontTitle);
-
-        // Windows need button repaint plus refresh and update on resize
         m_pLegStartStopButton->Refresh();
         m_pLegStartStopButton->Update();
+
         instrument->Add(m_pLegStartStopButton, 0, wxEXPAND | wxALL, 5 );
         m_pLegStartStopButton->Connect( wxEVT_COMMAND_BUTTON_CLICKED, 
             wxCommandEventHandler(OdometerInstrument_Button::OnButtonClickStartStop), 
@@ -156,10 +153,9 @@ wxSize OdometerInstrument_Button::GetSize(int orient, wxSize hint) {
             wxDefaultPosition, wxSize(b_width,b_height), wxFULL_REPAINT_ON_RESIZE );
         m_pLegResetButton->SetForegroundColour(wxColor(0,0,0));        
         m_pLegResetButton->SetFont(*g_pFontTitle);
-
-        // Windows need button repaint plus refresh and update on resize
         m_pLegResetButton->Refresh();
         m_pLegResetButton->Update();
+
         instrument->Add(m_pLegResetButton, 0, wxEXPAND | wxALL, 5 );
         m_pLegResetButton->Connect( wxEVT_COMMAND_BUTTON_CLICKED, 
             wxCommandEventHandler(OdometerInstrument_Button::OnButtonClickLegReset), 
@@ -188,10 +184,6 @@ void OdometerInstrument_Button::OnButtonClickLegReset( wxCommandEvent& event)  {
 
 
 void OdometerInstrument_Button::Draw(wxGCDC* dc) {
-
-//-----------------------
-//printf("\nDrawing button");
-//-----------------------
 
       wxColour cl;
 
