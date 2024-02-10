@@ -2651,31 +2651,23 @@ void OdometerWindow::SendSentenceToAllInstruments(int st, double value, wxString
 //
 //---------------------------------------------------------------------------------------------------------
 
-// TODO: Denna visar bara delar av menyn, ner till 'Välj resa' och checkboxen 'senaste resan'
-//       knapparna 'OK' och 'Avbryt' visas. Det går inte att klicka på resvalet.
- 
-void odometer_pi::ShowViewLogDialog(wxWindow* parent) {
-    OdometerViewLogDialog *dialog = new OdometerViewLogDialog(parent, wxID_ANY);
-
-    // Apply clicked, save current alternatives and execute view options
-    if (dialog->ShowModal() == wxID_OK) {
-        dialog->SaveLogConfig();
-        GenerateLogOutput();
-    }
-
-    // Invoke the dialog destructor
-    dialog->Destroy();
-}
+// TODO: Det går inte att klicka Knapparna.
 
 
-OdometerViewLogDialog::OdometerViewLogDialog(wxWindow *parent, wxWindowID id):
-    wxDialog(parent, id, _("Log View Settings"), wxDefaultPosition, wxDefaultSize,     wxDEFAULT_DIALOG_STYLE) {
-    Connect(wxEVT_CLOSE_WINDOW, wxCloseEventHandler(OdometerViewLogDialog::OnCloseLogDialog), NULL, this);
+
+OdometerViewLogDialog::OdometerViewLogDialog(
+    wxWindow *parent, wxWindowID id):
+      wxDialog(parent, id, _("Log View Settings"), wxDefaultPosition, 
+        wxDefaultSize, wxDEFAULT_DIALOG_STYLE) {
+
+      Connect(wxEVT_CLOSE_WINDOW, 
+          wxCloseEventHandler(OdometerViewLogDialog::OnCloseLogDialog), NULL, this);
 
     int border_size = 2;
 
     wxBoxSizer* itemBoxSizerMainLogViewPanel = new wxBoxSizer(wxVERTICAL);
     SetSizer(itemBoxSizerMainLogViewPanel);
+
     wxFlexGridSizer *itemFlexGridSizer = new wxFlexGridSizer(1);
     m_pLogPanelPreferences = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize,
         wxBORDER_NONE);
@@ -2686,78 +2678,59 @@ OdometerViewLogDialog::OdometerViewLogDialog(wxWindow *parent, wxWindowID id):
     wxBoxSizer* itemBoxSizerMainFrame = new wxBoxSizer(wxVERTICAL);
     m_pLogPanelPreferences->SetSizer(itemBoxSizerMainFrame);
     itemBoxSizerMainFrame->AddSpacer( 5 );
-    wxStaticBox* itemStaticBoxViewOpts = new wxStaticBox(m_pLogPanelPreferences, wxID_ANY,
-       _("Display options"), wxDefaultPosition, wxDefaultSize);
-    wxStaticBoxSizer* itemStaticBoxLogViewSizer01 = new wxStaticBoxSizer(itemStaticBoxViewOpts, wxHORIZONTAL);
 
-    itemBoxSizerMainFrame->Add(itemStaticBoxLogViewSizer01, 1, border_size);
-    itemBoxSizerMainFrame->AddSpacer( 10 );
+    wxStaticBox* itemStaticBoxViewOpts = new wxStaticBox(m_pLogPanelPreferences, wxID_ANY,
+       _("Display options"));
+    wxStaticBoxSizer* itemStaticBoxLogViewSizer01 = new wxStaticBoxSizer(
+        itemStaticBoxViewOpts, wxHORIZONTAL);
+    itemBoxSizerMainFrame->Add(itemStaticBoxLogViewSizer01, 1, wxEXPAND | wxALL, border_size);
+
 
     //   Select log information
-    wxFlexGridSizer *itemFlexGridLogSizer01 = new wxFlexGridSizer(2);
-    itemFlexGridLogSizer01->AddGrowableCol(0);
-    itemStaticBoxLogViewSizer01->Add(itemFlexGridLogSizer01, 1, wxEXPAND | wxALL, 0);
-    m_pRadioBoxPanel = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize,
-        wxBORDER_NONE);
-    itemFlexGridLogSizer01->Add(m_pRadioBoxPanel, 0, wxEXPAND | wxALL, border_size);
-
-
-//    int Num_Trips = 3;
-//    wxString Trips[] = { _("Last trip"),_("Last three trips"),_("All logged trips") };
-//    m_pRadioBoxTrips = new wxRadioBox(m_pRadioBoxPanel, wxID_ANY, _("Select trips"),
-//        wxDefaultPosition, wxDefaultSize, Num_Trips, *Trips, 1, wxRA_SPECIFY_COLS );
-
     wxArrayString *Trips = new wxArrayString;
         Trips->Add("Last trip");
         Trips->Add("Last three trips");
         Trips->Add("All logged trips");
 
-    m_pRadioBoxTrips = new wxRadioBox(m_pRadioBoxPanel, wxID_ANY, _("Select trips"),
+    wxFlexGridSizer *itemFlexGridLogSizer01 = new wxFlexGridSizer(2);
+    itemFlexGridLogSizer01->AddGrowableCol(0);
+    itemStaticBoxLogViewSizer01->Add(itemFlexGridLogSizer01, 1, wxEXPAND | wxALL, 0);
+
+    m_pRadioBoxTrips = new wxRadioBox(m_pLogPanelPreferences, wxID_ANY, _("Select trips"),
         wxDefaultPosition, wxDefaultSize, *Trips, 1, wxRA_SPECIFY_COLS );
     m_pRadioBoxTrips->SetSelection (g_iSelectLogTrips);
+    itemFlexGridLogSizer01->Add(m_pRadioBoxTrips, 0, wxEXPAND | wxALL, border_size);
+
 
     //   Select log view format
-    wxFlexGridSizer *itemFlexGridLogSizer02 = new wxFlexGridSizer(2);
-    itemFlexGridLogSizer02->AddGrowableCol(0);
-    itemStaticBoxLogViewSizer01->Add(itemFlexGridLogSizer02, 1, wxEXPAND | wxALL, 0);
-    m_pRadioBoxPanel = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize,
-        wxBORDER_NONE);
-    itemFlexGridLogSizer02->Add(m_pRadioBoxPanel, 0, wxEXPAND | wxALL, border_size);
-
-//    int Num_ViewFormats = 3;
-//    wxString ViewFormat[] = { _("Formatted text"),_("CSV format"),_("HTML format") };
-//    m_pRadioBoxFormat = new wxRadioBox(m_pRadioBoxPanel, wxID_ANY, _("View formats"),
-//        wxDefaultPosition, wxDefaultSize, Num_ViewFormats, ViewFormat, 1, wxRA_SPECIFY_COLS);
-
     wxArrayString *ViewFormat = new wxArrayString;
         ViewFormat->Add("Formatted text");
         ViewFormat->Add("CSV format");
         ViewFormat->Add("HTML format");
 
-    m_pRadioBoxFormat = new wxRadioBox(m_pRadioBoxPanel, wxID_ANY, _("View formats"),
+    wxFlexGridSizer *itemFlexGridLogSizer02 = new wxFlexGridSizer(2);
+    itemFlexGridLogSizer02->AddGrowableCol(0);
+    itemStaticBoxLogViewSizer01->Add(itemFlexGridLogSizer02, 1, wxEXPAND | wxALL, 0);
+
+    m_pRadioBoxFormat = new wxRadioBox(m_pLogPanelPreferences, wxID_ANY, _("View formats"),
         wxDefaultPosition, wxDefaultSize, *ViewFormat, 1, wxRA_SPECIFY_COLS);
     m_pRadioBoxFormat->SetSelection (g_iSelectLogFormat);
+    itemFlexGridLogSizer02->Add(m_pRadioBoxFormat, 0, wxEXPAND | wxALL, border_size);
+
 
     //   Select log output options
-    wxFlexGridSizer *itemFlexGridLogSizer03 = new wxFlexGridSizer(2);
-    itemFlexGridLogSizer03->AddGrowableCol(0);
-    itemStaticBoxLogViewSizer01->Add(itemFlexGridLogSizer03, 1, wxEXPAND | wxALL, 0);
-    m_pRadioBoxPanel = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize,
-        wxBORDER_NONE);
-    itemFlexGridLogSizer03->Add(m_pRadioBoxPanel, 0, wxEXPAND | wxALL, border_size);
-
-//    int Num_Output = 2;
-//    wxString Output[] = { _("Save to disk"),_("External viewer") };
-//    m_pRadioBoxOutput = new wxRadioBox(m_pRadioBoxPanel, wxID_ANY, _("Output"),
-//        wxDefaultPosition, wxDefaultSize, Num_Output, Output, 1, wxRA_SPECIFY_COLS);
-
     wxArrayString *Outputs = new wxArrayString;
         Outputs->Add("Save to disk");
         Outputs->Add("External viewer");
 
-    m_pRadioBoxOutput = new wxRadioBox(m_pRadioBoxPanel, wxID_ANY, _("Output"),
+    wxFlexGridSizer *itemFlexGridLogSizer03 = new wxFlexGridSizer(2);
+    itemFlexGridLogSizer03->AddGrowableCol(0);
+    itemStaticBoxLogViewSizer01->Add(itemFlexGridLogSizer03, 1, wxEXPAND | wxALL, 0);
+
+    m_pRadioBoxOutput = new wxRadioBox(m_pLogPanelPreferences, wxID_ANY, _("Output"),
         wxDefaultPosition, wxDefaultSize, *Outputs, 1, wxRA_SPECIFY_COLS);
     m_pRadioBoxOutput->SetSelection (g_iSelectLogOutput);
+    itemFlexGridLogSizer03->Add(m_pRadioBoxOutput, 0, wxEXPAND | wxALL, border_size);
 
 	wxStdDialogButtonSizer* ViewDialogButtonSizer = 
         CreateStdDialogButtonSizer(wxOK | wxCANCEL);
@@ -2779,6 +2752,24 @@ void OdometerViewLogDialog::SaveLogConfig() {
     g_iSelectLogOutput = m_pRadioBoxOutput->GetSelection();
 
 }
+
+ 
+void odometer_pi::ShowViewLogDialog(wxWindow* parent) {
+    OdometerViewLogDialog *dialog = new OdometerViewLogDialog(parent, wxID_ANY);
+
+    // Apply clicked, save current alternatives and execute view options
+    if (dialog->ShowModal() == wxID_OK) {
+        dialog->SaveLogConfig();
+
+        GenerateLogOutput();
+    }
+
+// TODO: Odometer Settings Dialog has tons of additional stuff, required here?
+
+    // Invoke the dialog destructor
+    dialog->Destroy();
+}
+
 
 //  --------------------------------------------------------------------------------------
 //  Select output format
