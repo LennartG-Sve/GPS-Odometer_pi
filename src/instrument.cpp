@@ -103,8 +103,10 @@ void OdometerInstrument::OnPaint(wxPaintEvent& WXUNUSED(event)) {
         wxLogMessage(_T("OdometerInstrument::OnPaint() fatal: wxAutoBufferedPaintDC.IsOk() false."));
         return;
     }
+    // GetClientSize() reports error when window is resized to cover instruments
+//    wxSize size = GetClientSize(); 
+    wxSize size = GetMinSize(); 
 
-    wxSize size = GetClientSize();
     if (size.x == 0 || size.y == 0) {
         wxLogMessage(_T("OdometerInstrument::OnPaint() fatal: Zero size DC."));
         return;

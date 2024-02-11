@@ -2965,7 +2965,7 @@ void odometer_pi::GenerateLogOutput() {
 
     if (g_iSelectLogFormat == 1)  {
 
-        LogFile = docTitle;
+//        LogFile = docTitle;
 
         // Set up contents in table format, default to 3 columns
         LogFile = LogFile + "\n" + _("Departure") + ",";
@@ -3011,9 +3011,9 @@ void odometer_pi::GenerateLogOutput() {
 
                 // Remove comma after restart distance in sixth column
                 int endCommaPos = 0;
-                endCommaPos = strLog.find(",", tripPos);
+                endCommaPos = strLog.find(",", tripPos);  // -1 if not found
                 EOLPos = strLog.find("\n", tripPos);
-                if (EOLPos > endCommaPos)  strLog.Remove(endCommaPos, 2);
+                if ((endCommaPos > 0) && (EOLPos > endCommaPos)) strLog.Remove(endCommaPos, 2);
 
                 prevRestartPos = restartPos;
                 restartPos = strLog.find("R:", prevRestartPos + 10);
