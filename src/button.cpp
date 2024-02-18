@@ -63,7 +63,7 @@ extern int g_iShowLogDialog;
 
 // Executed at start and when closing setup
 OdometerInstrument_Button::OdometerInstrument_Button(wxWindow *pparent, wxWindowID id,
-    wxString title, int cap_flag ) : OdometerInstrument(pparent, id, title, cap_flag )
+    wxString title, int cap_flag) : OdometerInstrument(pparent, id, title, cap_flag )
 {
 
     m_id = id;
@@ -112,21 +112,25 @@ wxSize OdometerInstrument_Button::GetSize(int orient, wxSize hint) {
     b_height = m_TitleHeight + 12;
     if (b_height < 29) b_height = 29;
 
-
-// TODO: wxFULL_REPAINT_ON_RESIZE and Refresh -> Update here is not enough, still 
-//       not doing any repaint, should it be on wxWindow, and where?
-
-
     if (m_cap_flag == 32) {
+
+//------------------------
+printf("\nGenerate trip reset button\n");
+//------------------------
+
         wxBoxSizer* instrument = new wxBoxSizer(wxVERTICAL);
+
+        instrument->Clear(true);  // Required to regenerate wxButton (for Windows)
+
         wxButton* m_pTripResetButton = new wxButton(this, m_id, _( m_title ), 
-            wxDefaultPosition, wxSize(b_width,b_height), wxFULL_REPAINT_ON_RESIZE );
+            wxDefaultPosition, wxSize(b_width,b_height), wxFULL_REPAINT_ON_RESIZE);
+
         m_pTripResetButton->SetForegroundColour(wxColor(0,0,0));
         m_pTripResetButton->SetFont(*g_pFontTitle);
         m_pTripResetButton->Refresh();
         m_pTripResetButton->Update();
 
-        instrument->Add(m_pTripResetButton, 0, wxEXPAND | wxALL, 5 );
+        instrument->Add(m_pTripResetButton, 0, wxEXPAND | wxALL | wxFULL_REPAINT_ON_RESIZE, 5 );
         m_pTripResetButton->Connect( wxEVT_COMMAND_BUTTON_CLICKED, 
             wxCommandEventHandler(OdometerInstrument_Button::OnButtonClickTripReset), 
             NULL, this );

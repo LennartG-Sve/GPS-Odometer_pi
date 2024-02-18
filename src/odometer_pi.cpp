@@ -103,7 +103,7 @@ int         g_iAutoResetTrip = 0;
 int         g_iAutoResetTripTime = 6;
 wxString    g_sDataDir;
 wxSize      g_iOdoInstrSize;
-int         g_iOdoPanelWidth;
+//int         g_iOdoPanelWidth;
 
 /*
 TripMode = 0;    // Trip reset, speed below OnRoute
@@ -514,7 +514,7 @@ void odometer_pi::updateSKItem(wxJSONValue &item, wxString &talker, wxString &sf
                 if (value.IsInt()) {
                     SKSatsUsed = (value.AsInt());
                       // at least 4 satellites required
-                    if (SatsRequired <= 4) SatsRequired == 4;
+                    if (SatsRequired <= 4) SatsRequired = 4;
                 }
             }
 
@@ -531,8 +531,8 @@ void odometer_pi::updateSKItem(wxJSONValue &item, wxString &talker, wxString &sf
             else if (update_path == _T("navigation.gnss.horizontalDilution")){
                 SKHDOPlevel = GetJsonDouble(value);
                 int HDOPdefine = atoi(m_HDOPdefine);
-                if (HDOPdefine <= 1) HDOPdefine == 1;  // HDOP limit between 1 and 10
-                if (HDOPdefine >= 10) HDOPdefine == 10;
+                if (HDOPdefine <= 1) HDOPdefine = 1;  // HDOP limit between 1 and 10
+                if (HDOPdefine >= 10) HDOPdefine = 10;
               }
 
             GNSSok = 0;
@@ -565,15 +565,15 @@ void odometer_pi::SetNMEASentence(wxString &sentence) {
                     SatsUsed = m_NMEA0183.Gga.NumberOfSatellitesInUse;
                     SatsRequired = atoi(m_SatsRequired);
                     // at least 4 satellites required
-                    if (SatsRequired <= 4) SatsRequired == 4;
+                    if (SatsRequired <= 4) SatsRequired = 4;
 
                     HDOPlevel = m_NMEA0183.Gga.HorizontalDilutionOfPrecision;
                     HDOPdefine = atoi(m_HDOPdefine);
-                    if (HDOPdefine <= 1) HDOPdefine == 1;  // HDOP limit between 1 and 10
-                    if (HDOPdefine >= 10) HDOPdefine == 10;
+                    if (HDOPdefine <= 1) HDOPdefine = 1;  // HDOP limit between 1 and 10
+                    if (HDOPdefine >= 10) HDOPdefine = 10;
 
                     // Ensure HDOP level is valid, will be 999 if field is empty
-                    if ((HDOPlevel == 0.0) || (HDOPlevel >= 100)) HDOPlevel == 100;
+                    if ((HDOPlevel == 0.0) || (HDOPlevel >= 100)) HDOPlevel = 100;
 
                 }
             }
@@ -654,11 +654,11 @@ void odometer_pi::HandleN2K_129029(ObservedEvt ev) {
       if (g_iOdoProtocol == 2) {    // socketCAN (NMEA 2000) selected
 
           int HDOPdefine = atoi(m_HDOPdefine);
-          if (HDOPdefine <= 1) HDOPdefine == 1;  // HDOP limit between 1 and 10
-          if (HDOPdefine >= 10) HDOPdefine == 10;
+          if (HDOPdefine <= 1) HDOPdefine = 1;  // HDOP limit between 1 and 10
+          if (HDOPdefine >= 10) HDOPdefine = 10;
 
           SatsRequired = atoi(m_SatsRequired);
-          if (SatsRequired <= 4) SatsRequired == 4;  // at least 4 satellites required
+          if (SatsRequired <= 4) SatsRequired = 4;  // at least 4 satellites required
 
           switch (GNSSmethod) {
               case 0: talker_N2k = "noGNSS"; break; 
@@ -2353,7 +2353,7 @@ void OdometerPreferencesDialog::UpdateOdometerButtonsState() {
 //
 //---------------------------------------------------------------------------------------------------------
 
-// TODO: Added wxFULL_REPAINT_ON_RESIZE here as id did not work on button, test and verify
+// TODO: Added wxFULL_REPAINT_ON_RESIZE here, test and verify. Not sure it works
 
 // wxWS_EX_VALIDATE_RECURSIVELY required to push events to parents
 OdometerWindow::OdometerWindow(wxWindow *pparent, wxWindowID id,
@@ -2397,13 +2397,13 @@ void OdometerWindow::OnSize(wxSizeEvent& event) {
         inst->SetMinSize (
             inst->GetSize(itemBoxSizer->GetOrientation(), GetClientSize()));
     }
-    Layout();
+//    Layout();
     Refresh();
 //    Update();  // Causes segfault
 
     // Need width for texts 
-    wxSize size = GetClientSize();
-    g_iOdoPanelWidth = size.x;
+//    wxSize size = GetClientSize();
+//    g_iOdoPanelWidth = size.x;
 }
 
 void OdometerWindow::OnContextMenu(wxContextMenuEvent& event) {
