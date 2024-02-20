@@ -103,7 +103,6 @@ int         g_iAutoResetTrip = 0;
 int         g_iAutoResetTripTime = 6;
 wxString    g_sDataDir;
 wxSize      g_iOdoInstrSize;
-//int         g_iOdoPanelWidth;
 
 /*
 TripMode = 0;    // Trip reset, speed below OnRoute
@@ -905,6 +904,7 @@ void odometer_pi::Odometer() {
             m_dataTripDist = m_DataFileTextReader.GetLine(0);
             m_dataTripDist.ToDouble(&dataTripDist);   // From data save
             m_confTripDist.ToDouble(&TripDist);       // From conf file
+
             // Use TripDist from conf file if higher (user updated value)
             if (dataTripDist >= TripDist) {
                 TripDist = dataTripDist;
@@ -1004,6 +1004,7 @@ void odometer_pi::Odometer() {
     // Total distance (sumlog)
     oldTotDist = TotDist;
     TotDist = (TotDist + StepDist);
+
     // First decimal changed? Then save the current value
     if (trunc(TotDist * 10) > trunc(oldTotDist * 10)) {
         saveTripDist = 1;
@@ -1024,6 +1025,7 @@ void odometer_pi::Odometer() {
     // Trip distance
     oldTripDist = TripDist;
     TripDist = (TripDist + StepDist);
+
     // First decimal changed? Then save the current value
     if (trunc(TripDist * 10) > trunc(oldTripDist * 10)) {
         saveTripDist = 1;
@@ -1474,7 +1476,7 @@ void odometer_pi::ShowPreferencesDialog(wxWindow* parent) {
         if (GenerateLogFile == true) g_iGenerateLogFile = 1;
 
 
-        // Need to ensure sizes gets correct based on activated checkboxes 
+        // Ensure sizes gets correct based on activated checkboxes 
         // Values scaled to follow default width 150 px
         int defheight = 120;      // Default instruments, not selectable
         int speedoheight = 167;   // Height of speedometer
@@ -2256,7 +2258,6 @@ OdometerPreferencesDialog::OdometerPreferencesDialog(
     CentreOnScreen();
 }
 
-// Is this ever used?
 void OdometerPreferencesDialog::OnCloseDialog(wxCloseEvent& event) {
     UpdateOdometerButtonsState();
     SaveOdometerConfig();
@@ -2285,7 +2286,6 @@ void OdometerPreferencesDialog::SaveOdometerConfig(void) {
 
     cont->m_aInstrumentList.Clear();
 
-    // Modified to read checkboxes and using fixed instrument order
     // Show speedometer, always first, instrument 0
     if (m_pCheckBoxShowSpeed->IsChecked()) { 
         size_t speedinstr = 0;
@@ -2353,8 +2353,6 @@ void OdometerPreferencesDialog::UpdateOdometerButtonsState() {
 //
 //---------------------------------------------------------------------------------------------------------
 
-// TODO: Added wxFULL_REPAINT_ON_RESIZE here, test and verify. Not sure it works
-
 // wxWS_EX_VALIDATE_RECURSIVELY required to push events to parents
 OdometerWindow::OdometerWindow(wxWindow *pparent, wxWindowID id,
                                 wxAuiManager *auimgr, odometer_pi* plugin,
@@ -2397,13 +2395,7 @@ void OdometerWindow::OnSize(wxSizeEvent& event) {
         inst->SetMinSize (
             inst->GetSize(itemBoxSizer->GetOrientation(), GetClientSize()));
     }
-//    Layout();
     Refresh();
-//    Update();  // Causes segfault
-
-    // Need width for texts 
-//    wxSize size = GetClientSize();
-//    g_iOdoPanelWidth = size.x;
 }
 
 void OdometerWindow::OnContextMenu(wxContextMenuEvent& event) {
@@ -2651,10 +2643,6 @@ void OdometerWindow::SendSentenceToAllInstruments(int st, double value, wxString
 //
 //---------------------------------------------------------------------------------------------------------
 
-// TODO: Det går inte att klicka Knapparna.
-
-
-
 OdometerViewLogDialog::OdometerViewLogDialog(
     wxWindow *parent, wxWindowID id):
       wxDialog(parent, id, _("Log View Settings"), wxDefaultPosition, 
@@ -2738,7 +2726,7 @@ OdometerViewLogDialog::OdometerViewLogDialog(
 }
 
 
-// Executed when clicking upper right corner 'X', not when clicking 'CANCEL' or 'OK', WHY!!!
+// Executed when clicking upper right corner 'X', not when clicking 'CANCEL' nor 'OK'
 void OdometerViewLogDialog::OnCloseLogDialog(wxCloseEvent& event) {
 
     event.Skip();
@@ -2763,9 +2751,6 @@ void odometer_pi::ShowViewLogDialog(wxWindow* parent) {
 
         GenerateLogOutput();
     }
-
-// TODO: Odometer Settings Dialog has tons of additional stuff, required here?
-
     // Invoke the dialog destructor
     dialog->Destroy();
 }
