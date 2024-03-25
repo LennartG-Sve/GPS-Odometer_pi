@@ -5,341 +5,341 @@ msgstr ""
 "POT-Creation-Date: 2023-12-14 18:04+0100\n"
 "PO-Revision-Date: 2024-03-24 15:26\n"
 "Last-Translator: \n"
-"Language-Team: Norwegian Bokmal\n"
-"Language: nb_NO\n"
+"Language-Team: Spanish (Modern)\n"
+"Language: es_EM\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Crowdin-Project: opencpn\n"
 "X-Crowdin-Project-ID: 49843\n"
-"X-Crowdin-Language: nb\n"
+"X-Crowdin-Language: es-EM\n"
 "X-Crowdin-File: /plugins/GPS-Odometer_pi/po/gpsodometer_pi.pot\n"
 "X-Crowdin-File-ID: 352\n"
 
 #: src/odometer_pi.cpp:150
 msgid "Speedometer"
-msgstr "Hastighetsmåler"
+msgstr "crwdns20428:0crwdne20428:0"
 
 #: src/odometer_pi.cpp:152
 msgid "Sum Log Distance"
-msgstr "Sum Log Distanse"
+msgstr "crwdns20430:0crwdne20430:0"
 
 #: src/odometer_pi.cpp:154
 msgid "Trip Log Distance"
-msgstr "Trip Log Distanse"
+msgstr "crwdns20432:0crwdne20432:0"
 
 #: src/odometer_pi.cpp:156
 msgid "Departure & Arrival"
-msgstr "Avreise og ankomst"
+msgstr "crwdns20436:0crwdne20436:0"
 
 #: src/odometer_pi.cpp:160
 msgid "Reset Trip"
-msgstr "Nullstill tripteller"
+msgstr "crwdns20434:0crwdne20434:0"
 
 #: src/odometer_pi.cpp:162
 msgid "Autoreset Trip"
-msgstr "Autoreset trip"
+msgstr "crwdns28846:0crwdne28846:0"
 
 #: src/odometer_pi.cpp:164
 msgid "Leg Distance & Time"
-msgstr "Legg distanse og tid"
+msgstr "crwdns20438:0crwdne20438:0"
 
 #: src/odometer_pi.cpp:168
 msgid "Start/Stop Leg"
-msgstr "Start/Stopp legg"
+msgstr "crwdns20504:0crwdne20504:0"
 
 #: src/odometer_pi.cpp:170
 msgid "Reset Leg"
-msgstr "Reset Leg"
+msgstr "crwdns20440:0crwdne20440:0"
 
 #: src/odometer_pi.cpp:884
 msgid "On Route"
-msgstr "Underveis"
+msgstr "crwdns20444:0crwdne20444:0"
 
 #: src/odometer_pi.cpp:1759
 msgid "GPS Odometer"
-msgstr "GPS-avstandsmåler"
+msgstr "crwdns20442:0crwdne20442:0"
 
 #: src/odometer_pi.cpp:1771
 msgid "Odometer"
-msgstr "Avstandsmåler"
+msgstr "crwdns20446:0crwdne20446:0"
 
 #: src/odometer_pi.cpp:1967
 msgid "Odometer Settings"
-msgstr "Innstillinger for avstandsmåler"
+msgstr "crwdns20448:0crwdne20448:0"
 
 #: src/odometer_pi.cpp:1988 src/odometer_pi.cpp:2950
 msgid "Display options"
-msgstr "Visningsalternativer"
+msgstr "crwdns20450:0crwdne20450:0"
 
 #: src/odometer_pi.cpp:1995
 msgid "Show this odometer"
-msgstr "Vis dette odometeret"
+msgstr "crwdns20452:0crwdne20452:0"
 
 #: src/odometer_pi.cpp:1999
 msgid "Show Speedometer instrument"
-msgstr "Vis hastighetsmåler"
+msgstr "crwdns20454:0crwdne20454:0"
 
 #: src/odometer_pi.cpp:2003
 msgid "Show Dep. and Arr. times"
-msgstr "Vis tidspunkt for avgang og ankomst"
+msgstr "crwdns20456:0crwdne20456:0"
 
 #: src/odometer_pi.cpp:2007
 msgid "Show/Reset Leg Distance and time"
-msgstr "Vis Nullstill tripteller"
+msgstr "crwdns20458:0crwdne20458:0"
 
 #: src/odometer_pi.cpp:2011
 msgid "Generate log file"
-msgstr "Generer loggfil"
+msgstr "crwdns28848:0crwdne28848:0"
 
 #: src/odometer_pi.cpp:2023
 msgid "Caption:"
-msgstr "Vindustittel:"
+msgstr "crwdns20460:0crwdne20460:0"
 
 #: src/odometer_pi.cpp:2030
 msgid "Fonts"
-msgstr "Fonter"
+msgstr "crwdns20462:0crwdne20462:0"
 
 #: src/odometer_pi.cpp:2038
 msgid "Title:"
-msgstr "Tittel:"
+msgstr "crwdns20464:0crwdne20464:0"
 
 #: src/odometer_pi.cpp:2045
 msgid "Data:"
-msgstr "Data:"
+msgstr "crwdns20466:0crwdne20466:0"
 
 #: src/odometer_pi.cpp:2052
 msgid "Label:"
-msgstr "Etikett:"
+msgstr "crwdns20468:0crwdne20468:0"
 
 #: src/odometer_pi.cpp:2059
 msgid "Small:"
-msgstr "Liten:"
+msgstr "crwdns20470:0crwdne20470:0"
 
 #: src/odometer_pi.cpp:2067
 msgid "Units, Ranges, Formats"
-msgstr "Enheter, Avstander, Formater"
+msgstr "crwdns20472:0crwdne20472:0"
 
 #: src/odometer_pi.cpp:2075
 msgid "Protocol:"
-msgstr "Protokoll:"
+msgstr "crwdns21135:0crwdne21135:0"
 
 #: src/odometer_pi.cpp:2078
 msgid "NMEA 0183"
-msgstr "NMEA 0183"
+msgstr "crwdns21137:0crwdne21137:0"
 
 #: src/odometer_pi.cpp:2078
 msgid "Signal K"
-msgstr "Signal K"
+msgstr "crwdns21139:0crwdne21139:0"
 
 #: src/odometer_pi.cpp:2078
 msgid "NMEA 2000 (socketCAN)"
-msgstr "NMEA 2000 (socketCAN)"
+msgstr "crwdns28850:0crwdne28850:0"
 
 #: src/odometer_pi.cpp:2085
 msgid "Speedometer max value:"
-msgstr "Speedometer maks verdi:"
+msgstr "crwdns20474:0crwdne20474:0"
 
 #: src/odometer_pi.cpp:2092
 msgid "Minimum On-Route speed:"
-msgstr "Min. hastighet for å starte tripteller:"
+msgstr "crwdns20476:0crwdne20476:0"
 
 #: src/odometer_pi.cpp:2099
 msgid "Local Time Offset From UTC:"
-msgstr "Tidssone"
+msgstr "crwdns20478:0crwdne20478:0"
 
 #: src/odometer_pi.cpp:2119
 msgid "Boat speed units:"
-msgstr "Båtens fartenheter:"
+msgstr "crwdns20480:0crwdne20480:0"
 
 #: src/odometer_pi.cpp:2122
 msgid "Kts"
-msgstr "Knop"
+msgstr "crwdns20482:0crwdne20482:0"
 
 #: src/odometer_pi.cpp:2122
 msgid "mph"
-msgstr "mph"
+msgstr "crwdns20488:0crwdne20488:0"
 
 #: src/odometer_pi.cpp:2122
 msgid "km/h"
-msgstr "km/t"
+msgstr "crwdns20484:0crwdne20484:0"
 
 #: src/odometer_pi.cpp:2122
 msgid "m/s"
-msgstr "m/s"
+msgstr "crwdns20486:0crwdne20486:0"
 
 #: src/odometer_pi.cpp:2129
 msgid "Distance units:"
-msgstr "Distanseenheter:"
+msgstr "crwdns20490:0crwdne20490:0"
 
 #: src/odometer_pi.cpp:2132
 msgid "Nautical miles"
-msgstr "Nautiske mil"
+msgstr "crwdns20494:0crwdne20494:0"
 
 #: src/odometer_pi.cpp:2132
 msgid "Statute miles"
-msgstr "Miles"
+msgstr "crwdns20496:0crwdne20496:0"
 
 #: src/odometer_pi.cpp:2132
 msgid "Kilometers"
-msgstr "Kilometer"
+msgstr "crwdns20492:0crwdne20492:0"
 
 #: src/odometer_pi.cpp:2140
 msgid "Automatic trip reset, time since last arrival:"
-msgstr "Automatisk tilbakestilling av trip, tid etter ankomst:"
+msgstr "crwdns28852:0crwdne28852:0"
 
 #: src/odometer_pi.cpp:2142 src/odometer_pi.cpp:2152
 msgid "15 minutes"
-msgstr "15 minutter"
+msgstr "crwdns28854:0crwdne28854:0"
 
 #: src/odometer_pi.cpp:2142 src/odometer_pi.cpp:2152
 msgid "30 minutes"
-msgstr "30 minutter"
+msgstr "crwdns28856:0crwdne28856:0"
 
 #: src/odometer_pi.cpp:2142 src/odometer_pi.cpp:2152
 msgid "1 hour"
-msgstr "1 time"
+msgstr "crwdns28858:0crwdne28858:0"
 
 #: src/odometer_pi.cpp:2142 src/odometer_pi.cpp:2152
 msgid "2 hours"
-msgstr "2 timer"
+msgstr "crwdns28860:0crwdne28860:0"
 
 #: src/odometer_pi.cpp:2142
 msgid "3 hours"
-msgstr "3 timer"
+msgstr "crwdns28862:0crwdne28862:0"
 
 #: src/odometer_pi.cpp:2142 src/odometer_pi.cpp:2152
 msgid "4 hours"
-msgstr "4 timer"
+msgstr "crwdns28864:0crwdne28864:0"
 
 #: src/odometer_pi.cpp:2142
 msgid "5 hours"
-msgstr "5 timer"
+msgstr "crwdns28866:0crwdne28866:0"
 
 #: src/odometer_pi.cpp:2142
 msgid "6 hours"
-msgstr "6 timer"
+msgstr "crwdns28868:0crwdne28868:0"
 
 #: src/odometer_pi.cpp:2142
 msgid "9 hours"
-msgstr "9 timer"
+msgstr "crwdns28870:0crwdne28870:0"
 
 #: src/odometer_pi.cpp:2142
 msgid "12 hours"
-msgstr "12 timer"
+msgstr "crwdns28872:0crwdne28872:0"
 
 #: src/odometer_pi.cpp:2150
 msgid "Shortest trip stop time to log:"
-msgstr "Korteste trip stopp som skal logges:"
+msgstr "crwdns28874:0crwdne28874:0"
 
 #: src/odometer_pi.cpp:2152
 msgid "All stops"
-msgstr "Alle stopp"
+msgstr "crwdns28876:0crwdne28876:0"
 
 #: src/odometer_pi.cpp:2152
 msgid "5 minutes"
-msgstr "5 minutter"
+msgstr "crwdns28878:0crwdne28878:0"
 
 #: src/odometer_pi.cpp:2152
 msgid "8 hours"
-msgstr "8 timer"
+msgstr "crwdns28880:0crwdne28880:0"
 
 #: src/odometer_pi.cpp:2152
 msgid "No stops logged"
-msgstr "Ingen stopp logget"
+msgstr "crwdns28882:0crwdne28882:0"
 
 #: src/odometer_pi.cpp:2168
 msgid "Instruments"
-msgstr "Instrumenter"
+msgstr "crwdns20498:0crwdne20498:0"
 
 #: src/odometer_pi.cpp:2302
 msgid "Undock"
-msgstr "Løsne"
+msgstr "crwdns20500:0crwdne20500:0"
 
 #: src/odometer_pi.cpp:2304
 msgid "Preferences ..."
-msgstr "Innstillinger ..."
+msgstr "crwdns20502:0crwdne20502:0"
 
 #: src/odometer_pi.cpp:2306
 msgid "View trip log ..."
-msgstr "Vis trip logg..."
+msgstr "crwdns28884:0crwdne28884:0"
 
 #: src/odometer_pi.cpp:2586
 msgid "Odometer log"
-msgstr "Avstandsteller logg"
+msgstr "crwdns28886:0crwdne28886:0"
 
 #: src/odometer_pi.cpp:2596 src/odometer_pi.cpp:2725 src/odometer_pi.cpp:2813
 msgid "Departure"
-msgstr "Avreise"
+msgstr "crwdns28888:0crwdne28888:0"
 
 #: src/odometer_pi.cpp:2597 src/odometer_pi.cpp:2605 src/odometer_pi.cpp:2726
 #: src/odometer_pi.cpp:2734 src/odometer_pi.cpp:2814 src/odometer_pi.cpp:2822
 msgid "Arrival"
-msgstr "Ankomst"
+msgstr "crwdns28890:0crwdne28890:0"
 
 #: src/odometer_pi.cpp:2598 src/odometer_pi.cpp:2606 src/odometer_pi.cpp:2727
 #: src/odometer_pi.cpp:2735 src/odometer_pi.cpp:2815 src/odometer_pi.cpp:2823
 msgid "Trip"
-msgstr "Tur"
+msgstr "crwdns28892:0crwdne28892:0"
 
 #: src/odometer_pi.cpp:2604 src/odometer_pi.cpp:2733 src/odometer_pi.cpp:2821
 msgid "Restart"
-msgstr "Omstart"
+msgstr "crwdns28894:0crwdne28894:0"
 
 #: src/odometer_pi.cpp:2932
 msgid "Log View Settings"
-msgstr "Innstillinger for loggvisning"
+msgstr "crwdns28896:0crwdne28896:0"
 
 #: src/odometer_pi.cpp:2962
 msgid "Last trip"
-msgstr "Siste tur"
+msgstr "crwdns28898:0crwdne28898:0"
 
 #: src/odometer_pi.cpp:2962
 msgid "Last three trips"
-msgstr "Seneste tre turer"
+msgstr "crwdns28900:0crwdne28900:0"
 
 #: src/odometer_pi.cpp:2962
 msgid "All logged trips"
-msgstr "Alle loggførte turer"
+msgstr "crwdns28902:0crwdne28902:0"
 
 #: src/odometer_pi.cpp:2965
 msgid "Select trips"
-msgstr "Velg turer"
+msgstr "crwdns28904:0crwdne28904:0"
 
 #: src/odometer_pi.cpp:2975
 msgid "Formatted text"
-msgstr "Formattert tekst"
+msgstr "crwdns28906:0crwdne28906:0"
 
 #: src/odometer_pi.cpp:2975
 msgid "CSV format"
-msgstr "CSV-format"
+msgstr "crwdns28908:0crwdne28908:0"
 
 #: src/odometer_pi.cpp:2975
 msgid "HTML format"
-msgstr "HTML-format"
+msgstr "crwdns28910:0crwdne28910:0"
 
 #: src/odometer_pi.cpp:2978
 msgid "View formats"
-msgstr "Vis formater"
+msgstr "crwdns28912:0crwdne28912:0"
 
 #: src/odometer_pi.cpp:2988
 msgid "Save to disk"
-msgstr "Lagre til disk"
+msgstr "crwdns28914:0crwdne28914:0"
 
 #: src/odometer_pi.cpp:2988
 msgid "External viewer"
-msgstr "Ekstern visningsprogram"
+msgstr "crwdns28916:0crwdne28916:0"
 
 #: src/odometer_pi.cpp:2991
 msgid "Output"
-msgstr "Utdata"
+msgstr "crwdns28918:0crwdne28918:0"
 
 #: src/instrument.cpp:252
 msgid " true"
-msgstr " sann"
+msgstr "crwdns20424:0crwdne20424:0"
 
 #: src/instrument.cpp:254
 msgid " mag"
-msgstr " mag"
+msgstr "crwdns20426:0crwdne20426:0"
 

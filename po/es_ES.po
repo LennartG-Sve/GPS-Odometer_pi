@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: opencpn\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2023-12-14 18:04+0100\n"
-"PO-Revision-Date: 2023-12-28 14:51\n"
+"PO-Revision-Date: 2024-03-24 15:26\n"
 "Last-Translator: \n"
 "Language-Team: Spanish\n"
 "Language: es_ES\n"
@@ -23,11 +23,11 @@ msgstr "Corredera"
 
 #: src/odometer_pi.cpp:152
 msgid "Sum Log Distance"
-msgstr "Suma de Distancia total"
+msgstr "Suma Dist. total"
 
 #: src/odometer_pi.cpp:154
 msgid "Trip Log Distance"
-msgstr "Distancia de registro de viaje"
+msgstr "Dist. Registro Viaje"
 
 #: src/odometer_pi.cpp:156
 msgid "Departure & Arrival"
@@ -43,11 +43,11 @@ msgstr "Auto reiniciar viaje"
 
 #: src/odometer_pi.cpp:164
 msgid "Leg Distance & Time"
-msgstr "Distancia y duración Etapa"
+msgstr "Dist./Duración Etapa"
 
 #: src/odometer_pi.cpp:168
 msgid "Start/Stop Leg"
-msgstr "Iniciar/detener etapa"
+msgstr "Ini./Det. etapa"
 
 #: src/odometer_pi.cpp:170
 msgid "Reset Leg"
@@ -67,11 +67,11 @@ msgstr "Odómetro"
 
 #: src/odometer_pi.cpp:1967
 msgid "Odometer Settings"
-msgstr "Configuración de Odómetro"
+msgstr "Configuración Odómetro"
 
 #: src/odometer_pi.cpp:1988 src/odometer_pi.cpp:2950
 msgid "Display options"
-msgstr "Opciones de presentación"
+msgstr "Opciones presentación"
 
 #: src/odometer_pi.cpp:1995
 msgid "Show this odometer"
@@ -83,11 +83,11 @@ msgstr "Mostrar instrumento de Corredera"
 
 #: src/odometer_pi.cpp:2003
 msgid "Show Dep. and Arr. times"
-msgstr "Mostrar tiempos de salida-llegada"
+msgstr "Mostrar tiempos Part.-Arr"
 
 #: src/odometer_pi.cpp:2007
 msgid "Show/Reset Leg Distance and time"
-msgstr "Mostrar / Reiniciar Distancia de etapas y Duración"
+msgstr "Mostrar/Reiniciar Distancia etapas y Duración"
 
 #: src/odometer_pi.cpp:2011
 msgid "Generate log file"
@@ -147,7 +147,7 @@ msgstr "Velocidad mínima en ruta:"
 
 #: src/odometer_pi.cpp:2099
 msgid "Local Time Offset From UTC:"
-msgstr "Diferencia entre hora local y UTC:"
+msgstr "Diferencia hora local y UTC:"
 
 #: src/odometer_pi.cpp:2119
 msgid "Boat speed units:"
@@ -187,7 +187,7 @@ msgstr "Kilómetros"
 
 #: src/odometer_pi.cpp:2140
 msgid "Automatic trip reset, time since last arrival:"
-msgstr "Reinicio viaje auto; tiempo desde último arribo:"
+msgstr "Reinicio viaje auto, tiempo desde último arribo:"
 
 #: src/odometer_pi.cpp:2142 src/odometer_pi.cpp:2152
 msgid "15 minutes"
@@ -231,7 +231,7 @@ msgstr "12 horas"
 
 #: src/odometer_pi.cpp:2150
 msgid "Shortest trip stop time to log:"
-msgstr "Tiempo de parada más corto para registrar:"
+msgstr "Tiempo parada más corto a registrar:"
 
 #: src/odometer_pi.cpp:2152
 msgid "All stops"
@@ -267,11 +267,11 @@ msgstr "Ver registro de viajes..."
 
 #: src/odometer_pi.cpp:2586
 msgid "Odometer log"
-msgstr "Registros de odómetros"
+msgstr "Registros odómetro"
 
 #: src/odometer_pi.cpp:2596 src/odometer_pi.cpp:2725 src/odometer_pi.cpp:2813
 msgid "Departure"
-msgstr "Salida"
+msgstr "Partida"
 
 #: src/odometer_pi.cpp:2597 src/odometer_pi.cpp:2605 src/odometer_pi.cpp:2726
 #: src/odometer_pi.cpp:2734 src/odometer_pi.cpp:2814 src/odometer_pi.cpp:2822
