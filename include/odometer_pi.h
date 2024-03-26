@@ -184,6 +184,7 @@ private:
     void ApplyConfig(void);
 	wxArrayOfInstrument m_ArrayOfInstrument;   // Added for test
 	wxBoxSizer *itemBoxSizer;   // Added for test
+	wxBoxSizer *itemBoxSizerWindow;   // Added for test
 
     // Send deconstructed NMEA 1083 sentence  values to each display
     void SendSentenceToAllInstruments(int st, double value, wxString unit);
@@ -548,6 +549,7 @@ private:
 	wxAuiManager *m_pauimgr;
 	odometer_pi *m_plugin;
 	wxBoxSizer *itemBoxSizer;
+	wxBoxSizer *itemBoxSizerWindow;
 	wxArrayOfInstrument m_ArrayOfInstrument;
     wxArrayOfOdometer m_ArrayOfOdometerWindow;
 };

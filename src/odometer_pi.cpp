@@ -55,7 +55,7 @@
 #include <wx/stdpaths.h>
 #include <wx/utils.h>
 #include <wx/mimetype.h>
-
+#include "wx/sizer.h"
 
 // Global variables for fonts
 wxFont *g_pFontTitle;
@@ -103,6 +103,7 @@ int         g_iAutoResetTrip = 0;
 int         g_iAutoResetTripTime = 6;
 wxString    g_sDataDir;
 wxSize      g_iOdoInstrSize;
+int         g_iOdoCurrWidth;
 
 /*
 TripMode = 0;    // Trip reset, speed below OnRoute
@@ -243,8 +244,6 @@ int odometer_pi::Init(void) {
     mPriDateTime = 99;
     mUTC_Watchdog = 2;
 
-// TODO: Font på windows skall vara Arial.
-
     // Load the fonts
     g_pFontTitle = new wxFont(10, wxFONTFAMILY_SWISS, wxFONTSTYLE_ITALIC, wxFONTWEIGHT_NORMAL);
     g_pFontData = new wxFont(11, wxFONTFAMILY_SWISS, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL);
@@ -283,7 +282,6 @@ int odometer_pi::Init(void) {
                         toggledIcon, wxITEM_CHECK, ("GPS Odometer"), _T(""), NULL,
                         ODOMETER_TOOL_POSITION, 0, this);
 
-
     // Having Loaded the config, then display the odometer
     ApplyConfig();
 
@@ -291,7 +289,6 @@ int odometer_pi::Init(void) {
     if(m_config_version == 1) {
         SaveConfig();
     }
-
 
     // Position, Rapid update   PGN 129026
     wxDEFINE_EVENT(EVT_N2K_129026, ObservedEvt);
@@ -309,14 +306,12 @@ int odometer_pi::Init(void) {
       HandleN2K_129029(ev);
     });
 
-
     // Initialize the watchdog timer
     Start(1000, wxTIMER_CONTINUOUS);
 
     return ( WANTS_CURSOR_LATLON | WANTS_TOOLBAR_CALLBACK | INSTALLS_TOOLBAR_TOOL
             | WANTS_PREFERENCES | WANTS_CONFIG | WANTS_NMEA_SENTENCES | WANTS_NMEA_EVENTS
             | USES_AUI_MANAGER | WANTS_PLUGIN_MESSAGING );
-
 }
 
 bool odometer_pi::DeInit(void) {
@@ -366,7 +361,7 @@ double GetJsonDouble(wxJSONValue &value) {
 // Called for each timer tick, refreshes each display
 void odometer_pi::Notify() {
 
-    // Force a repaint of each instrument panel
+    // Force a repaint of the instrument panel
     OdometerWindow *odometer_window = m_ArrayOfOdometerWindow.Item(0)->m_pOdometerWindow;
 	if (odometer_window) {
 	    odometer_window->Refresh();
@@ -1092,10 +1087,8 @@ void odometer_pi::Odometer() {
     TripAutoReset(strArr, LocalTime);
 }
 
-
 void odometer_pi::DefineTripData() {
 
-    // Enable saving trip data
     // Define data file location, ensure it exists or add with default data
     m_DataFile.Clear();
     m_DataFile = g_sDataDir + _T("datalog.log");
@@ -1392,8 +1385,7 @@ void odometer_pi::TripAutoReset(wxString strArr, wxDateTime LocalTime) {
 }
 
 
-void odometer_pi::SetPluginMessage(wxString &message_id, wxString &message_body)
-{
+void odometer_pi::SetPluginMessage(wxString &message_id, wxString &message_body)  {
 
     if(message_id == _T("WMM_VARIATION_BOAT")) {
         // construct the JSON root object
@@ -1440,18 +1432,22 @@ void odometer_pi::ShowPreferencesDialog(wxWindow* parent) {
         scaler = 1.0 + OCPN_GetWinDIPScaleFactor() / 4;
         scaler = wxMax(1.0, scaler);
 
+        // Used for title texts on grayed areas, on buttons and trip autoreset
         g_pUSFontTitle = new wxFont(dialog->m_pFontPickerTitle->GetSelectedFont());
         g_FontTitle = g_pUSFontTitle->Scaled(scaler);
         g_USFontTitle = *g_pUSFontTitle;
 
+        // Data texts are used for displayed data (times and distances)
         g_pUSFontData = new wxFont(dialog->m_pFontPickerData->GetSelectedFont());
         g_FontData = g_pUSFontData->Scaled(scaler);
         g_USFontData = *g_pUSFontData;
 
+        // Label tests are used for digital speed in speedometer
         g_pUSFontLabel = new wxFont(dialog->m_pFontPickerLabel->GetSelectedFont());
         g_FontLabel = g_pUSFontLabel->Scaled(scaler);
         g_USFontLabel = *g_pUSFontLabel;
 
+        // Small tests are used for speedometer values
         g_pUSFontSmall = new wxFont(dialog->m_pFontPickerSmall->GetSelectedFont());
         g_FontSmall = g_pUSFontSmall->Scaled(scaler);
         g_USFontSmall = *g_pUSFontSmall;
@@ -1475,21 +1471,62 @@ void odometer_pi::ShowPreferencesDialog(wxWindow* parent) {
         g_iGenerateLogFile = 0;
         if (GenerateLogFile == true) g_iGenerateLogFile = 1;
 
+        // Define text size correction factors, fixed values plus:
+        // Default: 3 * title, 1 * button, 2 * data
+        // Speedo:  1 * title
+        // Deparr:  2 * title,             2 * data
+        // Tripleg:            2 * button, 2 * data
 
-        // Ensure sizes gets correct based on activated checkboxes 
-        // Values scaled to follow default width 150 px
-        int defheight = 120;      // Default instruments, not selectable
-        int speedoheight = 167;   // Height of speedometer
-        int deparrheight = 51;    // Height of departure and arrival times info
-        int triplegheight = 109;  // Height of tripleg times and buttons
+        #ifdef __WXMSW__  
+            int defheight = 45;
+            int speedoheight = 149;
+            int deparrheight = -7;
+            int triplegheight = 19;
+            double titleSize = 1.6;
+            double dataSize = 2.2;
+            double btnSize = 2.3;
+        #else
+            int defheight = 40;
+            int speedoheight = 154;
+            int deparrheight = -7;
+            int triplegheight = 30;
+            double titleSize = 1.3;
+            double dataSize = 2.1;
+            double btnSize = 1.9;
+        #endif
 
-        OdometerWindow *odometer_window = m_ArrayOfOdometerWindow.Item(0)->m_pOdometerWindow;
-        wxSize sz = odometer_window->GetMinSize();  // Need to get width
-        int instrheight = defheight;
-        if (g_iShowSpeed == 1) instrheight = instrheight + speedoheight;
-        if (g_iShowDepArrTimes == 1) instrheight = instrheight + deparrheight;
-        if (g_iShowTripLeg == 1) instrheight = instrheight + triplegheight;
-        g_iOdoInstrSize = wxSize(sz.x,instrheight);
+        // Two title text rows, one checkbox, one button plus two data text rows.  
+        // Default instruments, including headline, always displayed
+        int instrheight = defheight + 
+                ( 3 * titleSize * g_USFontTitle.GetPointSize()) +
+                ( 1 * btnSize *  g_USFontTitle.GetPointSize()) +
+                ( 2 * dataSize * g_USFontData.GetPointSize());
+
+        // Speedometer, one title text row, height of speedometer
+        if (g_iShowSpeed == 1) {
+            instrheight = instrheight + speedoheight +
+                ( 1 * titleSize * g_USFontTitle.GetPointSize());
+        } 
+
+        // Departure and arrival, one title text row and two data text rows, 
+        if (g_iShowDepArrTimes == 1) {
+            instrheight = instrheight + deparrheight +
+                ( 1 * titleSize * g_USFontTitle.GetPointSize()) + 
+                ( 2 * dataSize * g_USFontData.GetPointSize()) ;
+        }
+
+        // Trip leg values and buttons, two text data rows and two button title rows, .
+        if (g_iShowTripLeg == 1) {
+            instrheight = instrheight + triplegheight +
+                ( 2 * btnSize * g_USFontTitle.GetPointSize()) + 
+                ( 2 * dataSize * g_USFontData.GetPointSize());
+        }
+
+        #ifdef __WXMSW__
+            g_iOdoInstrSize = wxSize(166,instrheight);
+        #else
+            g_iOdoInstrSize = wxSize(156,instrheight);
+        #endif
 
 		// OnClose should handle that for us normally but it doesn't seems to do so
 		// We must save changes first
@@ -1511,6 +1548,7 @@ void odometer_pi::SetColorScheme(PI_ColorScheme cs) {
     OdometerWindow *odometer_window = m_ArrayOfOdometerWindow.Item(0)->m_pOdometerWindow;
     if (odometer_window) {
 		odometer_window->SetColorScheme(cs);
+//	    odometer_window->Refresh();
 	}
 }
 
@@ -1922,12 +1960,13 @@ void odometer_pi::ApplyConfig(void) {
         OdometerWindowContainer *cont = m_ArrayOfOdometerWindow.Item(i - 1);
 //        int orient = (cont->m_sOrientation == _T("V") ? wxVERTICAL : wxHORIZONTAL);
         int orient = 0;  // Always vertical
-        if(!cont->m_pOdometerWindow) {
 
-            // A new odometer is created
+        // A new odometer is created
+        if(!cont->m_pOdometerWindow) {
             cont->m_pOdometerWindow = new OdometerWindow(
                 GetOCPNCanvasWindow(), wxID_ANY, m_pauimgr, this, orient, cont);
             cont->m_pOdometerWindow->SetInstrumentList(cont->m_aInstrumentList);
+
 // From 5.9.0:
 //            cont->m_pOdometerWindow->SetInstrumentList(cont->m_aInstrumentList,
 //                &(cont->m_aInstrumentPropertyList));
@@ -1969,15 +2008,18 @@ void odometer_pi::ApplyConfig(void) {
 
         } else {
 
-            // Update the current odometer
+            // Update the current odometer and rebuild list of instruments  
+            // from scratch using sizers
+            // TODO: The sizer used is just a number, not a correct wxSizer
             wxAuiPaneInfo& pane = m_pauimgr->GetPane(cont->m_pOdometerWindow);
             pane.Caption(cont->m_sCaption).Show(cont->m_bIsVisible);
             if (!cont->m_pOdometerWindow->isInstrumentListEqual(
-                cont->m_aInstrumentList)) {
+                    cont->m_aInstrumentList)) {
 
-                // Rebuild list of instruments from scratch
                 cont->m_aInstrumentList.Clear();
-                if (g_iShowSpeed == 1) cont->m_aInstrumentList.Add(0);
+                if (g_iShowSpeed == 1) {
+                    cont->m_aInstrumentList.Add(0);
+                }
                 cont->m_aInstrumentList.Add(1);
                 cont->m_aInstrumentList.Add(2);
                 if (g_iShowDepArrTimes == 1) {
@@ -1994,34 +2036,45 @@ void odometer_pi::ApplyConfig(void) {
                 }
                 cont->m_pOdometerWindow->SetInstrumentList(cont->m_aInstrumentList);
                 bool vertical = orient == wxVERTICAL;
-                wxSize sz = cont->m_pOdometerWindow->GetMinSize();
 
-                // TODO: Panel gets wrong and need be corrected, likely
-                //       caused by the checkbox not being properly sized.
-                //       Also something with MinSize from previous instrument 
-                //       selection if deleting instruments, non-repeatable
-                sz.y = sz.y + 24; wxSize szmod(sz.x, sz.y); sz = szmod;
+                GetOCPNCanvasWindow(), wxID_ANY, m_pauimgr, this, orient, cont;
 
+                // Detected panel size (e.g. GetSize and GetMinSize) does not 
+                // include title row height, this has been added in g_iOdoInstrSize.
+                // Detected OCPNCanvasWindow are (initially?) to big and need be set.
+
+                wxSize sz = g_iOdoInstrSize;
+                cont->m_pOdometerWindow->SetSize(sz);
                 cont->m_pOdometerWindow->SetMinSize(sz);
                 pane.MinSize(sz).BestSize(sz).FloatingSize(sz);
-
             }
             // Orientation is vertical only
             if (cont->m_pOdometerWindow->GetSizerOrientation() != orient) {
                 cont->m_pOdometerWindow->ChangePaneOrientation(orient, false);
             }
+            // Refresh after eventual text changes
+            wxSize sz = cont->m_pOdometerWindow->GetSize();
+            g_iOdoCurrWidth = sz.x;  // Used for button width
+            cont->m_pOdometerWindow->SetInstrumentList(cont->m_aInstrumentList);
+
+            cont->m_pOdometerWindow->Layout();
+            cont->m_pOdometerWindow->SendSizeEvent();
+            cont->m_pOdometerWindow->Refresh();
+            cont->m_pOdometerWindow->Update();
         }
     }
     m_pauimgr->Update();
 }
 
 void odometer_pi::PopulateContextMenu(wxMenu* menu) {
+
     OdometerWindowContainer *cont = m_ArrayOfOdometerWindow.Item(0);
     wxMenuItem* item = menu->AppendCheckItem(1, cont->m_sCaption);
     item->Check(cont->m_bIsVisible);
 }
 
 void odometer_pi::ShowOdometer(size_t id, bool visible) {
+
     if (id < m_ArrayOfOdometerWindow.GetCount()) {
         OdometerWindowContainer *cont = m_ArrayOfOdometerWindow.Item(id);
         m_pauimgr->GetPane(cont->m_pOdometerWindow).Show(visible);
@@ -2311,6 +2364,7 @@ void OdometerPreferencesDialog::SaveOdometerConfig(void) {
             cont->m_aInstrumentList.Add(leginstr);
         }
     }
+
 }
 
 void OdometerPreferencesDialog::OnOdometerSelected(wxListEvent& event) {
@@ -2365,8 +2419,10 @@ OdometerWindow::OdometerWindow(wxWindow *pparent, wxWindowID id,
     m_Container = mycont;
 
 	// wx2.9 itemBoxSizer = new wxWrapSizer(orient);
-    itemBoxSizer = new wxBoxSizer(orient);
+    itemBoxSizer = new wxBoxSizer(orient); 
     SetSizer(itemBoxSizer);
+    itemBoxSizer->SetMinSize(g_iOdoInstrSize);
+
     Connect(wxEVT_SIZE, wxSizeEventHandler(OdometerWindow::OnSize), NULL, this);
     Connect(wxEVT_CONTEXT_MENU, wxContextMenuEventHandler(OdometerWindow::OnContextMenu), NULL,
             this);
@@ -2396,6 +2452,7 @@ void OdometerWindow::OnSize(wxSizeEvent& event) {
             inst->GetSize(itemBoxSizer->GetOrientation(), GetClientSize()));
     }
     Refresh();
+    Update();
 }
 
 void OdometerWindow::OnContextMenu(wxContextMenuEvent& event) {
@@ -2570,7 +2627,7 @@ void OdometerWindow::SetInstrumentList(wxArrayInt list) {
 
             case ID_DBP_C_AUTORESET:  // id = 6
                 instrument = new OdometerInstrument_Checkbox( this, wxID_ANY,
-                    GetInstrumentCaption( id ), g_iAutoResetTrip );
+                    GetInstrumentCaption( id ), g_iAutoResetTrip);
                 break;
 
             case ID_DBP_I_LEGDIST:  // id = 7
@@ -2602,17 +2659,11 @@ void OdometerWindow::SetInstrumentList(wxArrayInt list) {
         }
     }
 
-    //  TODO: This is read but not setting values at start, is it even used anywhere?
-    //        Fetched from OpenCPN dashboard plugin
-    //        This is only read and used used when returning fron the setup menu.
-    //        The width reported is default 150, only
-
     //  In the absense of any other hints, build the default instrument sizes by 
     //  taking the calculated with of the first (and succeeding) instruments as
     //  hints for the next. So, best in default loads to start with an instrument
     //  that accurately calculates its minimum width. e.g.
     //  DashboardInstrument_Position
-
 
     wxSize Hint = wxSize(DefaultWidth, DefaultWidth);  // Default width == 150
     for (unsigned int i = 0; i < m_ArrayOfInstrument.size(); i++) {
@@ -2620,10 +2671,8 @@ void OdometerWindow::SetInstrumentList(wxArrayInt list) {
         inst->SetMinSize(inst->GetSize(itemBoxSizer->GetOrientation(), Hint));
         Hint = inst->GetMinSize();
     }
-
-    Fit();
-    Layout();
-    SetMinSize(itemBoxSizer->GetMinSize()); 
+    Refresh();
+    Update();
 }
 
 void OdometerWindow::SendSentenceToAllInstruments(int st, double value, wxString unit) {
@@ -2646,12 +2695,12 @@ void OdometerWindow::SendSentenceToAllInstruments(int st, double value, wxString
 OdometerViewLogDialog::OdometerViewLogDialog(
     wxWindow *parent, wxWindowID id):
       wxDialog(parent, id, _("Log View Settings"), wxDefaultPosition, 
-        wxDefaultSize, wxDEFAULT_DIALOG_STYLE) {
+        wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER) {
 
       Connect(wxEVT_CLOSE_WINDOW, 
           wxCloseEventHandler(OdometerViewLogDialog::OnCloseLogDialog), NULL, this);
 
-    int border_size = 2;
+    int border_size = 4;
 
     wxBoxSizer* itemBoxSizerMainLogViewPanel = new wxBoxSizer(wxVERTICAL);
     SetSizer(itemBoxSizerMainLogViewPanel);
@@ -2676,9 +2725,9 @@ OdometerViewLogDialog::OdometerViewLogDialog(
 
     //   Select log information
     wxArrayString *Trips = new wxArrayString;
-        Trips->Add("Last trip");
-        Trips->Add("Last three trips");
-        Trips->Add("All logged trips");
+        Trips->Add(_("Last trip"));
+        Trips->Add(_("Last three trips"));
+        Trips->Add(_("All logged trips"));
 
     wxFlexGridSizer *itemFlexGridLogSizer01 = new wxFlexGridSizer(2);
     itemFlexGridLogSizer01->AddGrowableCol(0);
@@ -2692,9 +2741,9 @@ OdometerViewLogDialog::OdometerViewLogDialog(
 
     //   Select log view format
     wxArrayString *ViewFormat = new wxArrayString;
-        ViewFormat->Add("Formatted text");
-        ViewFormat->Add("CSV format");
-        ViewFormat->Add("HTML format");
+        ViewFormat->Add(_("Formatted text"));
+        ViewFormat->Add(_("CSV format"));
+        ViewFormat->Add(_("HTML format"));
 
     wxFlexGridSizer *itemFlexGridLogSizer02 = new wxFlexGridSizer(2);
     itemFlexGridLogSizer02->AddGrowableCol(0);
@@ -2708,8 +2757,8 @@ OdometerViewLogDialog::OdometerViewLogDialog(
 
     //   Select log output options
     wxArrayString *Outputs = new wxArrayString;
-        Outputs->Add("Save to disk");
-        Outputs->Add("External viewer");
+        Outputs->Add(_("Save to disk"));
+        Outputs->Add(_("External viewer"));
 
     wxFlexGridSizer *itemFlexGridLogSizer03 = new wxFlexGridSizer(2);
     itemFlexGridLogSizer03->AddGrowableCol(0);
@@ -2723,6 +2772,10 @@ OdometerViewLogDialog::OdometerViewLogDialog(
 	wxStdDialogButtonSizer* ViewDialogButtonSizer = 
         CreateStdDialogButtonSizer(wxOK | wxCANCEL);
     itemBoxSizerMainLogViewPanel->Add(ViewDialogButtonSizer, 0, wxALIGN_RIGHT, 5);
+
+    Fit();
+    Layout();
+    CentreOnScreen();
 }
 
 
@@ -2748,7 +2801,6 @@ void odometer_pi::ShowViewLogDialog(wxWindow* parent) {
     // Apply clicked, save current alternatives and execute view options
     if (dialog->ShowModal() == wxID_OK) {
         dialog->SaveLogConfig();
-
         GenerateLogOutput();
     }
     // Invoke the dialog destructor
@@ -3124,8 +3176,12 @@ void odometer_pi::GenerateLogOutput() {
     if (g_iSelectLogOutput == 1)  {    // Open the file in a reader/browser
 
         if (g_iSelectLogFormat == 0)  {  // txt-formatted
-            wxFileType* fileType = wxTheMimeTypesManager->GetFileTypeFromExtension("txt");
-            wxString cmd = fileType->GetOpenCommand(TripLogFile);
+            wxMimeTypesManager manager;
+            wxFileType* fileType = manager.GetFileTypeFromExtension("txt");
+
+            wxString cmd;
+            cmd.Clear();
+            cmd = fileType->GetOpenCommand(TripLogFile);
 #ifdef __WXOSX__
             cmd = "/bin/bash -c \"open " + TripLogFile + "\"";
 #endif
@@ -3135,8 +3191,14 @@ void odometer_pi::GenerateLogOutput() {
         }
 
         if (g_iSelectLogFormat == 1)  {  // csv-formatted
-            wxFileType* fileType = wxTheMimeTypesManager->GetFileTypeFromExtension("csv");
-            wxString cmd = fileType->GetOpenCommand(TripLogFile);
+
+            wxMimeTypesManager manager;
+            wxFileType* fileType = manager.GetFileTypeFromExtension("csv");
+
+            wxString cmd;
+            cmd.Clear();
+            cmd = fileType->GetOpenCommand(TripLogFile);
+
 #ifdef __WXOSX__
             cmd = "/bin/bash -c \"open " + TripLogFile + "\"";
 #endif
@@ -3145,12 +3207,21 @@ void odometer_pi::GenerateLogOutput() {
             delete fileType;
         }
 
+
         if (g_iSelectLogFormat == 2) {   // HTML-formatted
-            if (!wxLaunchDefaultBrowser(wxString("file://") + TripLogFile)) {
-                TripLogFile.Replace("/", "\\");
-            }
-            wxFileType* fileType = wxTheMimeTypesManager->GetFileTypeFromExtension("html");
-            wxString cmd = fileType->GetOpenCommand("file:///" + TripLogFile);
+
+            // TODO: This is opening two tabs with equal content, remove?
+//            if (!wxLaunchDefaultBrowser(wxString("file://") + TripLogFile)) {
+//                TripLogFile.Replace("/", "\\");
+//            }
+
+            wxMimeTypesManager manager;
+            wxFileType* fileType = manager.GetFileTypeFromExtension("html");
+
+            wxString cmd;
+            cmd.Clear();
+            cmd = fileType->GetOpenCommand(TripLogFile);
+
             wxExecute(cmd);
             cmd.Clear();
             delete fileType;

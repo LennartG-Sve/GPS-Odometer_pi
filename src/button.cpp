@@ -54,6 +54,8 @@ extern int g_iResetTrip;
 extern int g_iStartStopLeg;
 extern int g_iResetLeg;
 extern int g_iShowLogDialog;
+extern int g_iOdoCurrWidth;
+
 
 //--------------------------------------------------------------
 //
@@ -69,12 +71,13 @@ OdometerInstrument_Button::OdometerInstrument_Button(wxWindow *pparent, wxWindow
     m_id = id;
     m_title = title;
     m_cap_flag = cap_flag;
-    instrumentTypeId = 0;
-    SetBackgroundStyle( wxBG_STYLE_CUSTOM );
+//    instrumentTypeId = 0;
+//    SetBackgroundStyle( wxBG_STYLE_CUSTOM );
     SetDrawSoloInPane(false);
     wxClientDC dc(this);
     int width;
     dc.GetTextExtent(m_title, &width, &m_TitleHeight, 0, 0, g_pFontTitle);
+    dc.GetTextExtent(_T("000"), &width, &m_DataHeight, 0, 0, g_pFontData);
 
     Connect(wxEVT_ERASE_BACKGROUND, wxEraseEventHandler(OdometerInstrument::OnEraseBackground));
     Connect(wxEVT_PAINT, wxPaintEventHandler(OdometerInstrument::OnPaint));
@@ -95,18 +98,18 @@ wxSize OdometerInstrument_Button::GetSize(int orient, wxSize hint) {
     dc.GetTextExtent(m_title, &w, &m_TitleHeight, 0, 0, g_pFontTitle);
     dc.GetTextExtent(_T("000"), &w, &m_DataHeight, 0, 0, g_pFontData);
 
-    // May use either of GetClientSize, GetMinSize or GetBestSize
-    // Probably GetMinSize is the best option
-//    wxSize size = GetClientSize();
-    wxSize size = GetMinSize();
+    wxSize size = GetClientSize();
+//    wxSize size = GetMinSize();
+
 
     // Set resonable values
     if (hint.x < 150) hint.x = 150;
     if (hint.y < 28) hint.y = 28;
     if (hint.y > 30) hint.y = 30;
 
-    if (size.x < 150) size.x = 150;
-    b_width = size.x;
+    b_width = hint.x;
+//    b_width = g_iOdoCurrWidth;
+    if (b_width < 150) b_width = 150;
 
     if (size.y < 28) size.y = 28;
     b_height = m_TitleHeight + 12;
@@ -159,7 +162,7 @@ wxSize OdometerInstrument_Button::GetSize(int orient, wxSize hint) {
             wxCommandEventHandler(OdometerInstrument_Button::OnButtonClickLegReset), 
             NULL, this );
     }
-    return wxSize(wxMax(hint.x, DefaultWidth), b_height);
+    return wxSize(wxMax(g_iOdoCurrWidth, DefaultWidth), b_height);
 }
 
 void OdometerInstrument_Button::SetData(int st, double data, wxString unit) {

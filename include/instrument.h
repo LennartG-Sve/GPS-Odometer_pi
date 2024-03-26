@@ -94,6 +94,7 @@ public:
 	void MouseEvent(wxMouseEvent &event);
       
 	int instrumentTypeId;
+	int instrumentWindowTypeId;  // For test
 
 protected:
 	int m_id;
