@@ -71,12 +71,10 @@ enum {
     OCPN_DBP_STC_DEPART     = 1 << 3,
     OCPN_DBP_STC_ARRIV      = 1 << 4,
     OCPN_DBP_STC_TRIPRES    = 1 << 5,  // Number referenced in button module, do not change!
-    OCPN_DBP_STC_AUTORESET  = 1 << 6,
-    OCPN_DBP_STC_LEGDIST    = 1 << 7,
-    OCPN_DBP_STC_LEGTIME    = 1 << 8,
-    OCPN_DBP_STC_STARTSTOP  = 1 << 9,  // Number referenced in button module, do not change!
-    OCPN_DBP_STC_LEGRES     = 1 << 10, // Number referenced in button module, do not change!
-    OCPN_DBP_STC_SHOWLOG    = 1 << 11, // Number referenced in button module, do not change!
+    OCPN_DBP_STC_LEGDIST    = 1 << 6,
+    OCPN_DBP_STC_LEGTIME    = 1 << 7,
+    OCPN_DBP_STC_STARTSTOP  = 1 << 8,  // Number referenced in button module, do not change!
+    OCPN_DBP_STC_LEGRES     = 1 << 9,  // Number referenced in button module, do not change!
 };
 
 

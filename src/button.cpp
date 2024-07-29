@@ -131,7 +131,7 @@ wxSize OdometerInstrument_Button::GetSize(int orient, wxSize hint) {
             NULL, this );
     }
 
-    if (m_cap_flag == 512) {
+    if (m_cap_flag == 256) {
         wxBoxSizer* instrument = new wxBoxSizer(wxVERTICAL);
         wxButton* m_pLegStartStopButton = new wxButton(this, m_id, _( m_title ),
             wxDefaultPosition, wxSize(b_width,b_height), wxFULL_REPAINT_ON_RESIZE );
@@ -147,7 +147,7 @@ wxSize OdometerInstrument_Button::GetSize(int orient, wxSize hint) {
             NULL, this );
     }
 
-    if (m_cap_flag == 1024) {
+    if (m_cap_flag == 512) {
         wxBoxSizer* instrument = new wxBoxSizer(wxVERTICAL);
         wxButton* m_pLegResetButton = new wxButton(this, m_id, _( m_title ), 
             wxDefaultPosition, wxSize(b_width,b_height), wxFULL_REPAINT_ON_RESIZE );

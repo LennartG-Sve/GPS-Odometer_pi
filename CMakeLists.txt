@@ -3,7 +3,7 @@
 # Copyright:   2018 - 2023
 # License:     GPL v3+
 # ---------------------------------------------------------------------------
-# Frontend2  v1.0.297   Author: Jon Gough
+# Frontend2  v1.0.302   Author: Jon Gough
 # ---------------------------------------------------------------------------
 ## ----- When changing this file do NOT change the order in which sections occur        ----- ##
 ## ----- Changes should only be made between the section blocks that identify where     ----- ##
@@ -40,9 +40,9 @@ set(LONG_DESCRIPTION "Using GPS/GNSS satellite data to calculate log and trip in
 
 set(VERSION_MAJOR "0")
 set(VERSION_MINOR "8")
-set(VERSION_PATCH "4")
-set(VERSION_TWEAK "2")
-set(VERSION_DATE "26/03/2024")  # DD/MM/YYYY format
+set(VERSION_PATCH "5")
+set(VERSION_TWEAK "0")
+set(VERSION_DATE "29/07/2024")  # DD/MM/YYYY format
 set(OCPN_MIN_VERSION "ov58")
 set(OCPN_API_VERSION_MAJOR "1")
 set(OCPN_API_VERSION_MINOR "18")

@@ -1,4 +1,4 @@
-= GPS Odometer
+-= GPS Odometer
 
 == Links
 
@@ -17,16 +17,16 @@ The GPS Odometer contain these basic functions:
 * A Trip Distance log, always displayed.
 * An optional Departure / Arrival time display with digital readout.
 * A Trip reset button that resets Trip, Departure Time and Arrival Time.
-* An Autoreset Trip checkbox allowing to automatically execute Trip reset as defined in the setup dialogue.
+* An optional Autoreset Trip checkbox allowing to automatically execute Trip reset as defined in the setup dialogue.
 * An optional Leg Trip time and Distance counter including Start/Stop Leg and Leg reset buttons.
-* A Trip log to view up to one month old trip log information in text, csv or html format.
+* A log to view up to one month old trip log information in text, csv or html format.
 
 == Instruments
 
-The instruments are shown in the order listed above and it is not possible to change that order. It is however possible to toggle the optional instruments on or off right-clicking on the instrument panel selecting 'Settings'. Note that the panel size is set to default when adding or removing instruments and you may manually need to adjust the panel size to accomodate the selected instruments. 
+The instruments are shown in a predefined order and it is not possible to change that order. It is however possible to toggle the optional instruments on or off right-clicking on the instrument panel selecting 'Settings'. Note that the panel size is set to default when adding or removing instruments and you may manually need to adjust the panel size to accomodate the selected instruments. 
 The trip log, with viewing options, is selected right-clicking on the instrument panel selecting 'View trip log'.
 
-. Total distance, Trip distance, Trip reset button plus the Autoreset check box are always displayed and can not be toggled off. Just leave the GPS Odometer on screen and reset the trip counter once the trip is ended (and log book written?) or before the next trip starts, alternatively use the automatic trip reset option.
+. Total distance, Trip distance and the Trip reset button are always displayed and can not be toggled off. Just leave the GPS Odometer on screen and reset the trip counter once the trip is ended (and log book written?) or before the next trip starts, alternatively use the automatic trip reset option.
 . The trip will be considered started as soon as the speed increases above 'Minimum Route Speed', preset at 2 knots (selectable in the settings menu). The departure date and the departure time will be displayed on the instrument as the upper value for 'Departure & Arrival'.
 . The trip will be considered stopped as soon as the speed decreases below 'Minimum Route Speed' and the arrival date and time will be displayed on the instrument as the lower value for 'Departure & Arrival'.
 . If the speed then again increases above 'Minimum Route Speed' the trip be either continued or a new trip started (new departure) depending on if the 'Trip reset' button has been clicked or not. You may even shut down OpenCPN for e.g. a lunch break, the 'Trip distance' as well as 'Departure & Arrival' times are remembered until the Trip reset button is clicked or an Automatic trip reset is executed. The Automatic trip reset will be executed if 'Autoreset Trip' is selected and the break time exceeds the 'Minimum trip stop time' set in the settings menu.
@@ -36,7 +36,7 @@ The trip log, with viewing options, is selected right-clicking on the instrument
 
 . Several parameters can be adjusted in the 'Settings' menu, just right-click somewhere on the instrument and select 'Settings'.
 . The most important setting is the selection of source protocol between NMEA 0183 (default), Signal K or NMEA2000. This selection is used to avoid the same type of information coming from multiple sources but still allowing e.g. NMEA 0183 to be generated from Signal K without affecting the GPS Odometer. This is a common situation when e.g. using a NMEA 2000 GPS/GNSS unit and a VHF with NMEA 0183 input.
-. The logging option is selected in the settings menu and will detect Departure (trip start), Arrival with trip distance and Resumed trip where a trip is restarted without an intermediate trip reset, manual or automatic. You may also, in the settings menu, select the shortest trip stop to be detected and logged, either all stops or stops longer than the time selected in the setings menu.
+. The trip log will detect Departure (trip start), Arrival with trip distance and Resumed trip where a trip is restarted without an intermediate trip reset, manual or automatic. You may also, in the settings menu, select the shortest trip stop to be detected and logged, either all stops or stops longer than the time selected in the setings menu.
 To view the log, just right-click somewhere on the instrument and select 'View trip log'. This opens a menu where the viewing options are selected. Note that there must be an associated viewer available for the 'External viewer' alternative. The generated view file is located either in the users home directory (Linux) or the Documents directory (Windows). The saved files have the extension .txt, .csv or .html respectively. File type .csv will have to be converted if used in e.g Excel but there are also free csv file readers available.
 Please note that trip logs are automatically removed when over one month old.
 . The text style and size settings are:
@@ -50,7 +50,7 @@ When changing text styles or sizes, the instrument area is not updated to accomo
 
 GPS/GNSS signal information, coming from NMEA 0183, Signal K or NMEA2000 are selected in the settings menu. If one or both of the required sentences, as mentioned above, are missing:
 
-. There will be no speed or distance count nor will the GPS Odometer start displaying data until NMEA 0183 GGA or NMEA2000 is indicating a valid GPS/GNSS signal (using the 'Satellites in use' and 'HDOP' information). There is also a few seconds delay (default 15) when powered up or when switching protocol, this to allow the system to be properly settled. Many GPS/GNSS units are also somewhat inaccurate until the position is properly settled. Note that this is a power up delay that has no effect later on. This setting, named PowerOnDelaySecs, may be updated (from 5 and up) in the OpenCPN configuration file.
+. There will be no speed or distance count nor will the GPS Odometer start displaying data until NMEA 0183 GGA or NMEA2000 is indicating a valid GPS/GNSS signal (using the 'Satellites in use' and 'HDOP' information). There is also a few seconds delay (default 15) when powered on or when switching protocol, this to allow the system to be properly settled. Many GPS/GNSS units are also somewhat inaccurate until the position is accurate enough. Note that this is a power on delay that has no effect later on. This setting, named PowerOnDelaySecs, may be updated (from 5 and up) in the OpenCPN configuration file.
 . It is essential to use a good quality and stable GPS/GNSS receiver. Some GPS/GNSS units are quite unstable when starting (although they are indicating a valid fix) and, as all distances are added, this will add to the trip and total distances or trigger false departure times.
 
 == Multiple GPS/GNSS units
@@ -80,22 +80,22 @@ A note on NMEA 2000 GPS/GNSS units: OpenCPN has currently no option to prioritiz
 
 == General troubleshooting
 
-The most common problem is the GPS/GNSS signal quality, often depending on non-optimal GPS/GNSS unit placement. This can be easily verified examining the NMEA 0183 GGA message using OpenCPN 'Options -> Connections' and activating 'Show NMEA Debug Window'.
+The most common problem is the GPS/GNSS signal quality, often due to non-optimal GPS/GNSS unit placement. This can be easily verified examining the NMEA 0183 GGA message using OpenCPN 'Options -> Connections' and activating 'Show NMEA Debug Window'.
 If you are using NMEA 2000 you need to generate NMEA 0183 messages either by using the TwoCan plugin or using the signalk-to-nmea0183 app activating GGA messages and reading the NMEA 0183 messages thru port 10110.
 Look for the GGA messages and these fields:
 
 . Field 6 (following the E/W) is the Quality indicator, Should be 1 thru 5. 
 . Field 7 indicates the number of satellites, should be a minimum of 4.
 The required number of satellites may be adjusted setting the 'SatsRequired' parameter in the OpenCPN configuration file. The allowed range is 4 and up.
-. Field 8 is the HDOP (Horizontal dilution of precision). This should be as low as possible with a default maximum of 4. The HDOP limit may be adjusted setting the 'HDOP' parameter in the OpenCPN configuration file.
+. Field 8 is the HDOP (Horizontal dilution of precision). This should be as low as possible with a recommended maximum of 4. The HDOP limit may be adjusted setting the 'HDOP' parameter in the OpenCPN configuration file.
 The allowed range is 1 thru 10. Increasing the 'HDOP' value is a last resort if nothing else helps but also an indication that there is a GPS/GNSS problem, placement or otherwise.
 
 If any of these values becomes 'invalid' then the speed indicator will go to '0' and it will take a few seconds before the speedometer is showing any speed. This delay is introduced as the speed may, at start or straight after a valid fix, still show an erroneous value hence affecting the distance calculations. The delay, named 'PowerOnDelaySecs' defaults to 15 but may be adjusted setting the parameter in the OpenCPN configuration file. The allowed range is 5 and up. You should never see this effect apart from when the system is started if all is working as it should.
 
 Total distance, Trip distance, Departure time and Arrival time are saved in the OpenCPN configuration file at shutdown. They are also, together with a few other parameters, saved in the GPS Odometer data directory and updated as values changes. The data log file in the GPS Odometer data directory also contains the log information. This dedicated save is done to ensure the information will survive e.g. a power outage or a system crash where OpenCPN does not shut down properly. The information in the data directory overrides the distances and times in the OpenCPN configuration file.
-. 1/ There is one exception for the Total distance where the highest of the two walues is used, see the description for Total distance above.
-. 2/ If a sudden shutdown occurs while on route, no arrival time will be given upon restart as there is no Arrival time available, it will display three dashes instead.
-. 3/ Starting and stopping OpenCPN, or clicking Trip reset, while on speed above 'On Route' speed may confuse the logging facility as e.g. an arrival time may be missing.
+. There is one exception for the Total distance where the highest of the two walues is used, see the description for Total distance above.
+. If a sudden shutdown occurs while on route, no arrival time will be given upon restart as there is no Arrival time available, it will display three dashes instead.
+. Starting and stopping OpenCPN, or clicking Trip reset, while on speed above 'On Route' speed may confuse the logging facility as e.g. an arrival time may be missing.
 
 == Bugs and inconveniences
 

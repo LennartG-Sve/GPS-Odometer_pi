@@ -78,8 +78,7 @@ public:
 	OdometerWindowContainer(OdometerWindow *odometer_window, wxString name, wxString caption, wxString orientation, wxArrayInt inst) {
        m_pOdometerWindow = odometer_window; m_sName = name; m_sCaption = caption; m_sOrientation = orientation; 
        m_aInstrumentList = inst; m_bIsVisible = false; m_bIsDeleted = false; m_bShowSpeed = true;
-       m_bShowDepArrTimes = true; m_bShowTripLeg = true; m_bGenerateLogFile = true;
-       m_bIncludeTripStops = false; }
+       m_bShowDepArrTimes = true; m_bShowTripLeg = true; m_bIncludeTripStops = false; }
 
 	~OdometerWindowContainer(){}
 
@@ -91,9 +90,9 @@ public:
 	bool m_bShowSpeed;
 	bool m_bShowDepArrTimes;
 	bool m_bShowTripLeg;
-	bool m_bGenerateLogFile;
 	bool m_bIncludeTripStops;
 	bool m_bTripStopMinutes;
+	bool m_bAutoResetTrip;
 	wxString m_sName;
 	wxString m_sCaption;
 	wxString m_sOrientation;
@@ -163,6 +162,8 @@ public:
 	int GetToolbarItemId();
 	int GetOdometerWindowShownCount();
     void Odometer();
+    void SetInstrSizes();
+    void BuildInstrList();
     void ShowViewLogDialog(wxWindow *parent);
     void GenerateLogOutput();
     void rmOldLogFiles();
@@ -170,6 +171,8 @@ public:
 	  
     int id;
     int i;   // Integer for while loops
+//    int logDefined = 0;
+    int validLog = 0;
     double TotDist = 0.0;
     double oldTotDist = 0.0;
     double dispTotDist = 0.0;
@@ -434,8 +437,9 @@ public:
 	wxCheckBox *m_pCheckBoxShowSpeed;
 	wxCheckBox *m_pCheckBoxShowDepArrTimes;
 	wxCheckBox *m_pCheckBoxShowTripLeg;
-	wxCheckBox *m_pCheckBoxGenerateLogFile;
+//	wxCheckBox *m_pCheckBoxGenerateLogFile;
 	wxCheckBox *m_pCheckBoxIncludeTripStops;
+	wxCheckBox *m_pCheckBoxAutoResetTrip;
 
 
 private:
@@ -553,6 +557,8 @@ private:
 	wxArrayOfInstrument m_ArrayOfInstrument;
     wxArrayOfOdometer m_ArrayOfOdometerWindow;
 };
+
+
 
 #endif
 
