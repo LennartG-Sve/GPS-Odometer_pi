@@ -124,7 +124,7 @@ wxSize OdometerInstrument_Button::GetSize(int orient, wxSize hint) {
 
         instrument->Add(m_pTripResetButton, 0, wxEXPAND | wxALL | wxFULL_REPAINT_ON_RESIZE, 5 );
         m_pTripResetButton->Raise();
-        m_pTripResetButton->Refresh();
+//        m_pTripResetButton->Refresh();
 
         m_pTripResetButton->Connect( wxEVT_COMMAND_BUTTON_CLICKED, 
             wxCommandEventHandler(OdometerInstrument_Button::OnButtonClickTripReset), 
@@ -140,7 +140,7 @@ wxSize OdometerInstrument_Button::GetSize(int orient, wxSize hint) {
 
         instrument->Add(m_pLegStartStopButton, 0, wxEXPAND | wxALL | wxFULL_REPAINT_ON_RESIZE, 5 );
         m_pLegStartStopButton->Raise();
-        m_pLegStartStopButton->Refresh();
+//        m_pLegStartStopButton->Refresh();
 
         m_pLegStartStopButton->Connect( wxEVT_COMMAND_BUTTON_CLICKED, 
             wxCommandEventHandler(OdometerInstrument_Button::OnButtonClickStartStop), 
@@ -156,7 +156,7 @@ wxSize OdometerInstrument_Button::GetSize(int orient, wxSize hint) {
 
         instrument->Add(m_pLegResetButton, 0, wxEXPAND | wxALL | wxFULL_REPAINT_ON_RESIZE, 5 );
         m_pLegResetButton->Raise();
-        m_pLegResetButton->Refresh();
+//        m_pLegResetButton->Refresh();
 
         m_pLegResetButton->Connect( wxEVT_COMMAND_BUTTON_CLICKED, 
             wxCommandEventHandler(OdometerInstrument_Button::OnButtonClickLegReset), 

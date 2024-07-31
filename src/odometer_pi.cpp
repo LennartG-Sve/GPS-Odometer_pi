@@ -2067,9 +2067,11 @@ void odometer_pi::ApplyConfig(void) {
                 pane.FloatingSize(inclPanelBorder);
 
 //                cont->m_pOdometerWindow->Fit();
-                cont->m_pOdometerWindow->SendSizeEvent();
-                cont->m_pOdometerWindow->Refresh();
-                cont->m_pOdometerWindow->Update();
+
+// Removed as not used in dashboard
+//                cont->m_pOdometerWindow->SendSizeEvent();
+//                cont->m_pOdometerWindow->Refresh();
+//                cont->m_pOdometerWindow->Update();
             }
             // Orientation is vertical only
             if (cont->m_pOdometerWindow->GetSizerOrientation() != orient) {
@@ -2186,13 +2188,10 @@ OdometerPreferencesDialog::OdometerPreferencesDialog(
             wxDefaultPosition, wxDefaultSize, 0);
     itemFlexGridSizer01->Add(m_pCheckBoxAutoResetTrip, 0, wxEXPAND | wxALL, border_size);
 
-    wxStaticText *itemDummy01 = new wxStaticText(m_pPanelPreferences, wxID_ANY, _T(""));
-       itemFlexGridSizer01->Add(itemDummy01, 0, wxEXPAND | wxALL, border_size);
-
     /* There must be an even number of checkboxes/objects preceeding caption or alignment
        gets messed up, enable the next section as required  */
-    /* wxStaticText *itemDummy01 = new wxStaticText(m_pPanelPreferences, wxID_ANY, _T(""));
-       itemFlexGridSizer01->Add(itemDummy01, 0, wxEXPAND | wxALL, border_size); */
+    wxStaticText *itemDummy01 = new wxStaticText(m_pPanelPreferences, wxID_ANY, _T(""));
+       itemFlexGridSizer01->Add(itemDummy01, 0, wxEXPAND | wxALL, border_size);
 
     wxStaticText* itemStaticText01 = new wxStaticText(m_pPanelPreferences, wxID_ANY, _("Caption:"),
             wxDefaultPosition, wxDefaultSize, 0);
@@ -2489,8 +2488,9 @@ void OdometerWindow::OnSize(wxSizeEvent& event) {
         inst->SetMinSize (
             inst->GetSize(itemBoxSizer->GetOrientation(), GetClientSize()));
     }
-    Refresh();
-    Update();
+    Layout();     // Used in dashboard
+    Refresh();    // Used in dashboard
+//    Update();   // Not used in dashboard
 }
 
 void OdometerWindow::OnContextMenu(wxContextMenuEvent& event) {
@@ -2703,8 +2703,13 @@ printf("\n");
         inst->SetMinSize(inst->GetSize(itemBoxSizer->GetOrientation(), Hint));
         Hint = inst->GetMinSize();
     }
-    Refresh();
-    Update();
+    // As used in dashboard
+    Fit();
+    Layout();
+    SetMinSize(itemBoxSizer->GetMinSize());
+
+//    Refresh();  // Not used in dashboard
+//    Update();   // Not used in dashboard
 }
 
 void OdometerWindow::SendSentenceToAllInstruments(int st, double value, wxString unit) {
