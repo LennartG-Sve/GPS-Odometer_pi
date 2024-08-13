@@ -60,29 +60,16 @@ extern wxFont *g_pFontLabel;
 extern wxFont *g_pFontSmall;
 
 
-//------------------------------------------------------------------------------
-//
-// CLASS:
-//    OdometerInstrument_Button
-//
-// DESCRIPTION:
-//    This class creates a button used for reset functions
-//
-//+------------------------------------------------------------------------------
-
-class OdometerInstrument_Button: public OdometerInstrument {
+class OdometerInstrument_TripResButton: public OdometerInstrument {
 public:
-	OdometerInstrument_Button(wxWindow *parent, wxWindowID id, wxString title, int cap_flag );
-	~OdometerInstrument_Button(void);
+	OdometerInstrument_TripResButton(wxWindow *parent, wxWindowID id, wxString title, int cap_flag );
+	~OdometerInstrument_TripResButton(void);
 
-	wxSize GetSize(int orient, wxSize hint);
-	void SetData(int, double, wxString);
+    wxSize GetSize(int orient, wxSize hint);
+    void SetData(int, double, wxString);
     void OnButtonClickTripReset( wxCommandEvent& event);
-    void OnButtonClickStartStop( wxCommandEvent& event);
-    void OnButtonClickLegReset( wxCommandEvent& event);
-    void OnButtonClickShowLog( wxCommandEvent& event);
 
-    int b_width = 150;
+    int b_width = 157;
     int b_height;
     int GetNumber;
 
@@ -94,8 +81,52 @@ protected:
 	int m_DataHeight;
 
 	virtual void Draw(wxGCDC* dc);
+};
 
+class OdometerInstrument_LegStartStopButton: public OdometerInstrument {
+public:
+	OdometerInstrument_LegStartStopButton(wxWindow *parent, wxWindowID id, wxString title, int cap_flag );
+	~OdometerInstrument_LegStartStopButton(void);
+
+    wxSize GetSize(int orient, wxSize hint);
+    void SetData(int, double, wxString);
+    void OnButtonClickStartStop( wxCommandEvent& event);
+
+    int b_width = 157;
+    int b_height;
+    int GetNumber;
+
+private:
+
+
+protected:
+	wxString m_data;
+	int m_DataHeight;
+
+	virtual void Draw(wxGCDC* dc);
+};
+
+class OdometerInstrument_LegResetButton: public OdometerInstrument {
+public:
+	OdometerInstrument_LegResetButton(wxWindow *parent, wxWindowID id, wxString title, int cap_flag );
+	~OdometerInstrument_LegResetButton(void);
+
+    wxSize GetSize(int orient, wxSize hint);
+    void SetData(int, double, wxString);
+    void OnButtonClickLegReset( wxCommandEvent& event);
+
+    int b_width = 157;
+    int b_height;
+    int GetNumber;
+
+private:
+
+
+protected:
+	wxString m_data;
+	int m_DataHeight;
+
+	virtual void Draw(wxGCDC* dc);
 };
 
 #endif // _BUTTON_H_
-

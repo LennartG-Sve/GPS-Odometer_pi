@@ -314,7 +314,15 @@ bool odometer_pi::DeInit(void) {
     // Save the current configuration
     SaveConfig();
 
-    // Save current distances
+    // Set arrival trip mode if switched off while OnRoute, save current distances
+    if (TripMode == 1) {
+        TripMode = 2;
+        saveTripMode = 1;
+    }
+    if ((TripMode == 3) || (TripMode >= 5)) {
+        TripMode = 4;
+        saveTripMode = 1;
+    }
     saveTripDist = 1;
     saveTotDist = 1;
     WriteTripData();
@@ -880,7 +888,7 @@ void odometer_pi::Odometer() {
     }
     if (ArrTimeShow == 0) strArr = "---";    // Trip reset selected
 
-    // Read updated distances and times from data direcrory
+    // Read updated distances, times and TripMode from data direcrory
     if ((ReadSavedData == 1) && (m_DataFileTextReader.Open(m_DataFile))) {
 
         if (ReadTripFromData == 1)  {
@@ -926,6 +934,10 @@ void odometer_pi::Odometer() {
         if (ReadTripModeFromData == 1)  {
             strTripMode = m_DataFileTextReader.GetLine(5);
             TripMode = wxAtoi(strTripMode);
+
+            // Ensure TripMode has a correct value (0, 2 or 4)
+            if (TripMode == 1) TripMode = 2;
+            if ((TripMode == 3) || (TripMode >= 5)) TripMode = 4;
             ReadTripModeFromData = 0;
         }
 
@@ -1074,14 +1086,25 @@ void odometer_pi::Odometer() {
 
 void odometer_pi::DefineTripData() {
 
-    // Define data file location, ensure it exists or add with default data
+    // Define data file location, ensure it exists or add default data
     m_DataFile.Clear();
     m_DataFile = g_sDataDir + _T("datalog.log");
+    size_t logfilelines;
+    logfilelines = 0;
+    int datalogOK = 0;
 
-    if (m_DataFileTextReader.Open(m_DataFile)) { 
-        m_DataFileTextReader.Close();  // File exists, just close it again
-    } else {    // File does not exist yet, create it with default data
-        m_DataFileTextReader.Create();
+    if (m_DataFileTextReader.Open(m_DataFile))  { 
+        logfilelines = (m_DataFileTextReader.GetLineCount());
+        m_DataFileTextReader.Close();   // File exists, close it again  
+        if (logfilelines >= 8)  {
+            datalogOK = 1;
+        } else {
+            remove(m_DataFile);  // File likely corrupt, remove it
+        }
+    }
+
+    if (datalogOK == 0) {    // Create datalog file with default data
+        m_DataFileTextReader.Create(m_DataFile);
         m_DataFileTextReader.Open(m_DataFile);
         m_DataFileTextReader.AddLine("0.0");
         m_DataFileTextReader.AddLine("0.0");
@@ -2616,9 +2639,6 @@ bool OdometerWindow::isInstrumentListEqual(const wxArrayInt& list) {
 // Create and display each instrument in a odometer container
 // executed at start and when closing setup
 void OdometerWindow::SetInstrumentList(wxArrayInt list) {
-
-printf("\n"); 
-
     m_ArrayOfInstrument.Clear();
     itemBoxSizer->Clear(true);
 
@@ -2648,38 +2668,38 @@ printf("\n");
                 break;
 
             case ID_DBP_I_DEPART:  // id = 3
-                    instrument = new OdometerInstrument_String( this, wxID_ANY,
-                        GetInstrumentCaption( id ), OCPN_DBP_STC_DEPART, _T("%1s") );
+                instrument = new OdometerInstrument_String( this, wxID_ANY,
+                    GetInstrumentCaption( id ), OCPN_DBP_STC_DEPART, _T("%1s") );
                 break;
 
             case ID_DBP_I_ARRIV:  // id = 4
-                    instrument = new OdometerInstrument_String( this, wxID_ANY,
-                        GetInstrumentCaption( id ), OCPN_DBP_STC_ARRIV, _T("%1s") );
+                instrument = new OdometerInstrument_String( this, wxID_ANY,
+                    GetInstrumentCaption( id ), OCPN_DBP_STC_ARRIV, _T("%1s") );
                 break;
 
             case ID_DBP_B_TRIPRES:  // id = 5
-                instrument = new OdometerInstrument_Button( this, wxID_ANY,
+                instrument = new OdometerInstrument_TripResButton( this, wxID_ANY,
                     GetInstrumentCaption( id ), OCPN_DBP_STC_TRIPRES );
                 break;
 
             case ID_DBP_I_LEGDIST:  // id = 6
-                    instrument = new OdometerInstrument_Single( this, wxID_ANY,
-                        GetInstrumentCaption( id ), OCPN_DBP_STC_LEGDIST,_T("%13.2f") );
+                instrument = new OdometerInstrument_Single( this, wxID_ANY,
+                    GetInstrumentCaption( id ), OCPN_DBP_STC_LEGDIST,_T("%13.2f") );
                 break;
 
             case ID_DBP_I_LEGTIME:  // id = 7
-                    instrument = new OdometerInstrument_String( this, wxID_ANY,
-                        GetInstrumentCaption( id ), OCPN_DBP_STC_LEGTIME,_T("%6s") );
+                instrument = new OdometerInstrument_String( this, wxID_ANY,
+                    GetInstrumentCaption( id ), OCPN_DBP_STC_LEGTIME,_T("%6s") );
                 break;
 
             case ID_DBP_B_STARTSTOP:  // id = 8
-                    instrument = new OdometerInstrument_Button( this, wxID_ANY,
-                        GetInstrumentCaption( id ), OCPN_DBP_STC_STARTSTOP );
+                instrument = new OdometerInstrument_LegStartStopButton( this, wxID_ANY,
+                    GetInstrumentCaption( id ), OCPN_DBP_STC_STARTSTOP );
                 break;
 
             case ID_DBP_B_LEGRES:  // id = 9
-                    instrument = new OdometerInstrument_Button( this, wxID_ANY,
-                        GetInstrumentCaption( id ), OCPN_DBP_STC_LEGRES );
+                instrument = new OdometerInstrument_LegResetButton( this, wxID_ANY,
+                    GetInstrumentCaption( id ), OCPN_DBP_STC_LEGRES );
                 break;
 	    	}
 
