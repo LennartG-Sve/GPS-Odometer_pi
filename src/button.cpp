@@ -275,6 +275,7 @@ OdometerInstrument_LegResetButton::OdometerInstrument_LegResetButton(wxWindow *p
     b_width = 157;   // Standard initial default width
     b_height = m_TitleHeight + 12;
 
+
     wxBoxSizer* buttonbox = new wxBoxSizer(wxHORIZONTAL);
     wxButton* m_pLegResetButton = new wxButton(this, m_id, _( m_title ), 
         wxDefaultPosition, wxSize(b_width,b_height));
@@ -285,6 +286,7 @@ OdometerInstrument_LegResetButton::OdometerInstrument_LegResetButton(wxWindow *p
     SetSizerAndFit(buttonbox);
     buttonbox->Show(1, true);
     buttonbox->Layout();
+
 }
 
 OdometerInstrument_LegResetButton::~OdometerInstrument_LegResetButton(void) {

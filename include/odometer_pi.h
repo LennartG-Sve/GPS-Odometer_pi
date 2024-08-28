@@ -162,7 +162,6 @@ public:
 	int GetToolbarItemId();
 	int GetOdometerWindowShownCount();
     void Odometer();
-    void SetInstrSizes();
     void BuildInstrList();
     void ShowViewLogDialog(wxWindow *parent);
     void GenerateLogOutput();
@@ -171,7 +170,6 @@ public:
 	  
     int id;
     int i;   // Integer for while loops
-//    int logDefined = 0;
     int validLog = 0;
     double TotDist = 0.0;
     double oldTotDist = 0.0;
@@ -183,11 +181,7 @@ private:
     wxArrayInt ar;
 	bool LoadConfig(void);
     void LoadFont(wxFont **target, wxString native_info);
-
     void ApplyConfig(void);
-	wxArrayOfInstrument m_ArrayOfInstrument;   // Added for test
-	wxBoxSizer *itemBoxSizer;   // Added for test
-	wxBoxSizer *itemBoxSizerWindow;   // Added for test
 
     // Send deconstructed NMEA 1083 sentence  values to each display
     void SendSentenceToAllInstruments(int st, double value, wxString unit);
@@ -437,9 +431,8 @@ public:
 	wxCheckBox *m_pCheckBoxShowSpeed;
 	wxCheckBox *m_pCheckBoxShowDepArrTimes;
 	wxCheckBox *m_pCheckBoxShowTripLeg;
-//	wxCheckBox *m_pCheckBoxGenerateLogFile;
 	wxCheckBox *m_pCheckBoxIncludeTripStops;
-	wxCheckBox *m_pCheckBoxAutoResetTrip;
+//	wxCheckBox *m_pCheckBoxAutoResetTrip;
 
 
 private:
@@ -535,6 +528,8 @@ public:
     int orient = 0;  // Always vertical
 
     void ViewLogDialog(wxWindow *parent);
+    wxBoxSizer *OdoBoxSizer;
+	OdometerWindow *m_pOdometerWindow;
 
 
 	// TODO: OnKeyPress pass event to main window or disable focus
@@ -552,8 +547,6 @@ public:
 private:
 	wxAuiManager *m_pauimgr;
 	odometer_pi *m_plugin;
-	wxBoxSizer *itemBoxSizer;
-	wxBoxSizer *itemBoxSizerWindow;
 	wxArrayOfInstrument m_ArrayOfInstrument;
     wxArrayOfOdometer m_ArrayOfOdometerWindow;
 };

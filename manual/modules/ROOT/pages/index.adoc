@@ -15,21 +15,21 @@ The GPS Odometer contain these basic functions:
 * An optional Speedometer with both analog and digital readout.
 * A Total Distance log, always displayed.
 * A Trip Distance log, always displayed.
+* A checkbox for Automatic trip reset to automatically execute Trip reset as defined in the setup dialogue.
 * An optional Departure / Arrival time display with digital readout.
 * A Trip reset button that resets Trip, Departure Time and Arrival Time.
 * An optional Autoreset Trip checkbox allowing to automatically execute Trip reset as defined in the setup dialogue.
-* An optional Leg Trip time and Distance counter including Start/Stop Leg and Leg reset buttons.
-* A log to view up to one month old trip log information in text, csv or html format.
+* A log generator logging up to one month old trip log information in text, csv or html format.
 
 == Instruments
 
-The instruments are shown in a predefined order and it is not possible to change that order. It is however possible to toggle the optional instruments on or off right-clicking on the instrument panel selecting 'Settings'. Note that the panel size is set to default when adding or removing instruments and you may manually need to adjust the panel size to accomodate the selected instruments. 
+The instruments are shown in a predefined order and it is not possible to change that order. It is however possible to toggle the optional instruments on or off right-clicking on the instrument panel selecting 'Settings'. Note that the panel size is always set to default size when an instrument is added or removed, you may then manually adjust the panel size or location to fit your preferences. 
 The trip log, with viewing options, is selected right-clicking on the instrument panel selecting 'View trip log'.
 
-. Total distance, Trip distance and the Trip reset button are always displayed and can not be toggled off. Just leave the GPS Odometer on screen and reset the trip counter once the trip is ended (and log book written?) or before the next trip starts, alternatively use the automatic trip reset option.
+. Total distance, Trip distance. Trip reset button and the Automatic trip reset checkbox are always displayed and can not be toggled off. Just leave the GPS Odometer on screen and reset the trip counter once the trip is ended (and log book written?) or before the next trip starts, alternatively use the automatic trip reset option.
 . The trip will be considered started as soon as the speed increases above 'Minimum Route Speed', preset at 2 knots (selectable in the settings menu). The departure date and the departure time will be displayed on the instrument as the upper value for 'Departure & Arrival'.
 . The trip will be considered stopped as soon as the speed decreases below 'Minimum Route Speed' and the arrival date and time will be displayed on the instrument as the lower value for 'Departure & Arrival'.
-. If the speed then again increases above 'Minimum Route Speed' the trip be either continued or a new trip started (new departure) depending on if the 'Trip reset' button has been clicked or not. You may even shut down OpenCPN for e.g. a lunch break, the 'Trip distance' as well as 'Departure & Arrival' times are remembered until the Trip reset button is clicked or an Automatic trip reset is executed. The Automatic trip reset will be executed if 'Autoreset Trip' is selected and the break time exceeds the 'Minimum trip stop time' set in the settings menu.
+. If the speed then again increases above 'Minimum Route Speed' the trip be either continued or a new trip started (new departure) depending on if the 'Trip reset' button has been clicked or not. You may even shut down OpenCPN for e.g. a lunch break, the 'Trip distance' as well as 'Departure & Arrival' times are remembered until the Trip reset button is clicked or an Automatic trip reset is executed. The Automatic trip reset will be executed if 'Autoreset Trip' is selected and the stop time exceeds the 'Minimum trip stop time' set in the settings menu.
 . Departure and arrival times are displayed according to the ISO standard 8601 primary alternative ('YYYY-MM-DD HH:MM').
 . 'Total distance' is simply a counter of distance travelled and is not affected by the reset button. You can edit (increase only) the 'Totaldistance' value in the OpenCPN configuration file e.g. if the GPS Odometer is replacing another log instrument. The format is '12345.6' (one decimal only) and remember to do that while OpenCPN is shut down or your change will be lost.
 . The Leg Trip functionality is a bit different as it has higher time and distance resolution, intended for e.g. tight navigation time and distance measurements like “How far is it between X and Y?” or “How long time does it take between Y and Z?”. Start or resume the distance and time counters clicking the Start/Stop Leg button, it will count distance and time until the button is clicked again. Click the Leg Reset button to zero distance and time and begin a new count session. This counter does not use the 'Minimum Route Speed' setting nor is it saved during trip stops.
@@ -38,7 +38,7 @@ The trip log, with viewing options, is selected right-clicking on the instrument
 . The most important setting is the selection of source protocol between NMEA 0183 (default), Signal K or NMEA2000. This selection is used to avoid the same type of information coming from multiple sources but still allowing e.g. NMEA 0183 to be generated from Signal K without affecting the GPS Odometer. This is a common situation when e.g. using a NMEA 2000 GPS/GNSS unit and a VHF with NMEA 0183 input.
 . The trip log will detect Departure (trip start), Arrival with trip distance and Resumed trip where a trip is restarted without an intermediate trip reset, manual or automatic. You may also, in the settings menu, select the shortest trip stop to be detected and logged, either all stops or stops longer than the time selected in the setings menu.
 To view the log, just right-click somewhere on the instrument and select 'View trip log'. This opens a menu where the viewing options are selected. Note that there must be an associated viewer available for the 'External viewer' alternative. The generated view file is located either in the users home directory (Linux) or the Documents directory (Windows). The saved files have the extension .txt, .csv or .html respectively. File type .csv will have to be converted if used in e.g Excel but there are also free csv file readers available.
-Please note that trip logs are automatically removed when over one month old.
+Please note that trip log information older than one month is automatically removed.
 . The text style and size settings are:
 'Title': Title rows and button texts
 'Data': Distance and time data
@@ -99,9 +99,9 @@ Total distance, Trip distance, Departure time and Arrival time are saved in the 
 
 == Bugs and inconveniences
 
-There are a few bugs/inconveniences as the instrument window sizing when e.g. removing an instrument does not update the panel size properly, just grab the lower right corner and adjust the panel size or, in worst case, restart OpenCPN before it can be adjusted.
+The text height and length in the dialogue may not be correctly included in the size calculation. Just manually adjust the size to accomodate the texts.   
 
-Also, some of the parameters from the Settings menu does not update the instruments until OpenCPN is restarted, like the maximum speed setting in the speedometer.
+Some of the parameters from the Settings menu does not update the instruments until OpenCPN is restarted, like the maximum speed setting in the speedometer.
 
 The display on high reolution screens may not be optimal but regular screens should work just fine.
 
