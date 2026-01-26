@@ -134,14 +134,16 @@ public:
 	// The required OpenCPN PlugIn methods
 	int Init(void);
 	bool DeInit(void);
-	int GetAPIVersionMajor();
-	int GetAPIVersionMinor();
-	int GetPlugInVersionMajor();
-	int GetPlugInVersionMinor();
-    wxBitmap *GetPlugInBitmap();
-	wxString GetCommonName();
-	wxString GetShortDescription();
-	wxString GetLongDescription();
+    int GetAPIVersionMajor() override;
+    int GetAPIVersionMinor() override;
+    int GetPlugInVersionMajor() override;
+    int GetPlugInVersionMinor() override;
+    int GetPlugInVersionPatch() override;
+    int GetPlugInVersionPost() override;
+    wxBitmap *GetPlugInBitmap() override;
+    wxString GetCommonName() override;
+    wxString GetShortDescription() override;
+    wxString GetLongDescription() override;	
 	
 	// As we inherit from wxTimer, the method invoked each timer interval
 	// Used by the plugin to refresh the instruments and to detect stale data 
